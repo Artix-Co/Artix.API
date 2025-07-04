@@ -1,6 +1,0 @@
-@Artix.API.Presentation.Endpoints_HostAddress = http://localhost:5274
-
-GET {{Artix.API.Presentation.Endpoints_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

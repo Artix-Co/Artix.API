@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2"/>
+    </ItemGroup>
+
+   
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.ApplicationService\Artix.API.Core.ApplicationService.csproj"/>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj"/>
+    <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj" />
+  </ItemGroup>
+</Project>

@@ -6,6 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Packages.props = Directory.Packages.props
 		Artix.API.slnx = Artix.API.slnx
 		.gitignore = .gitignore
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
 
@@ -30,9 +31,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Core.DomainServic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Sql", "src\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj", "{80E52C0B-46E9-466E-B615-2F59B899D199}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Presentation.WebService", "src\Presentation\Artix.API.Presentation.WebService\Artix.API.Presentation.WebService.csproj", "{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Endpoints", "src\Presentation\Artix.API.Endpoints\Artix.API.Endpoints.csproj", "{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Presentation.Endpoints", "src\Presentation\Artix.API.Presentation.Endpoints\Artix.API.Presentation.Endpoints.csproj", "{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.WebService", "src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj", "{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
