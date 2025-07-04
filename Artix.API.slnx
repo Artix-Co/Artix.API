@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/Artix.API.Core.ApplicationService/Artix.API.Core.ApplicationService.csproj" />
+    <Project Path="src/Core/Artix.API.Core.Contract/Artix.API.Core.Contract.csproj" />
+    <Project Path="src/Core/Artix.API.Core.Domain/Artix.API.Core.Domain.csproj" />
+    <Project Path="src/Core/Artix.API.Core.DomainService/Artix.API.Core.DomainService.csproj" />
+  </Folder>
+  <Folder Name="/src/Infra/">
+    <Project Path="src/Infra/Artix.API.Infra.Sql/Artix.API.Infra.Sql.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/Artix.API.Presentation.Endpoints/Artix.API.Presentation.Endpoints.csproj" />
+    <Project Path="src/Presentation/Artix.API.Presentation.WebService/Artix.API.Presentation.WebService.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>

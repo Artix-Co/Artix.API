@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{99999999-9999-9999-9999-999999999999}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+		Artix.API.slnx = Artix.API.slnx
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{82FD86BC-E072-4FB6-8992-D00DE3687E2C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infra", "Infra", "{0A235300-A218-47C8-B48A-E00C2452DC7A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{882E216E-2060-4283-8D24-B892BE6688F6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F4DE7FB0-DCAA-4384-9881-6F525B134F09}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A9F4F7C4-BC1E-43D2-A960-36FE1124387C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Core.ApplicationService", "src\Core\Artix.API.Core.ApplicationService\Artix.API.Core.ApplicationService.csproj", "{6796302F-F731-4823-A529-E25355C88DB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Core.Contract", "src\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj", "{38E27C5D-5D68-484C-8666-546D58C2D570}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Core.Domain", "src\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj", "{37F09841-0D80-45F5-9693-227E3B67F67F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Core.DomainService", "src\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj", "{CBB6D61F-84EA-4C3E-B3C6-E3710920306D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Sql", "src\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj", "{80E52C0B-46E9-466E-B615-2F59B899D199}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Presentation.WebService", "src\Presentation\Artix.API.Presentation.WebService\Artix.API.Presentation.WebService.csproj", "{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Presentation.Endpoints", "src\Presentation\Artix.API.Presentation.Endpoints\Artix.API.Presentation.Endpoints.csproj", "{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{882E216E-2060-4283-8D24-B892BE6688F6} = {F4DE7FB0-DCAA-4384-9881-6F525B134F09}
+		{0A235300-A218-47C8-B48A-E00C2452DC7A} = {F4DE7FB0-DCAA-4384-9881-6F525B134F09}
+		{82FD86BC-E072-4FB6-8992-D00DE3687E2C} = {F4DE7FB0-DCAA-4384-9881-6F525B134F09}
+		{6796302F-F731-4823-A529-E25355C88DB2} = {82FD86BC-E072-4FB6-8992-D00DE3687E2C}
+		{38E27C5D-5D68-484C-8666-546D58C2D570} = {82FD86BC-E072-4FB6-8992-D00DE3687E2C}
+		{37F09841-0D80-45F5-9693-227E3B67F67F} = {82FD86BC-E072-4FB6-8992-D00DE3687E2C}
+		{CBB6D61F-84EA-4C3E-B3C6-E3710920306D} = {82FD86BC-E072-4FB6-8992-D00DE3687E2C}
+		{80E52C0B-46E9-466E-B615-2F59B899D199} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
+		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9} = {882E216E-2060-4283-8D24-B892BE6688F6}
+		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC} = {882E216E-2060-4283-8D24-B892BE6688F6}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6796302F-F731-4823-A529-E25355C88DB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6796302F-F731-4823-A529-E25355C88DB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6796302F-F731-4823-A529-E25355C88DB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6796302F-F731-4823-A529-E25355C88DB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38E27C5D-5D68-484C-8666-546D58C2D570}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38E27C5D-5D68-484C-8666-546D58C2D570}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38E27C5D-5D68-484C-8666-546D58C2D570}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38E27C5D-5D68-484C-8666-546D58C2D570}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37F09841-0D80-45F5-9693-227E3B67F67F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37F09841-0D80-45F5-9693-227E3B67F67F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37F09841-0D80-45F5-9693-227E3B67F67F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37F09841-0D80-45F5-9693-227E3B67F67F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBB6D61F-84EA-4C3E-B3C6-E3710920306D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBB6D61F-84EA-4C3E-B3C6-E3710920306D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBB6D61F-84EA-4C3E-B3C6-E3710920306D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBB6D61F-84EA-4C3E-B3C6-E3710920306D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80E52C0B-46E9-466E-B615-2F59B899D199}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80E52C0B-46E9-466E-B615-2F59B899D199}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80E52C0B-46E9-466E-B615-2F59B899D199}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80E52C0B-46E9-466E-B615-2F59B899D199}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
