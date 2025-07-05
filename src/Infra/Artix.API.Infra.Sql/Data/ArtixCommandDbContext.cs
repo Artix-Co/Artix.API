@@ -1,16 +1,17 @@
 ﻿namespace Artix.API.Infra.Sql.Data;
 
 using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.User;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public sealed class ArtixCommandDbContext : DbContext
+public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, long>
 {
     public ArtixCommandDbContext(DbContextOptions<ArtixCommandDbContext> options)
         : base(options)
     {
     }
 
-    
     #region DbSets
 
     #endregion

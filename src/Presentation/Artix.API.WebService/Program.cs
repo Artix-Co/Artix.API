@@ -12,6 +12,11 @@ builder.Services.AddFinBridgeServices(builder.Configuration);
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+
 Log.Logger.Information("Application built!");
 
 app.UseCustomMiddlewares(app.Environment);

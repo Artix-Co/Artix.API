@@ -1,14 +1,19 @@
 ﻿namespace Artix.API.Webservice1;
 
+using System.Text;
 using Core.ApplicationService;
 using Core.Contract;
 using Core.Contract.Configs.Elasticsearch;
+using Core.Domain.Entities.User;
 using Endpoints;
 using Infra.Sql;
+using Infra.Sql.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
-
 
 public static class HostingExtension
 {
@@ -68,6 +73,37 @@ public static class HostingExtension
 
 
         services.AddOpenApi();
+
+        services.AddIdentity<AppUser, IdentityRole<long>>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                // add more options if needed
+            })
+            .AddEntityFrameworkStores<ArtixCommandDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "your-app",
+                    ValidAudience = "your-app",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-super-secret-key"))
+                };
+            });
+
+
+        services.AddAuthorization();
 
         services.AddApplicationServices();
         services.AddContractServices();

@@ -6,6 +6,25 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="EFCore.BulkExtensions"/>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions"/>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables"/>
+  </ItemGroup>
+  
+  
     <ItemGroup>
       <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
       <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
