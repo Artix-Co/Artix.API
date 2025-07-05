@@ -1,13 +1,31 @@
 ﻿namespace Artix.API.Core.Domain.Entities._primitives;
 
-using System.ComponentModel.DataAnnotations;
-
 public abstract class BaseEntity
 {
-    [Key]
-    public long Id { get; private set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public long Id { get; protected set; }
+    public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; set; }
     public bool IsDeleted { get; set; } = true;
     public Guid BusinessId { get; set; } = Guid.CreateVersion7();
+
+    public void SetModified()
+    {
+        ModifiedAt = DateTime.UtcNow;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not BaseEntity other)
+            return false;
+
+        if (ReferenceEquals(this, other))
+            return true;
+
+        return Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode() * 31;
+    }
 }
