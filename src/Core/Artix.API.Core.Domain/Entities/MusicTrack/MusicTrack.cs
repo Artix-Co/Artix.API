@@ -3,7 +3,7 @@
 using _primitives;
 using User;
 
-public class MusicTracks : BaseEntity
+public class MusicTrack : BaseEntity
 {
     public string? Title { get; set; }
 

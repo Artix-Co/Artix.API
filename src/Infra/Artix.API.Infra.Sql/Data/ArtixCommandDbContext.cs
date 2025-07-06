@@ -1,6 +1,12 @@
 ﻿namespace Artix.API.Infra.Sql.Data;
 
 using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.Collection;
+using Core.Domain.Entities.JournalEntry;
+using Core.Domain.Entities.MarketPlace;
+using Core.Domain.Entities.Museum;
+using Core.Domain.Entities.MusicTrack;
+using Core.Domain.Entities.Season;
 using Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +19,26 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     }
 
     #region DbSets
+
+    public DbSet<Collection> Collections { get; set; }
+    public DbSet<CollectionItem> CollectionItems { get; set; }
+    public DbSet<JournalEntry> JournalEntries { get; set; }
+    public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
+    public DbSet<Museum> Museums { get; set; }
+    public DbSet<MuseumObject> MuseumObjects { get; set; }
+    public DbSet<MusicTrack> MusicTracks { get; set; }
+    public DbSet<Season> Seasons { get; set; }
+    public DbSet<SeasonTask> SeasonTasks { get; set; }
+    public DbSet<AppRole> AppRoles { get; set; }
+    public DbSet<AppUser> AppUsers { get; set; }
+    public DbSet<Friendship> Friendships { get; set; }
+    public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
+    public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
+    public DbSet<UserObject> UserObjects { get; set; }
+    public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
+    public DbSet<UserStrike> UserStrikes { get; set; }
+    public DbSet<UserTrack> UserTracks { get; set; }
+    public DbSet<UserXp> UserXps { get; set; }
 
     #endregion
 

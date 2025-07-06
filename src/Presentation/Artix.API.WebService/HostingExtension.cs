@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Webservice1;
 
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Core.ApplicationService;
 using Core.Contract;
@@ -74,15 +75,19 @@ public static class HostingExtension
 
         services.AddOpenApi();
 
-        services.AddIdentity<AppUser, IdentityRole<long>>(options =>
+        services
+            .AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 8;
-                // add more options if needed
+                options.User.RequireUniqueEmail = true;
+                options.SignIn.RequireConfirmedEmail = false;
             })
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
 
+
+      
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -100,7 +105,32 @@ public static class HostingExtension
                     ValidAudience = "your-app",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-super-secret-key"))
                 };
+
+                // ✅ اینجا بگذار:
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                        var user = await userManager.GetUserAsync(context.Principal);
+
+                        if (user == null)
+                        {
+                            context.Fail("Unauthorized");
+                            return;
+                        }
+
+                        var token = context.SecurityToken as JwtSecurityToken;
+                        var storedToken = await userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+
+                        if (storedToken != token?.RawData)
+                        {
+                            context.Fail("Token has been revoked.");
+                        }
+                    }
+                };
             });
+
 
 
         services.AddAuthorization();
@@ -112,7 +142,6 @@ public static class HostingExtension
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
-        // TODO: put job infra DI here
         services.AddControllers();
     }
 }

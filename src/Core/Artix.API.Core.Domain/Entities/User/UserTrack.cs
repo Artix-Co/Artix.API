@@ -9,14 +9,14 @@ public class UserTrack : BaseEntity
     public long TrackId { get; private set; }
     public DateTime AcquiredAt { get; private set; }
 
-    public virtual MusicTracks Track { get; private set; }
+    public virtual MusicTrack Track { get; private set; }
     public virtual AppUser User { get; private set; }
 
-    public UserTrack(long userId, long trackId, MusicTracks track, AppUser user, DateTime acquiredAt)
+    public UserTrack(long userId, long trackId, MusicTrack track, AppUser user, DateTime acquiredAt)
     {
         UserId = userId;
         TrackId = trackId;
-        Track = track ?? throw new ArgumentNullException(nameof(track));
+        this.Track = track ?? throw new ArgumentNullException(nameof(track));
         User = user ?? throw new ArgumentNullException(nameof(user));
         AcquiredAt = acquiredAt;
     }
