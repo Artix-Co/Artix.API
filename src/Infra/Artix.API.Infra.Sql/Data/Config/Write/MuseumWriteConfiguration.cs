@@ -29,7 +29,7 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
         entity.HasMany(e => e.Objects)
             .WithOne()
             .HasForeignKey("MuseumId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
 
         entity.HasIndex(e => e.Name)

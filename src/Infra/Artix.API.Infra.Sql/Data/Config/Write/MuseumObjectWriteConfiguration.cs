@@ -45,7 +45,7 @@ internal sealed class MuseumObjectWriteConfiguration: BaseEntityConfiguration<Mu
         entity.HasOne(e => e.Museum)
             .WithMany(m => m.Objects)
             .HasForeignKey(e => e.MuseumId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasIndex(e => e.MuseumId)
             .HasDatabaseName("IX_MuseumObjects_MuseumId");
