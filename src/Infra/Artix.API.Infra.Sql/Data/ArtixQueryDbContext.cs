@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data;
 
+using System.Reflection;
 using Core.Domain.Entities.Collection;
 using Core.Domain.Entities.JournalEntry;
 using Core.Domain.Entities.MarketPlace;
@@ -52,6 +53,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ArtixQueryDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
+            type => type.Name.EndsWith("ReadConfiguration"));
     }
 }

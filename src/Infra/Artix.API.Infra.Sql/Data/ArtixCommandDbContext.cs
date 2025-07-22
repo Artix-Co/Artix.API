@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data;
 
+using System.Reflection;
 using Core.Domain.Entities._primitives;
 using Core.Domain.Entities.Collection;
 using Core.Domain.Entities.JournalEntry;
@@ -47,7 +48,8 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ArtixCommandDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
+            type => type.Name.EndsWith("WriteConfiguration"));
     }
 
     #region SaveChanges
