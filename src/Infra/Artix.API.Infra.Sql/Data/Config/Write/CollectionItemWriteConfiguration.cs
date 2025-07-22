@@ -15,7 +15,7 @@ internal sealed class CollectionItemWriteConfiguration : IEntityTypeConfiguratio
         entity.HasOne(ci => ci.Collection)
             .WithMany(c => c.Items)
             .HasForeignKey(ci => ci.CollectionId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(ci => ci.Object)
             .WithMany() 

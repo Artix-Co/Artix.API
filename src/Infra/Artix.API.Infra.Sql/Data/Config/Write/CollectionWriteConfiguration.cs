@@ -34,7 +34,7 @@ internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Col
         entity.HasMany(e => e.Items)
             .WithOne()
             .HasForeignKey("CollectionId")
-            .OnDelete(DeleteBehavior.Cascade); 
+            .OnDelete(DeleteBehavior.Restrict); 
 
         entity.HasIndex(e => e.UserId)
             .HasDatabaseName("IX_Collections_UserId");
