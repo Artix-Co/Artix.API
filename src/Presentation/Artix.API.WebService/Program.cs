@@ -8,7 +8,7 @@ using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHealthChecks();
-builder.Services.AddFinBridgeServices(builder.Configuration);
+builder.Services.AddArtixServices(builder.Configuration);
 builder.Host.UseSerilog();
 
 var app = builder.Build();

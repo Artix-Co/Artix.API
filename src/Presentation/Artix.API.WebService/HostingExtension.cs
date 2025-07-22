@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Core.ApplicationService;
 using Core.Contract;
+using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Domain.Entities.User;
 using Endpoints;
@@ -28,7 +29,7 @@ public static class HostingExtension
         var settings = new ConnectionSettings(new Uri(elasticsearchSettings.Uri))
             .DefaultIndex(resolvedIndexName)
             .BasicAuthentication(elasticsearchSettings.Username, elasticsearchSettings.Password)
-            .RequestTimeout(TimeSpan.FromMinutes(int.Parse(elasticsearchSettings.RequestTimeoutInMinutes)))
+            .RequestTimeout(TimeSpan.FromMinutes(elasticsearchSettings.RequestTimeoutInMinutes))
             .EnableDebugMode();
 
 
@@ -40,43 +41,42 @@ public static class HostingExtension
     }
 
 
-    public static void AddFinBridgeServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        var elasticUri = configuration["Elasticsearch:Uri"];
-        var username = configuration["Elasticsearch:Username"];
-        var password = configuration["Elasticsearch:Password"];
-        var indexFormat = configuration["Elasticsearch:IndexFormat"];
-        var requestTimeout = configuration["Elasticsearch:RequestTimeoutInMinutes"];
-        var requestInMinutes = int.Parse(requestTimeout);
 
-
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
-            {
-                AutoRegisterTemplate = true,
-                IndexFormat = indexFormat,
-                ModifyConnectionSettings = c => c.BasicAuthentication(username, password)
-                    .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes))
-            })
-            .ReadFrom.Configuration(configuration)
-            .CreateLogger();
-
-
-        services.AddHsts(options =>
+       public static IServiceCollection AddArtixServices(this IServiceCollection services, IConfiguration configuration)
         {
-            options.MaxAge = TimeSpan.FromDays(365);
-            options.IncludeSubDomains = true;
-            options.Preload = true;
-        });
+            // Configure Authentication Settings
+            services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
 
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+            // Configure Elasticsearch
+            var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
+            ValidateElasticsearchSettings(elasticSettings);
 
+            // Configure Serilog
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSettings.Uri))
+                {
+                    AutoRegisterTemplate = true,
+                    IndexFormat = elasticSettings.IndexFormat,
+                    ModifyConnectionSettings = c => c.BasicAuthentication(elasticSettings.Username, elasticSettings.Password)
+                        .RequestTimeout(TimeSpan.FromMinutes(elasticSettings.RequestTimeoutInMinutes))
+                })
+                .CreateLogger();
 
-        services.AddOpenApi();
+            // Configure HSTS
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+                options.Preload = true;
+            });
 
-        services
-            .AddIdentity<AppUser, AppRole>(options =>
+            // Configure Swagger/OpenAPI
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
+
+            // Configure Identity
+            services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 8;
@@ -86,9 +86,11 @@ public static class HostingExtension
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
 
+            // Configure Authentication
+            var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
+            ValidateAuthenticationSettings(authSettings);
 
-      
-        services.AddAuthentication(options =>
+            services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -101,12 +103,11 @@ public static class HostingExtension
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "your-app",
-                    ValidAudience = "your-app",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-super-secret-key"))
+                    ValidIssuer = authSettings.Issuer,
+                    ValidAudience = authSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey))
                 };
 
-                // ✅ اینجا بگذار:
                 options.Events = new JwtBearerEvents
                 {
                     OnTokenValidated = async context =>
@@ -116,7 +117,7 @@ public static class HostingExtension
 
                         if (user == null)
                         {
-                            context.Fail("Unauthorized");
+                            context.Fail("Unauthorized: User not found.");
                             return;
                         }
 
@@ -125,23 +126,45 @@ public static class HostingExtension
 
                         if (storedToken != token?.RawData)
                         {
-                            context.Fail("Token has been revoked.");
+                            context.Fail("Unauthorized: Token has been revoked.");
                         }
                     }
                 };
             });
 
+            // Configure Authorization and Other Services
+            services.AddAuthorization();
+            services.AddApplicationServices();
+            services.AddContractServices();
+            services.AddElasticsearch(configuration);
+            services.AddCorsPolicy(configuration);
+            services.AddSqlServices(configuration);
+            services.AddControllers();
 
+            return services;
+        }
 
-        services.AddAuthorization();
+        private static void ValidateElasticsearchSettings(ElasticsearchSettings settings)
+        {
+            if (settings == null ||
+                string.IsNullOrEmpty(settings.Uri) ||
+                string.IsNullOrEmpty(settings.Username) ||
+                string.IsNullOrEmpty(settings.Password) ||
+                string.IsNullOrEmpty(settings.IndexFormat) ||
+                settings.RequestTimeoutInMinutes <= 0)
+            {
+                throw new InvalidOperationException("Elasticsearch configuration is missing or invalid.");
+            }
+        }
 
-        services.AddApplicationServices();
-        services.AddContractServices();
-
-
-        services.AddElasticsearch(configuration);
-        services.AddCorsPolicy(configuration);
-        services.AddSqlServices(configuration);
-        services.AddControllers();
-    }
+        private static void ValidateAuthenticationSettings(AuthenticationSettings settings)
+        {
+            if (settings == null ||
+                string.IsNullOrEmpty(settings.Issuer) ||
+                string.IsNullOrEmpty(settings.Audience) ||
+                string.IsNullOrEmpty(settings.IssuerSigningKey))
+            {
+                throw new InvalidOperationException("Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");
+            }
+        }
 }
