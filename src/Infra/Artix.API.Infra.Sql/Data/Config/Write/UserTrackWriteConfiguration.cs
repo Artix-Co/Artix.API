@@ -31,7 +31,7 @@ internal sealed class UserTrackWriteConfiguration : BaseEntityConfiguration<User
         entity.HasOne(e => e.Track)
             .WithMany()
             .HasForeignKey(e => e.TrackId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasCheckConstraint("CK_UserTracks_UserId_NotEqual_TrackId",
             "[UserId] != [TrackId]"); // Prevent invalid relationships

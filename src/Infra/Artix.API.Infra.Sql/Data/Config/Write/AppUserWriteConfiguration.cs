@@ -72,7 +72,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.UserTracks)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserXps)
             .WithOne()
