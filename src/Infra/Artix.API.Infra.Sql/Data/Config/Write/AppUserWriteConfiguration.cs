@@ -18,24 +18,11 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
 
-        entity.Property(e => e.ModifiedAt)
-            .IsRequired(false);
-
-        entity.Property(e => e.IsDeleted)
-            .IsRequired()
-            .HasDefaultValue(false);
-
-        entity.Property(e => e.DisplayName)
-            .HasMaxLength(100)
-            .IsRequired(false);
-
-        entity.Property(e => e.AvatarUrl)
-            .HasMaxLength(2000)
-            .IsRequired(false);
-
-        entity.Property(e => e.IsPro)
-            .IsRequired()
-            .HasDefaultValue(false);
+        entity.Property(e => e.ModifiedAt).IsRequired(false);
+        entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+        entity.Property(e => e.DisplayName).HasMaxLength(100).IsRequired(false);
+        entity.Property(e => e.AvatarUrl).HasMaxLength(2000).IsRequired(false);
+        entity.Property(e => e.IsPro).IsRequired().HasDefaultValue(false);
 
         entity.HasMany(e => e.Collections)
             .WithOne(c => c.User)
@@ -45,7 +32,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.FriendshipFriends)
             .WithOne(f => f.Friend)
             .HasForeignKey("FriendId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.FriendshipUsers)
             .WithOne(f => f.User)
