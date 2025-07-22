@@ -30,7 +30,7 @@ internal sealed class SeasonTaskWriteConfiguration : BaseEntityConfiguration<Sea
         entity.HasOne(e => e.Season)
             .WithMany(s => s.SeasonTasks)
             .HasForeignKey(e => e.SeasonId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasIndex(e => e.SeasonId)
             .HasDatabaseName("IX_SeasonTasks_SeasonId");

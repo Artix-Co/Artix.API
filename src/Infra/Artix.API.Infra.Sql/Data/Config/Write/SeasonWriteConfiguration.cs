@@ -30,7 +30,7 @@ internal sealed class SeasonWriteConfiguration : BaseEntityConfiguration<Season>
         entity.HasMany(e => e.SeasonTasks)
             .WithOne()
             .HasForeignKey("SeasonId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserSeasonProgresses)
             .WithOne()
