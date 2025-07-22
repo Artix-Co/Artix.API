@@ -2,23 +2,18 @@
 
 using _primitives;
 
-public class UserStrike : BaseEntity
+public sealed class UserStrike : BaseEntity
 {
     public long UserId { get; private set; }
+    public AppUser User { get; private set; }
+    
+    
     public DateTime StrikeStart { get; private set; }
     public int StrikeCount { get; private set; }
     public DateTime LastInteraction { get; private set; }
 
-    public virtual AppUser User { get; private set; }
-
-    public UserStrike(long userId, DateTime strikeStart, AppUser user)
-    {
-        UserId = userId;
-        StrikeStart = strikeStart;
-        LastInteraction = strikeStart;
-        StrikeCount = 1;
-        User = user ?? throw new ArgumentNullException(nameof(user));
-    }
+    
+ 
 
     public void IncrementStrike()
     {

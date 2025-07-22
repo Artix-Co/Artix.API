@@ -8,7 +8,7 @@ using User;
  
 
 
-public class Season : BaseAggregateRoot
+public sealed class Season : BaseAggregateRoot
 {
     public string? Name { get; private set; }
     public DateOnly? StartDate { get; private set; }

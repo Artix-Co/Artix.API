@@ -8,7 +8,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Art
 {
     public ArtixCommandDbContext CreateDbContext(string[] args)
     {
-        var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../../Presentation/DPG.WebApi");
+        var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../../Presentation/Artix.API.WebService");
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
         var configuration = new ConfigurationBuilder()
             .SetBasePath(basePath)

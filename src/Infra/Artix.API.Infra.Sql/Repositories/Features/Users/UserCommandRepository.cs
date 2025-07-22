@@ -114,6 +114,90 @@ public sealed class UserCommandRepository : CommandRepository<Friendship>, IUser
 
         return true;
     }
+    
+    
+    //      public async Task<GenerateTokenResponse> GenerateTokenAsync(GenerateTokenRequest request)
+    // {
+    //     if (request.User == null)
+    //         throw new ArgumentNullException(nameof(request.User), "User cannot be null.");
+    //
+    //     var claims = new List<Claim>
+    //     {
+    //         new Claim(ClaimTypes.NameIdentifier, request.User.Id.ToString()),
+    //         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    //         new Claim(ClaimTypes.Name, request.User.UserName)
+    //     };
+    //
+    //     var roles = await _userManager.GetRolesAsync(request.User);
+    //     claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+    //
+    //     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.Key));
+    //     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    //
+    //     var accessToken = new JwtSecurityToken(
+    //         issuer: _options.Value.Issuer,
+    //         audience: _options.Value.Audience,
+    //         claims: claims,
+    //         expires: DateTime.UtcNow.AddMinutes(15),
+    //         signingCredentials: creds
+    //     );
+    //
+    //     var accessTokenString = new JwtSecurityTokenHandler().WriteToken(accessToken);
+    //
+    //     var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    //     var refreshTokenExpiration = DateTime.UtcNow.AddDays(7);
+    //
+    //     var userToken = await _commandDbContext.ApplicationUserTokens
+    //         .FirstOrDefaultAsync(t => t.UserId == request.User.Id);
+    //
+    //     if (userToken == null)
+    //     {
+    //         userToken = new ApplicationUserToken
+    //         {
+    //             UserId = request.User.Id,
+    //             LoginProvider = "JWT",
+    //             Name = "AccessToken",
+    //             Value = accessTokenString,
+    //             RefreshToken = refreshToken,
+    //             RefreshTokenExpiration = refreshTokenExpiration
+    //         };
+    //         _commandDbContext.ApplicationUserTokens.Add(userToken);
+    //     }
+    //     else
+    //     {
+    //         userToken.Value = accessTokenString;
+    //         userToken.RefreshToken = refreshToken;
+    //         userToken.RefreshTokenExpiration = refreshTokenExpiration;
+    //     }
+    //
+    //     await _commandDbContext.SaveChangesAsync();
+    //
+    //     return new GenerateTokenResponse { Token = accessTokenString, RefreshToken = refreshToken };
+    // }
+    //
+    // public async Task<GenerateTokenResponse> RefreshTokenAsync(string refreshToken)
+    // {
+    //     var storedToken = await _commandDbContext.ApplicationUserTokens
+    //         .FirstOrDefaultAsync(t => t.RefreshToken == refreshToken && t.RefreshTokenExpiration > DateTime.UtcNow);
+    //
+    //     if (storedToken == null)
+    //         throw new SecurityTokenException("Invalid or expired refresh token.");
+    //
+    //     var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString());
+    //     if (user == null)
+    //         throw new SecurityTokenException("User not found.");
+    //
+    //     var newTokens = await GenerateTokenAsync(new GenerateTokenRequest { User = user });
+    //
+    //     storedToken.Value = newTokens.Token;
+    //     storedToken.RefreshToken = newTokens.RefreshToken;
+    //     storedToken.RefreshTokenExpiration = DateTime.UtcNow.AddDays(7);
+    //
+    //     await _commandDbContext.SaveChangesAsync();
+    //
+    //     return newTokens;
+    // }
+
 }
 
 

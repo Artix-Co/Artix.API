@@ -26,8 +26,10 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
 
     public void Update(T entity)
     {
-        this._commandDbContext.Set<T>().Update(entity);
-        this._commandDbContext.SaveChanges();
+        if (entity is BaseEntity baseEntity)
+            baseEntity.ApplyGraphTracking(_commandDbContext);
+
+        _commandDbContext.SaveChanges();
     }
 
     public void Delete(long id)
@@ -68,8 +70,10 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
 
     public async Task UpdateAsync(T entity)
     {
-        this._commandDbContext.Set<T>().Update(entity);
-        await this._commandDbContext.SaveChangesAsync();
+        if (entity is BaseEntity baseEntity)
+            baseEntity.ApplyGraphTracking(_commandDbContext);
+
+        await _commandDbContext.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(long id)

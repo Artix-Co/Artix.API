@@ -5,14 +5,17 @@ namespace Artix.API.Core.Domain.Entities.User;
 using _primitives;
 using JournalEntry;
 
-public class UserJournalEntry : BaseEntity
+public sealed class UserJournalEntry : BaseEntity
 {
-    public long? UserId { get; private set; }
-    public long? EntryId { get; private set; }
+  
+  
     public DateTime? UnlockedAt { get; private set; }
 
-    public virtual JournalEntry? Entry { get; private set; }
-    public virtual AppUser? User { get; private set; }
+    public long EntryId { get; private set; }
+    public JournalEntry Entry { get; private set; }
+    
+    public long UserId { get; private set; }
+    public AppUser User { get; private set; }
 
     public void AssignEntry(AppUser user, JournalEntry entry, DateTime? unlockedAt = null)
     {

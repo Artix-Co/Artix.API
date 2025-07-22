@@ -4,9 +4,11 @@ using _primitives;
 using Museum;
 using User;
 
-public class JournalEntry : BaseAggregateRoot
+public sealed class JournalEntry : BaseAggregateRoot
 {
     public long ObjectId { get; set; }
+    public MuseumObject Object { get; set; }
+    
 
     public string? Title { get; set; }
 
@@ -14,7 +16,7 @@ public class JournalEntry : BaseAggregateRoot
 
     public string? Notes { get; set; }
 
-    public virtual MuseumObject? Object { get; set; }
+    
 
     private readonly List<UserJournalEntry> _userJournalEntries = new();
     public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();

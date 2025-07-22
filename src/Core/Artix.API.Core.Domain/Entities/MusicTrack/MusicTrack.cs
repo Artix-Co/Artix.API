@@ -1,9 +1,10 @@
 ﻿namespace Artix.API.Core.Domain.Entities.MusicTrack;
 
 using _primitives;
+using Season;
 using User;
 
-public class MusicTrack : BaseEntity
+public sealed class MusicTrack : BaseEntity
 {
     public string? Title { get; set; }
 
@@ -14,7 +15,10 @@ public class MusicTrack : BaseEntity
     public bool? IsFree { get; set; }
 
     public long? SeasonId { get; set; }
-
-
-    public virtual ICollection<UserTrack> UserTracks { get; set; } = new List<UserTrack>();
+    public Season? Season { get; set; }
+    
+    
+    private readonly List<UserTrack> _objects = new();
+    public IReadOnlyCollection<UserTrack> Tracks => _objects.AsReadOnly();
+   
 }

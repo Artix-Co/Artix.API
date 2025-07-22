@@ -1,17 +1,16 @@
-﻿
-
-namespace Artix.API.Core.Domain.Entities.Season;
+﻿namespace Artix.API.Core.Domain.Entities.Season;
 
 using _primitives;
 
-public class SeasonTask : BaseEntity
+public sealed class SeasonTask : BaseEntity
 {
-    public long? SeasonId { get; private set; }
-    public string? Description { get; private set; }
-    public int? XpReward { get; private set; }
-    public bool? IsPro { get; private set; }
+    public long SeasonId { get; private set; }
+    public Season Season { get; private set; }
 
-    public virtual Season? Season { get; private set; }
+    public string? Description { get; private set; }
+    public int XpReward { get; private set; }
+    public bool IsPro { get; private set; }
+
 
     public void AssignToSeason(Season season)
     {
@@ -20,7 +19,7 @@ public class SeasonTask : BaseEntity
         SetModified();
     }
 
-    public void UpdateDetails(string? description, int? xpReward, bool? isPro)
+    public void UpdateDetails(string? description, int xpReward = 0, bool isPro = false)
     {
         Description = description;
         XpReward = xpReward;

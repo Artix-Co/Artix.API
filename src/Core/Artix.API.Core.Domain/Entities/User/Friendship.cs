@@ -4,13 +4,14 @@ namespace Artix.API.Core.Domain.Entities.User;
 
 using _primitives;
 
-public class Friendship : BaseEntity
+public sealed class Friendship : BaseEntity
 {
-    public long? UserId { get; private set; }
-    public long? FriendId { get; private set; }
-
-    public virtual AppUser? User { get; private set; }
-    public virtual AppUser? Friend { get; private set; }
+    public long UserId { get; private set; }
+    public AppUser User { get; private set; }
+    
+    
+    public long FriendId { get; private set; }
+    public AppUser Friend { get; private set; }
 
     public void AssignUsers(AppUser user, AppUser friend)
     {

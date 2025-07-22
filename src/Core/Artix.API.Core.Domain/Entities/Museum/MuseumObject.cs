@@ -2,11 +2,9 @@
 
 using _primitives;
 
-public class MuseumObject : BaseEntity
+public sealed class MuseumObject : BaseEntity
 {
     public string? Description { get; set; }
-
-    public string? Qrcode { get; set; }
 
     public int? Version { get; set; }
 
@@ -14,6 +12,8 @@ public class MuseumObject : BaseEntity
 
 
     public long MuseumId { get; set; }
+    public Museum Museum { get; set; }
+    
     public string Name { get; set; }
     public string QRCode { get; set; }
     public bool IsSpecial { get; set; }

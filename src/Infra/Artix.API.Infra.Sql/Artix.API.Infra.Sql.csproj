@@ -29,5 +29,10 @@
       <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
       <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
     </ItemGroup>
+  
+  
+    <ItemGroup>
+      <Folder Include="Data\Config\Read\" />
+    </ItemGroup>
 
 </Project>

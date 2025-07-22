@@ -2,7 +2,7 @@
 
 using _primitives;
 
-public class Museum : BaseAggregateRoot
+public sealed class Museum : BaseAggregateRoot
 {
     public string? Name { get; set; }
 

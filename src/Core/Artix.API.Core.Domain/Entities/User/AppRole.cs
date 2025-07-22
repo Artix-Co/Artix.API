@@ -2,7 +2,13 @@
 
 using Microsoft.AspNetCore.Identity;
 
-public class AppRole : IdentityRole<long>
+public sealed class AppRole : IdentityRole<long>
 {
-  
+    public AppRole(string roleName) : base(roleName)
+    {
+    }
+
+    public AppRole() : base()
+    {
+    }
 }

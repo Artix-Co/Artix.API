@@ -4,5 +4,5 @@ using Primitives.Handlers;
 
 public class GetLogoutQuery : IQuery<LogoutDto>
 {
-    public long UserId { get; set; }
+ 
 }

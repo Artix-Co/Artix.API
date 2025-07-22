@@ -5,14 +5,20 @@ namespace Artix.API.Core.Domain.Entities.User;
 using _primitives;
 using Museum;
 
-public class UserMuseumKey : BaseEntity
+public sealed class UserMuseumKey : BaseEntity
 {
-    public long? UserId { get; private set; }
-    public long? MuseumId { get; private set; }
+    public long UserId { get; private set; }
+    public AppUser User { get; private set; }
+    
+    
+    public long MuseumId { get; private set; }
+    public Museum Museum { get; private set; }
+    
+    
     public DateTime? AcquiredAt { get; private set; }
 
-    public virtual Museum? Museum { get; private set; }
-    public virtual AppUser? User { get; private set; }
+    
+    
 
     public void AssignMuseum(AppUser user, Museum museum, DateTime? acquiredAt = null)
     {
