@@ -7,6 +7,6 @@ using Primitives.Repositories;
 
 public interface IUserQueryRepository : IQueryRepository<Friendship>
 {
-    Task<LoginDto> LoginAsync(GetLoginQuery command);
-    Task<LogoutDto> LogoutAsync(GetLogoutQuery command);
+ 
+
 }

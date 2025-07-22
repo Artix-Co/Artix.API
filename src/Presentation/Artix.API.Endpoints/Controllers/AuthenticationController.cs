@@ -4,6 +4,8 @@ namespace Artix.API.Endpoints.Controllers;
 
 using System.Security.Claims;
 using _primitives;
+using Core.Contract.Features.Users.Queries.Login;
+using Core.Contract.Features.Users.Queries.Logout;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
@@ -12,46 +14,31 @@ using Microsoft.AspNetCore.Identity.Data;
 [Route("api/auth")]
 public sealed class AuthenticationController : BaseController
 {
+    private readonly IMediator _mediator;
+
     public AuthenticationController(IMediator mediator) : base(mediator)
     {
+        this._mediator = mediator;
     }
 
-    [HttpPost("register")]
-    
-    
+   
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest request)
+    public async Task<IActionResult> Login(GetLoginQuery query)
     {
-        var user = await _userManager.FindByNameAsync(request.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-            return Unauthorized();
-
-        var token = GenerateJwtToken(user); // You write this method
-
-        // store token in AspNetUserTokens
-        await _userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", token);
-
-        return Ok(new { token });
+        var result = await this._mediator.Send(query);
+        return Ok(result);
     }
 
-    
-    
+
     [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(GetLogoutQuery query)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _userManager.FindByIdAsync(userId);
-
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-
-        return Ok(new { message = "Logged out successfully." });
+        var result = await this._mediator.Send(query);
+        return Ok(result);
     }
 
-    
-    
-    
-    [HttpGet("profile")]
-    
-    [HttpPatch("profile")]
+    // [HttpPost("register")]
+    // [HttpGet("profile")]
+    // [HttpPatch("profile")]
 }

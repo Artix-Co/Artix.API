@@ -7,6 +7,5 @@ using RegisterMobiles;
 
 public interface IUserCommandRepository : ICommandRepository<Friendship>
 {
-    Task<bool> RegisterMobileAsync(RegisterMobileCommand command);
-    Task<bool> RegisterAdminAsync(RegisterAdminCommand command);
+ 
 }
