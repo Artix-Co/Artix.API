@@ -39,6 +39,61 @@ public sealed class AppUser : IdentityUser<long>
     public IReadOnlyCollection<UserTrack> UserTracks => _userTracks.AsReadOnly();
     public IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
 
+    
+    
+    public sealed class AppUserBuilder
+    {
+        private readonly AppUser _user;
+
+        public AppUserBuilder(AppUser user)
+        {
+            _user = user;
+        }
+
+        public AppUserBuilder WithUsername(string? username)
+        {
+            if (!string.IsNullOrWhiteSpace(username))
+                _user.UserName = username;
+
+            return this;
+        }
+
+        public AppUserBuilder WithEmail(string? email)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+                _user.Email = email;
+
+            return this;
+        }
+
+        public AppUserBuilder WithPhoneNumber(string? phoneNumber)
+        {
+            if (!string.IsNullOrWhiteSpace(phoneNumber))
+                _user.PhoneNumber = phoneNumber;
+
+            return this;
+        }
+
+        public AppUserBuilder WithDisplayName(string? displayName)
+        {
+            if (!string.IsNullOrWhiteSpace(displayName))
+                _user.DisplayName = displayName;
+
+            return this;
+        }
+
+        public AppUserBuilder WithModifiedAt(DateTime? modifiedAt = null)
+        {
+            _user.GetType()
+                .GetProperty(nameof(ModifiedAt))?
+                .SetValue(_user, modifiedAt ?? DateTime.UtcNow);
+
+            return this;
+        }
+
+        public AppUser Build() => _user;
+    }
+
 
     public void UpdateProfile(string? displayName, string? avatarUrl, bool isPro = false)
     {

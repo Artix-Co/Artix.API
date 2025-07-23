@@ -16,7 +16,7 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
     private readonly UserManager<AppUser> _userManager;
 
     public LogoutQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
- UserManager<AppUser> userManager) : base(cache,
+        UserManager<AppUser> userManager) : base(cache,
         httpContextAccessor)
     {
         this._httpContextAccessor = httpContextAccessor;
@@ -33,19 +33,18 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
         }
 
 
-
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
             throw new UnauthorizedAccessException("User not found");
 
         await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-        
-        
+
+
         if (_httpContextAccessor.HttpContext != null)
         {
             await _httpContextAccessor.HttpContext.SignOutAsync();
         }
-        
+
         return result;
     }
 }

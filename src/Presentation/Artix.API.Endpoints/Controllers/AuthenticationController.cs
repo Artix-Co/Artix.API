@@ -3,6 +3,7 @@
 namespace Artix.API.Endpoints.Controllers;
 
 using _primitives;
+using Core.Contract.Features.Users.Commands.Modify;
 using Core.Contract.Features.Users.Commands.RegisterAdmins;
 using Core.Contract.Features.Users.Commands.RegisterMobiles;
 using Core.Contract.Features.Users.Queries.GetUserProfile;
@@ -58,13 +59,19 @@ public sealed class AuthenticationController : BaseController
 
     [Authorize]
     [HttpGet("profile")]
-    public async Task<IActionResult> ProfileAsync([FromQuery] GetUserProfileQuery query)
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
     }
    
+
  
-    // [HttpGet("profile")]
-    // [HttpPatch("profile")]
+    [Authorize]
+    [HttpPatch("modify-profile")]
+    public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)
+    {
+        var result = await this._mediator.Send(command);
+        return Ok(result);
+    }
 }
