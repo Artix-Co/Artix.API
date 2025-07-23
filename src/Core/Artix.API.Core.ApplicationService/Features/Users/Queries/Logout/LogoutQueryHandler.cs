@@ -12,16 +12,14 @@ using Primitives;
 
 internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>
 {
-    private readonly IUserQueryRepository _userQueryRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
 
     public LogoutQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        IUserQueryRepository userQueryRepository, UserManager<AppUser> userManager) : base(cache,
+ UserManager<AppUser> userManager) : base(cache,
         httpContextAccessor)
     {
         this._httpContextAccessor = httpContextAccessor;
-        this._userQueryRepository = userQueryRepository;
         this._userManager = userManager;
     }
 

@@ -2,13 +2,13 @@
 
 namespace Artix.API.Endpoints.Controllers;
 
-using System.Security.Claims;
 using _primitives;
+using Core.Contract.Features.Users.Commands.RegisterAdmins;
+using Core.Contract.Features.Users.Commands.RegisterMobiles;
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 
 [ApiController]
 [Route("api/auth")]
@@ -21,9 +21,25 @@ public sealed class AuthenticationController : BaseController
         this._mediator = mediator;
     }
 
+    
+    [HttpPost("register-mobile")]
+    public async Task<IActionResult> RegisterMobileAsync(RegisterMobileCommand command)
+    {
+        var result = await this._mediator.Send(command);
+        return Ok(result);
+    }
+    
+    
+    [HttpPost("register-admin")]
+    public async Task<IActionResult> RegisterAdminAdmin(RegisterAdminCommand command)
+    {
+        var result = await this._mediator.Send(command);
+        return Ok(result);
+    }
+    
    
     [HttpPost("login")]
-    public async Task<IActionResult> Login(GetLoginQuery query)
+    public async Task<IActionResult> LoginAsync(GetLoginQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
@@ -32,13 +48,15 @@ public sealed class AuthenticationController : BaseController
 
     [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout(GetLogoutQuery query)
+    public async Task<IActionResult> LogoutAsync(GetLogoutQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
     }
 
-    // [HttpPost("register")]
+
+   
+ 
     // [HttpGet("profile")]
     // [HttpPatch("profile")]
 }

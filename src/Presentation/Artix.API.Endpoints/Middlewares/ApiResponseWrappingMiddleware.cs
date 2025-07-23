@@ -15,6 +15,13 @@ internal sealed class ApiResponseWrappingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        if (context.Request.Path.StartsWithSegments("/swagger"))
+        {
+            await _next(context);
+            return;
+        }
+        
+        
         var originalBodyStream = context.Response.Body;
 
         await using var memoryStream = new MemoryStream();

@@ -13,6 +13,7 @@ using Infra.Sql.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
@@ -41,42 +42,45 @@ public static class HostingExtension
     }
 
 
+    public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Configure Authentication Settings
+        services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
 
-       public static IServiceCollection AddArtixServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            // Configure Authentication Settings
-            services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
+        // Configure Elasticsearch
+        var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
+        ValidateElasticsearchSettings(elasticSettings);
 
-            // Configure Elasticsearch
-            var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-            ValidateElasticsearchSettings(elasticSettings);
-
-            // Configure Serilog
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSettings.Uri))
-                {
-                    AutoRegisterTemplate = true,
-                    IndexFormat = elasticSettings.IndexFormat,
-                    ModifyConnectionSettings = c => c.BasicAuthentication(elasticSettings.Username, elasticSettings.Password)
-                        .RequestTimeout(TimeSpan.FromMinutes(elasticSettings.RequestTimeoutInMinutes))
-                })
-                .CreateLogger();
-
-            // Configure HSTS
-            services.AddHsts(options =>
+        // Configure Serilog
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSettings.Uri))
             {
-                options.MaxAge = TimeSpan.FromDays(365);
-                options.IncludeSubDomains = true;
-                options.Preload = true;
-            });
+                AutoRegisterTemplate = true,
+                IndexFormat = elasticSettings.IndexFormat,
+                ModifyConnectionSettings = c => c
+                    .BasicAuthentication(elasticSettings.Username, elasticSettings.Password)
+                    .RequestTimeout(TimeSpan.FromMinutes(elasticSettings.RequestTimeoutInMinutes))
+            })
+            .CreateLogger();
 
-            // Configure Swagger/OpenAPI
-            services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+        // Configure HSTS
+        services.AddHsts(options =>
+        {
+            options.MaxAge = TimeSpan.FromDays(365);
+            options.IncludeSubDomains = true;
+            options.Preload = true;
+        });
 
-            // Configure Identity
-            services.AddIdentity<AppUser, AppRole>(options =>
+
+ 
+
+        // Configure Cache
+        services.AddMemoryCache();
+
+
+        // Configure Identity
+        services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 8;
@@ -86,11 +90,11 @@ public static class HostingExtension
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
 
-            // Configure Authentication
-            var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
-            ValidateAuthenticationSettings(authSettings);
+        // Configure Authentication
+        var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
+        ValidateAuthenticationSettings(authSettings);
 
-            services.AddAuthentication(options =>
+        services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -105,14 +109,16 @@ public static class HostingExtension
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = authSettings.Issuer,
                     ValidAudience = authSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey))
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey))
                 };
 
                 options.Events = new JwtBearerEvents
                 {
                     OnTokenValidated = async context =>
                     {
-                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                        var userManager =
+                            context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
                         var user = await userManager.GetUserAsync(context.Principal);
 
                         if (user == null)
@@ -122,7 +128,8 @@ public static class HostingExtension
                         }
 
                         var token = context.SecurityToken as JwtSecurityToken;
-                        var storedToken = await userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+                        var storedToken =
+                            await userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
 
                         if (storedToken != token?.RawData)
                         {
@@ -132,39 +139,67 @@ public static class HostingExtension
                 };
             });
 
-            // Configure Authorization and Other Services
-            services.AddAuthorization();
-            services.AddApplicationServices();
-            services.AddContractServices();
-            services.AddElasticsearch(configuration);
-            services.AddCorsPolicy(configuration);
-            services.AddSqlServices(configuration);
-            services.AddControllers();
+        // Configure Authorization and Other Services
+        services.AddAuthorization();
+        services.AddApplicationServices();
+        services.AddContractServices();
+        services.AddElasticsearch(configuration);
+        services.AddCorsPolicy(configuration);
+        services.AddSqlServices(configuration);
+        services.AddControllers();
 
-            return services;
-        }
-
-        private static void ValidateElasticsearchSettings(ElasticsearchSettings settings)
+        services.AddSwaggerGen(c =>
         {
-            if (settings == null ||
-                string.IsNullOrEmpty(settings.Uri) ||
-                string.IsNullOrEmpty(settings.Username) ||
-                string.IsNullOrEmpty(settings.Password) ||
-                string.IsNullOrEmpty(settings.IndexFormat) ||
-                settings.RequestTimeoutInMinutes <= 0)
+            c.SwaggerDoc("api", new OpenApiInfo
             {
-                throw new InvalidOperationException("Elasticsearch configuration is missing or invalid.");
-            }
-        }
+                Title = "Artix API",
+                Description = "Single-version production API",
+            });
+            c.EnableAnnotations(); // For Swashbuckle.AspNetCore.Annotations
+            // Optional: Add JWT support since you have Microsoft.AspNetCore.Authentication.JwtBearer
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Description = "Enter 'Bearer {token}'",
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
+    }
 
-        private static void ValidateAuthenticationSettings(AuthenticationSettings settings)
+    private static void ValidateElasticsearchSettings(ElasticsearchSettings settings)
+    {
+        if (settings == null ||
+            string.IsNullOrEmpty(settings.Uri) ||
+            string.IsNullOrEmpty(settings.Username) ||
+            string.IsNullOrEmpty(settings.Password) ||
+            string.IsNullOrEmpty(settings.IndexFormat) ||
+            settings.RequestTimeoutInMinutes <= 0)
         {
-            if (settings == null ||
-                string.IsNullOrEmpty(settings.Issuer) ||
-                string.IsNullOrEmpty(settings.Audience) ||
-                string.IsNullOrEmpty(settings.IssuerSigningKey))
-            {
-                throw new InvalidOperationException("Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");
-            }
+            throw new InvalidOperationException("Elasticsearch configuration is missing or invalid.");
         }
+    }
+
+    private static void ValidateAuthenticationSettings(AuthenticationSettings settings)
+    {
+        if (settings == null ||
+            string.IsNullOrEmpty(settings.Issuer) ||
+            string.IsNullOrEmpty(settings.Audience) ||
+            string.IsNullOrEmpty(settings.IssuerSigningKey))
+        {
+            throw new InvalidOperationException(
+                "Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");
+        }
+    }
 }

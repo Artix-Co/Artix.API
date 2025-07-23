@@ -13,8 +13,8 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+
+ 
 
 
 Log.Logger.Information("Application built!");
@@ -25,7 +25,11 @@ Log.Logger.Information("Application started!");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/api/swagger.json", "Artix API");
+        c.RoutePrefix = "swagger"; 
+    });
     app.MapOpenApi();
 }
 
@@ -61,30 +65,14 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+ 
+ 
 
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
-
-
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
+
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+ 
