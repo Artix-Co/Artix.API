@@ -15,7 +15,7 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
 
         entity.Property(e => e.Name)
             .HasMaxLength(100)
-            .IsRequired(false);
+            .IsRequired();
 
         entity.Property(e => e.Description)
             .HasMaxLength(500)
@@ -26,7 +26,7 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
             .HasDefaultValue(true);
 
 
-        entity.HasMany(e => e.Objects)
+        entity.HasMany(e => e.MuseumObjects)
             .WithOne()
             .HasForeignKey("MuseumId")
             .OnDelete(DeleteBehavior.Restrict);

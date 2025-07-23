@@ -4,7 +4,7 @@ using _primitives;
 
 public sealed class Museum : BaseAggregateRoot
 {
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public string? Description { get; set; }
 
@@ -12,7 +12,7 @@ public sealed class Museum : BaseAggregateRoot
 
 
     private readonly List<MuseumObject> _objects = new();
-    public IReadOnlyCollection<MuseumObject> Objects => _objects.AsReadOnly();
+    public IReadOnlyCollection<MuseumObject> MuseumObjects => _objects.AsReadOnly();
 
     public void AddObject(MuseumObject obj)
     {

@@ -6,7 +6,7 @@ using Data;
 using EFCore.BulkExtensions;
 
 public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
-    : ICommandRepository<T> where T : BaseEntity
+    : ICommandRepository<T> where T : BaseAggregateRoot
 {
     protected readonly ArtixCommandDbContext _commandDbContext = commandDbContext;
 

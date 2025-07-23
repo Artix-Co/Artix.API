@@ -43,7 +43,7 @@ internal sealed class MuseumObjectWriteConfiguration: BaseEntityConfiguration<Mu
             .HasDefaultValue(false); 
 
         entity.HasOne(e => e.Museum)
-            .WithMany(m => m.Objects)
+            .WithMany(m => m.MuseumObjects)
             .HasForeignKey(e => e.MuseumId)
             .OnDelete(DeleteBehavior.Restrict);
 
