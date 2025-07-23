@@ -1,6 +1,5 @@
-﻿namespace Artix.API.Webservice1;
+﻿namespace Artix.API.WebService;
 
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Core.ApplicationService;
@@ -9,18 +8,17 @@ using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Domain.Entities.User;
 using Endpoints;
+using Filters;
 using Infra.Sql;
 using Infra.Sql.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 public static class HostingExtension
 {
@@ -231,43 +229,4 @@ public static class HostingExtension
     }
 }
 
-public class AuthorizeCheckOperationFilter : IOperationFilter
-{
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
-    {
-        // Check if the action method has the [Authorize] attribute
-        var hasAuthorizeAttribute = context.MethodInfo
-            .GetCustomAttributes(true)
-            .Any(attr => attr is AuthorizeAttribute);
 
-        // If the action method doesn't have [Authorize], check if the controller has it
-        if (!hasAuthorizeAttribute)
-        {
-            hasAuthorizeAttribute = context.MethodInfo.DeclaringType
-                .GetCustomAttributes(true)
-                .Any(attr => attr is AuthorizeAttribute);
-        }
-
-        // If [Authorize] attribute is found on either the controller or action, add security requirement
-        if (hasAuthorizeAttribute)
-        {
-            operation.Security ??= new List<OpenApiSecurityRequirement>();
-
-            // Add the security requirement for the Bearer token (JWT)
-            operation.Security.Add(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer" // The name of the security scheme defined earlier
-                        }
-                    },
-                    new string[] { }
-                }
-            });
-        }
-    }
-}

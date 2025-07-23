@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
-using Artix.API.Webservice1;
+using Artix.API.WebService;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Nest;
