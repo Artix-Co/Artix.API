@@ -5,6 +5,7 @@ namespace Artix.API.Endpoints.Controllers;
 using _primitives;
 using Core.Contract.Features.Users.Commands.RegisterAdmins;
 using Core.Contract.Features.Users.Commands.RegisterMobiles;
+using Core.Contract.Features.Users.Queries.GetUserProfile;
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
 using MediatR;
@@ -55,6 +56,13 @@ public sealed class AuthenticationController : BaseController
     }
 
 
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> ProfileAsync([FromQuery] GetUserProfileQuery query)
+    {
+        var result = await this._mediator.Send(query);
+        return Ok(result);
+    }
    
  
     // [HttpGet("profile")]

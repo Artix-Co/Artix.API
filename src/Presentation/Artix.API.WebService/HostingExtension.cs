@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Webservice1;
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Core.ApplicationService;
 using Core.Contract;
@@ -11,12 +12,15 @@ using Endpoints;
 using Infra.Sql;
 using Infra.Sql.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 public static class HostingExtension
 {
@@ -73,8 +77,6 @@ public static class HostingExtension
         });
 
 
- 
-
         // Configure Cache
         services.AddMemoryCache();
 
@@ -94,6 +96,7 @@ public static class HostingExtension
         var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
         ValidateAuthenticationSettings(authSettings);
 
+
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -110,7 +113,8 @@ public static class HostingExtension
                     ValidIssuer = authSettings.Issuer,
                     ValidAudience = authSettings.Audience,
                     IssuerSigningKey =
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey))
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
+                    ClockSkew = TimeSpan.FromMinutes(5)
                 };
 
                 options.Events = new JwtBearerEvents
@@ -119,22 +123,54 @@ public static class HostingExtension
                     {
                         var userManager =
                             context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                        var user = await userManager.GetUserAsync(context.Principal);
+                        var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                                          context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                        Console.WriteLine($"User ID Claim: {userIdClaim}");
 
-                        if (user == null)
+                        if (string.IsNullOrEmpty(userIdClaim))
                         {
-                            context.Fail("Unauthorized: User not found.");
+                            context.Fail("Unauthorized: User ID claim missing.");
                             return;
                         }
 
-                        var token = context.SecurityToken as JwtSecurityToken;
+                        var user = await userManager.FindByIdAsync(userIdClaim);
+                        if (user == null)
+                        {
+                            context.Fail($"Unauthorized: User not found for ID {userIdClaim}.");
+                            return;
+                        }
+
+                        // Get the raw token from the Authorization header
+                        if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader) ||
+                            !authHeader.ToString().StartsWith("Bearer "))
+                        {
+                            context.Fail("Unauthorized: Bearer token missing or invalid.");
+                            return;
+                        }
+
+                        var tokenString = authHeader.ToString().Substring("Bearer ".Length).Trim();
+                        Console.WriteLine($"Presented Token: {tokenString}");
+
                         var storedToken =
                             await userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+                        Console.WriteLine($"Stored Token: {storedToken}");
 
-                        if (storedToken != token?.RawData)
+                        if (string.IsNullOrEmpty(storedToken))
                         {
-                            context.Fail("Unauthorized: Token has been revoked.");
+                            context.Fail($"Unauthorized: No token found for user {userIdClaim}.");
+                            return;
                         }
+
+                        if (storedToken != tokenString)
+                        {
+                            context.Fail($"Unauthorized: Token has been revoked for user {userIdClaim}.");
+                            return;
+                        }
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                        return Task.CompletedTask;
                     }
                 };
             });
@@ -148,33 +184,24 @@ public static class HostingExtension
         services.AddSqlServices(configuration);
         services.AddControllers();
 
-        services.AddSwaggerGen(c =>
+        services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("api", new OpenApiInfo
-            {
-                Title = "Artix API",
-                Description = "Single-version production API",
-            });
-            c.EnableAnnotations(); // For Swashbuckle.AspNetCore.Annotations
-            // Optional: Add JWT support since you have Microsoft.AspNetCore.Authentication.JwtBearer
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                In = ParameterLocation.Header,
-                Description = "Enter 'Bearer {token}'",
-                Name = "Authorization",
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
-            });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
+        
+
+            // Define the Bearer authentication scheme in Swagger
+            options.AddSecurityDefinition("Bearer",
+                new OpenApiSecurityScheme
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Please enter JWT with Bearer into field"
+                });
+
+
+            options.OperationFilter<AuthorizeCheckOperationFilter>();
         });
     }
 
@@ -200,6 +227,47 @@ public static class HostingExtension
         {
             throw new InvalidOperationException(
                 "Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");
+        }
+    }
+}
+
+public class AuthorizeCheckOperationFilter : IOperationFilter
+{
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    {
+        // Check if the action method has the [Authorize] attribute
+        var hasAuthorizeAttribute = context.MethodInfo
+            .GetCustomAttributes(true)
+            .Any(attr => attr is AuthorizeAttribute);
+
+        // If the action method doesn't have [Authorize], check if the controller has it
+        if (!hasAuthorizeAttribute)
+        {
+            hasAuthorizeAttribute = context.MethodInfo.DeclaringType
+                .GetCustomAttributes(true)
+                .Any(attr => attr is AuthorizeAttribute);
+        }
+
+        // If [Authorize] attribute is found on either the controller or action, add security requirement
+        if (hasAuthorizeAttribute)
+        {
+            operation.Security ??= new List<OpenApiSecurityRequirement>();
+
+            // Add the security requirement for the Bearer token (JWT)
+            operation.Security.Add(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer" // The name of the security scheme defined earlier
+                        }
+                    },
+                    new string[] { }
+                }
+            });
         }
     }
 }

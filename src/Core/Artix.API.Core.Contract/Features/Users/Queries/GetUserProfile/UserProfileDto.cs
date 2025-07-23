@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Users.Queries.GetUserProfile;
 
-public class UserProfileDto
+public sealed class UserProfileDto
 {
     public long Id { get; set; }
     public string? Username { get; set; }

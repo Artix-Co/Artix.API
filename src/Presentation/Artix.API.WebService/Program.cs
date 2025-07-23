@@ -25,11 +25,7 @@ Log.Logger.Information("Application started!");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/api/swagger.json", "Artix API");
-        c.RoutePrefix = "swagger"; 
-    });
+    app.UseSwaggerUI();
     app.MapOpenApi();
 }
 
