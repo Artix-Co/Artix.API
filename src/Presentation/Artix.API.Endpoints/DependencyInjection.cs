@@ -48,7 +48,6 @@ public static class DependencyInjection
 
         app.UseCors("CorsPolicy");
 
-        app.UseMiddleware<ApiExceptionHandlingMiddleware>();
         app.UseMiddleware<ApiResponseWrappingMiddleware>();
     }
 }
