@@ -7,6 +7,7 @@ using GetMuseumJournalEntries;
 using GetMuseumKeyStatus;
 using GetMuseumObjects;
 using GetObjects;
+using GetObjectScans;
 using Primitives.Models;
 using Primitives.Repositories;
 
@@ -29,4 +30,6 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
 
     Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery query,
         CancellationToken cancellationToken = default);
+
+    Task<ObjectScanDto> GetObjectScanAsync(GetObjectScanQuery query, CancellationToken cancellationToken);
 }

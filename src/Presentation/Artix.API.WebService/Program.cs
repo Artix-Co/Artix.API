@@ -3,7 +3,9 @@ using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Sql.Data;
 using Artix.API.Infra.Sql.Data.Seed;
+using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -25,6 +27,29 @@ Log.Logger.Information("Application built!");
 //     await context.Database.MigrateAsync();
 //     await DataSeeder.SeedAsync(context);
 // }
+
+app.UseExceptionHandler(config =>
+{
+    config.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        context.Response.ContentType = "application/json";
+
+        context.Response.StatusCode = exception switch
+        {
+            NotFoundException => StatusCodes.Status404NotFound,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        var result = JsonSerializer.Serialize(new
+        {
+            error = exception?.Message
+        });
+
+        await context.Response.WriteAsync(result);
+    });
+});
 
 app.UseCustomMiddlewares(app.Environment);
 

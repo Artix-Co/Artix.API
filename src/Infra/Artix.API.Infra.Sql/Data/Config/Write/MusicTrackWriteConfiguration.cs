@@ -35,6 +35,12 @@ internal sealed class MusicTrackWriteConfiguration : BaseEntityConfiguration<Mus
         entity.HasOne(e => e.Season)
             .WithMany()
             .HasForeignKey(e => e.SeasonId)
+            .OnDelete(DeleteBehavior.Restrict);    
+        
+        
+        entity.HasOne(e => e.MuseumObject)
+            .WithMany()
+            .HasForeignKey(e => e.MuseumObjectId)
             .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.Tracks)
