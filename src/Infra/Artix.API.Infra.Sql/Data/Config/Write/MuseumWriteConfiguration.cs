@@ -4,8 +4,7 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>,
-    IEntityTypeConfiguration<Museum>
+internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
 {
     public void Configure(EntityTypeBuilder<Museum> entity)
     {

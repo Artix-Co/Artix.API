@@ -4,8 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserSeasonProgressWriteConfiguration : BaseEntityConfiguration<UserSeasonProgress>,
-    IEntityTypeConfiguration<UserSeasonProgress>
+internal sealed class UserSeasonProgressWriteConfiguration : BaseEntityConfiguration<UserSeasonProgress>
 {
     public void Configure(EntityTypeBuilder<UserSeasonProgress> entity)
     {

@@ -4,8 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserObjectWriteConfiguration : BaseEntityConfiguration<UserObject>,
-    IEntityTypeConfiguration<UserObject>
+internal sealed class UserObjectWriteConfiguration : BaseEntityConfiguration<UserObject> 
 {
     public void Configure(EntityTypeBuilder<UserObject> entity)
     {

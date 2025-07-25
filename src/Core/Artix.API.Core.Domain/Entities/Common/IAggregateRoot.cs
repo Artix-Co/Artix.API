@@ -2,9 +2,9 @@
 
 public interface IAggregateRoot
 {
-    IReadOnlyCollection<BaseEntity> Entities { get; }
-    void AddEntity(BaseEntity entity);
-    void RemoveEntity(BaseEntity entity);
-    IEnumerable<T> GetEntitiesOfType<T>() where T : BaseEntity;
+    IReadOnlyCollection<IEntity> Entities { get; }
+    void AddEntity(IEntity entity);
+    void RemoveEntity(IEntity entity);
+    IEnumerable<T> GetEntitiesOfType<T>() where T : IEntity;
     void ClearEntities();
 }

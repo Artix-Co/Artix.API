@@ -4,7 +4,7 @@ using Core.Domain.Entities.Collection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Collection>, IEntityTypeConfiguration<Collection>
+internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Collection>
 {
     public void Configure(EntityTypeBuilder<Collection> entity)
     {
@@ -13,11 +13,11 @@ internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Col
         entity.ToTable("Collections");
 
         entity.Property(e => e.Name)
-            .HasMaxLength(100) 
+            .HasMaxLength(100)
             .IsRequired(false);
 
         entity.Property(e => e.Description)
-            .HasMaxLength(500) 
+            .HasMaxLength(500)
             .IsRequired(false);
 
         entity.Property(e => e.IsPublic)
@@ -27,20 +27,20 @@ internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Col
             .IsRequired();
 
         entity.HasOne(e => e.User)
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.Items)
             .WithOne()
             .HasForeignKey("CollectionId")
-            .OnDelete(DeleteBehavior.Restrict); 
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasIndex(e => e.UserId)
             .HasDatabaseName("IX_Collections_UserId");
 
         entity.HasIndex(e => e.Name)
             .HasDatabaseName("IX_Collections_Name")
-            .IsUnique(); 
+            .IsUnique();
     }
 }

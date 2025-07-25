@@ -4,7 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserXpWriteConfiguration : BaseEntityConfiguration<UserXp>, IEntityTypeConfiguration<UserXp>
+internal sealed class UserXpWriteConfiguration : BaseEntityConfiguration<UserXp> 
 {
     public void Configure(EntityTypeBuilder<UserXp> entity)
     {
@@ -27,7 +27,7 @@ internal sealed class UserXpWriteConfiguration : BaseEntityConfiguration<UserXp>
             .WithMany(u => u.UserXps)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
+        
         entity.HasCheckConstraint("CK_UserXps_TotalXp_NonNegative", "[TotalXp] >= 0"); // Ensure TotalXp is non-negative
 
         entity.HasIndex(e => e.UserId)

@@ -4,8 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserMuseumKeyWriteConfiguration : BaseEntityConfiguration<UserMuseumKey>,
-    IEntityTypeConfiguration<UserMuseumKey>
+internal sealed class UserMuseumKeyWriteConfiguration : BaseEntityConfiguration<UserMuseumKey> 
 {
     public void Configure(EntityTypeBuilder<UserMuseumKey> entity)
     {

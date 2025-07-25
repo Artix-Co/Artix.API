@@ -4,9 +4,7 @@ using System.Reflection;
 using Artix.API.Core.Domain.Entities.Collection;
 using Artix.API.Core.Domain.Entities.Common;
 using Artix.API.Core.Domain.Entities.JournalEntry;
-using Artix.API.Core.Domain.Entities.MarketPlace;
 using Artix.API.Core.Domain.Entities.Museum;
-using Artix.API.Core.Domain.Entities.MusicTrack;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -52,9 +50,17 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
+ 
+        
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
             type => type.Name.EndsWith("WriteConfiguration"));
+        
+        Console.WriteLine("Entity Types:");
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            Console.WriteLine($"- {entityType.ClrType.FullName}");
+        }
+
     }
 
     #region SaveChanges

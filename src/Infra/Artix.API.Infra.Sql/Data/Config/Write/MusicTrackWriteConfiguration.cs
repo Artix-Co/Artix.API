@@ -1,11 +1,10 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
 
-using Core.Domain.Entities.MusicTrack;
+using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MusicTrackWriteConfiguration : BaseEntityConfiguration<MusicTrack>,
-    IEntityTypeConfiguration<MusicTrack>
+internal sealed class MusicTrackWriteConfiguration : BaseEntityConfiguration<MusicTrack> 
 {
     public void Configure(EntityTypeBuilder<MusicTrack> entity)
     {

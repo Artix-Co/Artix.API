@@ -26,23 +26,23 @@ public sealed class Season : BaseAggregateRoot
         SetModified();
     }
 
-    public void AddSeasonTask(SeasonTask task)
-    {
-        if (task == null)
-            throw DomainException.InvalidValue(nameof(task));
-        if (!_seasonTasks.Contains(task))
-        {
-            _seasonTasks.Add(task);
-            AddEntity(task);
-        }
-    }
-
-    public void RemoveSeasonTask(SeasonTask task)
-    {
-        if (task is null)
-            throw DomainException.InvalidValue(nameof(task));
-
-        if (_seasonTasks.Remove(task))
-            RemoveEntity(task);
-    }
+    // public void AddSeasonTask(SeasonTask task)
+    // {
+    //     if (task == null)
+    //         throw DomainException.InvalidValue(nameof(task));
+    //     if (!_seasonTasks.Contains(task))
+    //     {
+    //         _seasonTasks.Add(task);
+    //         AddEntity(task);
+    //     }
+    // }
+    //
+    // public void RemoveSeasonTask(SeasonTask task)
+    // {
+    //     if (task is null)
+    //         throw DomainException.InvalidValue(nameof(task));
+    //
+    //     if (_seasonTasks.Remove(task))
+    //         RemoveEntity(task);
+    // }
 }

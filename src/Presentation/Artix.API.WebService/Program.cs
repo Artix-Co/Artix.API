@@ -3,6 +3,7 @@ using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Sql.Data;
+using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
@@ -22,12 +23,12 @@ var app = builder.Build();
 Log.Logger.Information("Application built!");
 
 
-// using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
-//     await context.Database.MigrateAsync();
-//     await DataSeeder.SeedAsync(context);
-// }
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+    await context.Database.MigrateAsync();
+    // await DataSeeder.SeedAsync(context);
+}
 
 app.UseExceptionHandler(config =>
 {

@@ -4,8 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserStrikeWriteConfiguration : BaseEntityConfiguration<UserStrike>,
-    IEntityTypeConfiguration<UserStrike>
+internal sealed class UserStrikeWriteConfiguration : BaseEntityConfiguration<UserStrike> 
 {
     public void Configure(EntityTypeBuilder<UserStrike> entity)
     {
@@ -32,6 +31,8 @@ internal sealed class UserStrikeWriteConfiguration : BaseEntityConfiguration<Use
             .WithMany(u => u.UserStrikes)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+
 
         entity.HasCheckConstraint("CK_UserStrikes_StrikeCount_NonNegative",
             "[StrikeCount] >= 0"); // Ensure StrikeCount is non-negative

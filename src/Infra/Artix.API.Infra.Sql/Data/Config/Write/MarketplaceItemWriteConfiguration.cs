@@ -1,12 +1,11 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
 
 using Core.Domain.Entities.JournalEntry;
-using Core.Domain.Entities.MarketPlace;
+using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MarketplaceItemWriteConfiguration : BaseEntityConfiguration<MarketplaceItem>,
-    IEntityTypeConfiguration<MarketplaceItem>
+internal sealed class MarketplaceItemWriteConfiguration : BaseEntityConfiguration<MarketplaceItem>
 {
     public void Configure(EntityTypeBuilder<MarketplaceItem> entity)
     {

@@ -17,10 +17,10 @@ public sealed class ObjectScanDto
 
     
     
-    public string? VoiceAssistantAudio { get; set; }
-    public string? VoiceAssistantTitle { get; set; }
-    public bool? VoiceAssistantIsFree { get; set; }
-    public string? VoiceAssistantArtist { get; set; }
+    // public string? VoiceAssistantAudio { get; set; }
+    // public string? VoiceAssistantTitle { get; set; }
+    // public bool? VoiceAssistantIsFree { get; set; }
+    // public string? VoiceAssistantArtist { get; set; }
     
     
     

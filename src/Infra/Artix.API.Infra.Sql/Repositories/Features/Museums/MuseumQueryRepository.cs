@@ -410,13 +410,13 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 MuseumId = g.Key.MuseumId,
                 MuseumName = g.Key.MuseumName,
 
-                VoiceAssistantAudio = g
-                    .Select(x => x.mt?.Url)
-                    .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
-
-                VoiceAssistantTitle = g.Select(x => x.mt?.Title).FirstOrDefault(),
-                VoiceAssistantIsFree = g.Select(x => x.mt?.IsFree).FirstOrDefault(),
-                VoiceAssistantArtist = g.Select(x => x.mt?.Artist).FirstOrDefault(),
+                // VoiceAssistantAudio = g
+                //     .Select(x => x.mt?.Url)
+                //     .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
+                //
+                // VoiceAssistantTitle = g.Select(x => x.mt?.Title).FirstOrDefault(),
+                // VoiceAssistantIsFree = g.Select(x => x.mt?.IsFree).FirstOrDefault(),
+                // VoiceAssistantArtist = g.Select(x => x.mt?.Artist).FirstOrDefault(),
                 
                 Categories = g
                     .Select(x => x.c)

@@ -4,8 +4,7 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserTrackWriteConfiguration : BaseEntityConfiguration<UserTrack>,
-    IEntityTypeConfiguration<UserTrack>
+internal sealed class UserTrackWriteConfiguration : BaseEntityConfiguration<UserTrack> 
 {
     public void Configure(EntityTypeBuilder<UserTrack> entity)
     {

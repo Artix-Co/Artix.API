@@ -4,8 +4,7 @@ using Core.Domain.Entities.JournalEntry;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class JournalEntryWriteConfiguration : BaseEntityConfiguration<JournalEntry>,
-    IEntityTypeConfiguration<JournalEntry>
+internal sealed class JournalEntryWriteConfiguration : BaseEntityConfiguration<JournalEntry>
 {
     public void Configure(EntityTypeBuilder<JournalEntry> entity)
     {

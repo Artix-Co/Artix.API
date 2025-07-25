@@ -27,7 +27,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.Collections)
             .WithOne(c => c.User)
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.MarketplaceItems)
             .WithOne(mi => mi.Seller)
@@ -37,27 +37,28 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.UserJournalEntries)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserMuseumKeys)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserObjects)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserSeasonProgresses)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(e => e.UserStrikes)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
 
         entity.HasMany(e => e.UserTracks)
             .WithOne()
@@ -67,7 +68,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.UserXps)
             .WithOne()
             .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
    
 

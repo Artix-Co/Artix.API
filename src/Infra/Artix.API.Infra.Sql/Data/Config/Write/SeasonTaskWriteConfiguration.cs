@@ -4,8 +4,7 @@ using Core.Domain.Entities.Season;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class SeasonTaskWriteConfiguration : BaseEntityConfiguration<SeasonTask>,
-    IEntityTypeConfiguration<SeasonTask>
+internal sealed class SeasonTaskWriteConfiguration : BaseEntityConfiguration<SeasonTask> 
 {
     public void Configure(EntityTypeBuilder<SeasonTask> entity)
     {

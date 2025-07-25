@@ -2,78 +2,15 @@
 
 using Microsoft.EntityFrameworkCore;
 
-public abstract class BaseEntity
+public abstract class BaseEntity : IEntity
 {
-    public long Id { get; }
+    public long Id { get; set; }
     public DateTime CreatedAt { get; protected init; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; set; }
     public bool IsDeleted { get; set; } = false;
     public Guid BusinessId { get; set; } = Guid.CreateVersion7();
 
-    public virtual void ApplyGraphTracking(DbContext context)
-    {
-        ApplyGraphTracking(context, new HashSet<object>());
-    }
-
-    
-    private void ApplyGraphTracking(DbContext context, HashSet<object> visited)
-    {
-        if (visited.Contains(this))
-            return;
-
-        visited.Add(this);
-
-        var entityType = context.Model.FindEntityType(this.GetType());
-        if (entityType is null || entityType.IsOwned())
-            return;
-
-        context.Entry(this).State = EntityState.Modified;
-
-        foreach (var navigation in context.Entry(this).Navigations)
-        {
-            var navValue = navigation.CurrentValue;
-            if (navValue is null)
-                continue;
-
-            if (navigation.Metadata.IsCollection)
-            {
-                if (navValue is IEnumerable<object> collection)
-                {
-                    foreach (var item in collection)
-                    {
-                        if (item is null || visited.Contains(item))
-                            continue;
-
-                        var type = item.GetType();
-                        if (context.Model.FindEntityType(type) is null)
-                            continue;
-
-                        context.Entry(item).State = EntityState.Modified;
-
-                        if (item is BaseEntity nested)
-                            nested.ApplyGraphTracking(context, visited);
-                    }
-                }
-            }
-            else
-            {
-                if (visited.Contains(navValue))
-                    continue;
-
-                var type = navValue.GetType();
-                if (context.Model.FindEntityType(type) is null)
-                    continue;
-
-                context.Entry(navValue).State = EntityState.Modified;
-
-                if (navValue is BaseEntity nested)
-                    nested.ApplyGraphTracking(context, visited);
-            }
-        }
-    }
-
-    
-    public void SetModified()
+    public virtual void SetModified()
     {
         ModifiedAt = DateTime.UtcNow;
     }
@@ -92,5 +29,14 @@ public abstract class BaseEntity
     public override int GetHashCode()
     {
         return Id.GetHashCode() * 31;
+    }
+
+     
+    public virtual void ApplyGraphTracking(DbContext context)
+    {
+        if (context.Entry(this).State == EntityState.Detached)
+        {
+            context.Entry(this).State = EntityState.Modified;
+        }
     }
 }
