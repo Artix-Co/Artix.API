@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
 using Common;
+using Exceptions;
 
 public sealed class Museum : BaseAggregateRoot
 {
@@ -18,9 +19,10 @@ public sealed class Museum : BaseAggregateRoot
     private Museum(string name, string description, bool isActive)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(name));
+
         if (string.IsNullOrWhiteSpace(description))
-            throw new ArgumentException("Description cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(description));
 
         Name = name;
         Description = description;
@@ -35,7 +37,7 @@ public sealed class Museum : BaseAggregateRoot
     public void UpdateDetails(string name, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(name));
 
         Name = name;
         Description = description;
@@ -44,7 +46,7 @@ public sealed class Museum : BaseAggregateRoot
     public void Activate()
     {
         if (IsActive)
-            throw new InvalidOperationException("Museum is already active.");
+            throw DomainException.InvalidOperation("Museum is already active");
 
         IsActive = true;
     }
@@ -52,7 +54,8 @@ public sealed class Museum : BaseAggregateRoot
     public void Deactivate()
     {
         if (!IsActive)
-            throw new InvalidOperationException("Museum is already inactive.");
+            throw DomainException.InvalidOperation("Museum is already inactive.");
+
 
         IsActive = false;
     }
