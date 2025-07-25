@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Season;
 
 using Common;
+using Exceptions;
 
 public sealed class SeasonTask : BaseEntity
 {
@@ -14,7 +15,7 @@ public sealed class SeasonTask : BaseEntity
 
     public void AssignToSeason(Season season)
     {
-        Season = season ?? throw new ArgumentNullException(nameof(season));
+        Season = season ??  throw DomainException.InvalidValue(nameof(season));
         SeasonId = season.Id;
         SetModified();
     }

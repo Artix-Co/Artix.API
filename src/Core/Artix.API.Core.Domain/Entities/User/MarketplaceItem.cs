@@ -1,10 +1,9 @@
 ﻿
 
-namespace Artix.API.Core.Domain.Entities.MarketPlace;
+namespace Artix.API.Core.Domain.Entities.User;
 
-using Common;
-using Museum;
-using User;
+using Artix.API.Core.Domain.Entities.Common;
+using Artix.API.Core.Domain.Entities.Museum;
 
 public sealed class MarketplaceItem : BaseEntity
 {

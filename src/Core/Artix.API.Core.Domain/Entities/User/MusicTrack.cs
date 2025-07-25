@@ -1,9 +1,8 @@
-﻿namespace Artix.API.Core.Domain.Entities.MusicTrack;
+﻿namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
 using Museum;
 using Season;
-using User;
 
 public sealed class MusicTrack : BaseEntity
 {
@@ -22,6 +21,6 @@ public sealed class MusicTrack : BaseEntity
     public MuseumObject MuseumObject { get; set; }
     
     private readonly List<UserTrack> _objects = new();
-    public IReadOnlyCollection<UserTrack> Tracks => _objects.AsReadOnly();
+    public IReadOnlyCollection<UserTrack> Tracks => this._objects.AsReadOnly();
    
 }

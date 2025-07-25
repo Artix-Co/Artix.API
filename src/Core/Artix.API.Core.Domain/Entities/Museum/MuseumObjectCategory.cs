@@ -1,5 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
+using Exceptions;
+
 public sealed class MuseumObjectCategory
 {
     public long MuseumObjectId { get; private set; }
@@ -11,14 +13,9 @@ public sealed class MuseumObjectCategory
 
     private MuseumObjectCategory(MuseumObject museumObject, Category category)
     {
-        if (museumObject == null)
-            throw new ArgumentNullException(nameof(museumObject));
-        if (category == null)
-            throw new ArgumentNullException(nameof(category));
-
-        MuseumObject = museumObject;
+        MuseumObject = museumObject ?? throw DomainException.InvalidValue(nameof(museumObject));
         MuseumObjectId = museumObject.Id;
-        Category = category;
+        Category = category ?? throw DomainException.InvalidValue(nameof(category));
         CategoryId = category.Id;
     }
 

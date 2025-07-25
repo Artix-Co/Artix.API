@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
 using Common;
+using Exceptions;
 
 public sealed class Category : BaseEntity
 {
@@ -9,24 +10,23 @@ public sealed class Category : BaseEntity
     private readonly List<MuseumObjectCategory> _museumObjectCategories = new();
     public IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
 
-    private Category() { }
+    private Category()
+    {
+    }
 
     public static Category Create(string name, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(name));
 
-        return new Category
-        {
-            Name = name,
-            Description = description
-        };
+        return new Category { Name = name, Description = description };
     }
 
     public void UpdateDetails(string name, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(name));
+        
 
         Name = name;
         Description = description;
@@ -35,7 +35,7 @@ public sealed class Category : BaseEntity
     public void AddMuseumObject(MuseumObject museumObject)
     {
         if (museumObject == null)
-            throw new ArgumentNullException(nameof(museumObject));
+            throw DomainException.InvalidValue(nameof(museumObject));
 
         if (_museumObjectCategories.Any(c => c.MuseumObjectId == museumObject.Id))
             return;
@@ -47,7 +47,7 @@ public sealed class Category : BaseEntity
     public void RemoveMuseumObject(MuseumObject museumObject)
     {
         if (museumObject == null)
-            throw new ArgumentNullException(nameof(museumObject));
+            throw DomainException.InvalidValue(nameof(museumObject));
 
         var link = _museumObjectCategories.FirstOrDefault(c => c.MuseumObjectId == museumObject.Id);
         if (link != null)

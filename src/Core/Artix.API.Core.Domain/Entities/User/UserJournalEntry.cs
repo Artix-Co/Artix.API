@@ -3,6 +3,7 @@
 namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
+using Exceptions;
 using JournalEntry;
 
 public sealed class UserJournalEntry : BaseEntity
@@ -19,8 +20,8 @@ public sealed class UserJournalEntry : BaseEntity
 
     public void AssignEntry(AppUser user, JournalEntry entry, DateTime? unlockedAt = null)
     {
-        User = user ?? throw new ArgumentNullException(nameof(user));
-        Entry = entry ?? throw new ArgumentNullException(nameof(entry));
+        User = user ??  throw DomainException.InvalidValue(nameof(user));
+        Entry = entry ?? throw DomainException.InvalidValue(nameof(entry));
         UserId = user.Id;
         EntryId = entry.Id;
         UnlockedAt = unlockedAt;

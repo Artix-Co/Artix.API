@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Season;
 
 using Common;
+using Exceptions;
 using User;
 
 public sealed class Season : BaseAggregateRoot
@@ -27,7 +28,8 @@ public sealed class Season : BaseAggregateRoot
 
     public void AddSeasonTask(SeasonTask task)
     {
-        if (task == null) throw new ArgumentNullException(nameof(task));
+        if (task == null)
+            throw DomainException.InvalidValue(nameof(task));
         if (!_seasonTasks.Contains(task))
         {
             _seasonTasks.Add(task);
@@ -37,10 +39,10 @@ public sealed class Season : BaseAggregateRoot
 
     public void RemoveSeasonTask(SeasonTask task)
     {
-        if (task == null) throw new ArgumentNullException(nameof(task));
+        if (task is null)
+            throw DomainException.InvalidValue(nameof(task));
+
         if (_seasonTasks.Remove(task))
-        {
             RemoveEntity(task);
-        }
     }
 }

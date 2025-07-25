@@ -1,6 +1,8 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
 using Common;
+using Exceptions;
+
 public sealed class MuseumObject : BaseEntity
 {
     public string Name { get; private set; }
@@ -15,9 +17,11 @@ public sealed class MuseumObject : BaseEntity
     private readonly List<MuseumObjectCategory> _museumObjectCategories = new();
     public IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
 
-    private MuseumObject() { }
+    private MuseumObject()
+    {
+    }
 
-   
+
     private MuseumObject(string name, string qrCode, Museum museum, bool isSpecial, bool isHidden)
     {
         ValidateName(name);
@@ -29,11 +33,12 @@ public sealed class MuseumObject : BaseEntity
         IsHidden = isHidden;
     }
 
-    public static MuseumObject Create(string name, string qrCode, Museum museum, bool isSpecial = false, bool isHidden = false)
+    public static MuseumObject Create(string name, string qrCode, Museum museum, bool isSpecial = false,
+        bool isHidden = false)
     {
         return new MuseumObject(name, qrCode, museum, isSpecial, isHidden);
     }
-    
+
 
     public void UpdateDetails(string? description, int? version, int? tier)
     {
@@ -73,7 +78,7 @@ public sealed class MuseumObject : BaseEntity
     public void UpdateMuseum(Museum newMuseum)
     {
         if (newMuseum == null)
-            throw new ArgumentNullException(nameof(newMuseum));
+            throw DomainException.InvalidValue(nameof(newMuseum));
 
         SetMuseum(newMuseum);
     }
@@ -118,7 +123,7 @@ public sealed class MuseumObject : BaseEntity
     public void AddCategory(Category category)
     {
         if (category == null)
-            throw new ArgumentNullException(nameof(category));
+            throw DomainException.InvalidValue(nameof(category));
 
         if (_museumObjectCategories.Any(c => c.CategoryId == category.Id))
             return;
@@ -130,7 +135,7 @@ public sealed class MuseumObject : BaseEntity
     public void RemoveCategory(Category category)
     {
         if (category == null)
-            throw new ArgumentNullException(nameof(category));
+            throw DomainException.InvalidValue(nameof(category));
 
         var link = _museumObjectCategories.FirstOrDefault(c => c.CategoryId == category.Id);
         if (link != null)
@@ -149,19 +154,20 @@ public sealed class MuseumObject : BaseEntity
 
     private void SetMuseum(Museum museum)
     {
-        Museum = museum ?? throw new ArgumentNullException(nameof(museum));
+        Museum = museum ?? throw DomainException.InvalidValue(nameof(museum));
+        ;
         MuseumId = museum.Id;
     }
 
     private void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(name));
     }
 
     private void ValidateQRCode(string qrCode)
     {
         if (string.IsNullOrWhiteSpace(qrCode))
-            throw new ArgumentException("QR Code cannot be empty or whitespace.");
+            throw DomainException.InvalidValue(nameof(qrCode));
     }
 }

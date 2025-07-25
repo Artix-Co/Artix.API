@@ -3,6 +3,7 @@
 namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
+using Exceptions;
 using Museum;
 
 public sealed class UserMuseumKey : BaseEntity
@@ -22,8 +23,8 @@ public sealed class UserMuseumKey : BaseEntity
 
     public void AssignMuseum(AppUser user, Museum museum, DateTime? acquiredAt = null)
     {
-        User = user ?? throw new ArgumentNullException(nameof(user));
-        Museum = museum ?? throw new ArgumentNullException(nameof(museum));
+        User = user ??  throw DomainException.InvalidValue(nameof(user));
+        Museum = museum ??  throw DomainException.InvalidValue(nameof(museum));
         UserId = user.Id;
         MuseumId = museum.Id;
         AcquiredAt = acquiredAt;

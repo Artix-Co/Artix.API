@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
-using MusicTrack;
 
 public sealed class UserTrack : BaseEntity
 {

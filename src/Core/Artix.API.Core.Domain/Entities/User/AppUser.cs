@@ -3,7 +3,6 @@
 using Common;
 using Collection;
 using Exceptions;
-using MarketPlace;
 using Museum;
 
 public sealed class AppUser : IdentityAggregateRoot
