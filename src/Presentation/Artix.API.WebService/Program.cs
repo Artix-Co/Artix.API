@@ -1,8 +1,11 @@
 using System.Text.Json;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
+using Artix.API.Infra.Sql.Data;
+using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.WebService;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Nest;
 
@@ -13,11 +16,15 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-
- 
-
-
 Log.Logger.Information("Application built!");
+
+
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+//     await context.Database.MigrateAsync();
+//     await DataSeeder.SeedAsync(context);
+// }
 
 app.UseCustomMiddlewares(app.Environment);
 
@@ -61,14 +68,9 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 
- 
- 
-
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
- 

@@ -25,7 +25,7 @@ public class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguration<TEntity
                 v => v);
     }
 
-    public static DateTime EnsureSmallDateTimeRange(DateTime date)
+    private static DateTime EnsureSmallDateTimeRange(DateTime date)
     {
         DateTime minSqlDate = new DateTime(1900, 1, 1);
         DateTime maxSqlDate = new DateTime(2079, 6, 6);

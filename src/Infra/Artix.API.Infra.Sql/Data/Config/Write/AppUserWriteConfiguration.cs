@@ -10,6 +10,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
     {
         entity.ToTable("AppUsers");
 
+        // Property configurations
         entity.Property(e => e.BusinessId)
             .IsRequired()
             .HasDefaultValueSql("NEWID()");
@@ -18,25 +19,32 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
 
-        entity.Property(e => e.ModifiedAt).IsRequired(false);
-        entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
-        entity.Property(e => e.DisplayName).HasMaxLength(100).IsRequired(false);
-        entity.Property(e => e.AvatarUrl).HasMaxLength(2000).IsRequired(false);
-        entity.Property(e => e.IsPro).IsRequired().HasDefaultValue(false);
+        entity.Property(e => e.ModifiedAt)
+            .IsRequired(false);
 
+        entity.Property(e => e.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        entity.Property(e => e.DisplayName)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        entity.Property(e => e.AvatarUrl)
+            .HasMaxLength(2000)
+            .IsRequired(false);
+
+        entity.Property(e => e.IsPro)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        // Soft delete query filter
+        entity.HasQueryFilter(e => !e.IsDeleted);
+
+        // Relationships
         entity.HasMany(e => e.Collections)
             .WithOne(c => c.User)
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        entity.HasMany(e => e.FriendshipFriends)
-            .WithOne(f => f.Friend)
-            .HasForeignKey("FriendId")
-            .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasMany(e => e.FriendshipUsers)
-            .WithOne(f => f.User)
-            .HasForeignKey("UserId")
             .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(e => e.MarketplaceItems)
@@ -79,6 +87,11 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .HasForeignKey("UserId")
             .OnDelete(DeleteBehavior.Cascade);
 
+   
+
+        
+        
+        // Indexes
         entity.HasIndex(e => e.BusinessId)
             .HasDatabaseName("IX_AppUsers_BusinessId")
             .IsUnique();

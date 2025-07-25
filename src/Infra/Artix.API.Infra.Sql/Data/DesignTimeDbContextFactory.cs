@@ -1,5 +1,6 @@
 namespace Artix.API.Infra.Sql.Data;
 
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -8,8 +9,10 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Art
 {
     public ArtixCommandDbContext CreateDbContext(string[] args)
     {
-        var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../../Presentation/Artix.API.WebService");
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
+
+        var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../Presentation/Artix.API.WebService"));
+
         var configuration = new ConfigurationBuilder()
             .SetBasePath(basePath)
             .AddJsonFile("appsettings.json", optional: false)
@@ -17,12 +20,8 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Art
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("CommandConnectionString");
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException("CommandConnectionString is not set in appsettings.json.");
-        }
+        var connectionString = configuration.GetConnectionString("CommandConnectionString")
+                               ?? throw new InvalidOperationException("CommandConnectionString is not set in appsettings.json.");
 
         var optionsBuilder = new DbContextOptionsBuilder<ArtixCommandDbContext>();
         optionsBuilder.UseSqlServer(connectionString);

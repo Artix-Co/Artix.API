@@ -4,35 +4,47 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class FriendshipWriteConfiguration : BaseEntityConfiguration<Friendship>,
-    IEntityTypeConfiguration<Friendship>
+
+internal sealed class FriendshipWriteConfiguration : IEntityTypeConfiguration<Friendship>
 {
     public void Configure(EntityTypeBuilder<Friendship> entity)
     {
-        base.Configure(entity);
-
         entity.ToTable("Friendships");
 
-        entity.Property(e => e.UserId).IsRequired();
-        entity.Property(e => e.FriendId).IsRequired();
+        // Configure composite key
+        entity.HasKey(f => new { f.UserId, f.FriendId });
 
-        entity.HasOne(e => e.User)
-            .WithMany(u => u.FriendshipUsers)
-            .HasForeignKey(e => e.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Configure properties
+        entity.Property(f => f.UserId).IsRequired();
+        entity.Property(f => f.FriendId).IsRequired();
+        entity.Property(f => f.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
-        entity.HasOne(e => e.Friend)
+        // Configure User relationship
+        entity.HasOne(f => f.User)
             .WithMany(u => u.FriendshipFriends)
-            .HasForeignKey(e => e.FriendId)
-            .OnDelete(DeleteBehavior.Restrict); 
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasCheckConstraint("CK_Friendships_UserId_NotEqual_FriendId", "[UserId] != [FriendId]");
+        // Configure Friend relationship
+        entity.HasOne(f => f.Friend)
+            .WithMany() // No inverse navigation for Friend
+            .HasForeignKey(f => f.FriendId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasIndex(e => new { e.UserId, e.FriendId })
-            .HasDatabaseName("IX_Friendships_UserId_FriendId")
+        // Indexes for performance
+        entity.HasIndex(f => f.UserId)
+            .HasDatabaseName("IX_Friendships_UserId");
+
+        entity.HasIndex(f => f.FriendId)
+            .HasDatabaseName("IX_Friendships_FriendId");
+
+        // Unique constraint (redundant with composite key but explicit for clarity)
+        entity.HasIndex(f => new { f.UserId, f.FriendId })
             .IsUnique();
 
-        entity.HasIndex(e => e.UserId).HasDatabaseName("IX_Friendships_UserId");
-        entity.HasIndex(e => e.FriendId).HasDatabaseName("IX_Friendships_FriendId");
+        // Prevent self-friendships
+        entity.HasCheckConstraint("CK_Friendships_NotSelf", "[UserId] <> [FriendId]");
     }
 }

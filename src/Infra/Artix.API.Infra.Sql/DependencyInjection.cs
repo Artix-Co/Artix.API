@@ -13,11 +13,18 @@ public static class DependencyInjection
     {
         // Register the query-side DbContext (for read operations) without migrations
         services.AddDbContext<ArtixQueryDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("QueryConnectionString")));
+            options.UseSqlServer(configuration.GetConnectionString("QueryConnectionString"))
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors()
+            );
 
         // Register the command-side DbContext (for write operations)
         services.AddDbContext<ArtixCommandDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("CommandConnectionString")));
+            options
+                .UseSqlServer(configuration.GetConnectionString("CommandConnectionString"))
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors()
+            );
 
         services.AddScoped(typeof(ICommandRepository<>), typeof(CommandRepository<>));
         services.AddScoped(typeof(IQueryRepository<>), typeof(QueryRepository<>));

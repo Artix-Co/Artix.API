@@ -4,7 +4,7 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MuseumObjectWriteConfiguration: BaseEntityConfiguration<MuseumObject>,
+internal sealed class MuseumObjectWriteConfiguration : BaseEntityConfiguration<MuseumObject>,
     IEntityTypeConfiguration<MuseumObject>
 {
     public void Configure(EntityTypeBuilder<MuseumObject> entity)
@@ -14,38 +14,45 @@ internal sealed class MuseumObjectWriteConfiguration: BaseEntityConfiguration<Mu
         entity.ToTable("MuseumObjects");
 
         entity.Property(e => e.Description)
-            .HasMaxLength(500) 
-            .IsRequired(false); 
+            .HasMaxLength(500)
+            .IsRequired(false);
 
         entity.Property(e => e.Version)
-            .IsRequired(false); 
+            .IsRequired(false);
 
         entity.Property(e => e.Tier)
-            .IsRequired(false); 
+            .IsRequired(false);
 
         entity.Property(e => e.MuseumId)
-            .IsRequired(); 
+            .IsRequired();
 
         entity.Property(e => e.Name)
-            .HasMaxLength(100) 
-            .IsRequired(); 
+            .HasMaxLength(100)
+            .IsRequired();
 
         entity.Property(e => e.QRCode)
-            .HasMaxLength(200) 
-            .IsRequired(); 
+            .HasMaxLength(200)
+            .IsRequired();
 
         entity.Property(e => e.IsSpecial)
             .IsRequired()
-            .HasDefaultValue(false); 
+            .HasDefaultValue(false);
 
         entity.Property(e => e.IsHidden)
             .IsRequired()
-            .HasDefaultValue(false); 
+            .HasDefaultValue(false);
 
-        entity.HasOne(e => e.Museum)
+       entity
+            .HasOne(mo => mo.Museum)
             .WithMany(m => m.MuseumObjects)
-            .HasForeignKey(e => e.MuseumId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasForeignKey(mo => mo.MuseumId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        
+        entity.HasMany(e => e.MuseumObjectCategories)
+            .WithOne(moc => moc.MuseumObject)
+            .HasForeignKey(moc => moc.MuseumObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.MuseumId)
             .HasDatabaseName("IX_MuseumObjects_MuseumId");
@@ -55,7 +62,7 @@ internal sealed class MuseumObjectWriteConfiguration: BaseEntityConfiguration<Mu
 
         entity.HasIndex(e => e.QRCode)
             .HasDatabaseName("IX_MuseumObjects_QRCode")
-            .IsUnique(); 
+            .IsUnique();
     }
 
 }

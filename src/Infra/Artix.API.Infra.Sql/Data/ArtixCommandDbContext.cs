@@ -20,18 +20,18 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     }
 
     #region DbSets
-
+    public DbSet<AppRole> AppRoles { get; set; }
+    public DbSet<AppUser> AppUsers { get; set; }
+    
     public DbSet<Collection> Collections { get; set; }
     public DbSet<CollectionItem> CollectionItems { get; set; }
     public DbSet<JournalEntry> JournalEntries { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
-    public DbSet<Museum> Museums { get; set; }
-    public DbSet<MuseumObject> MuseumObjects { get; set; }
+  
     public DbSet<MusicTrack> MusicTracks { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<SeasonTask> SeasonTasks { get; set; }
-    public DbSet<AppRole> AppRoles { get; set; }
-    public DbSet<AppUser> AppUsers { get; set; }
+ 
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
@@ -41,6 +41,11 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
 
+     
+    public DbSet<Museum> Museums { get; set; }
+    public DbSet<MuseumObject> MuseumObjects { get; set; }
+    public DbSet<Category> Categories { get; set; } 
+    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; } 
     #endregion
 
 

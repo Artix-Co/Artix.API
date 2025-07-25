@@ -1,24 +1,28 @@
-﻿
+﻿namespace Artix.API.Core.Domain.Entities.User;
 
-namespace Artix.API.Core.Domain.Entities.User;
-
-using _primitives;
-
-public sealed class Friendship : BaseEntity
+public sealed class Friendship
 {
     public long UserId { get; private set; }
     public AppUser User { get; private set; }
-    
-    
+
+
     public long FriendId { get; private set; }
     public AppUser Friend { get; private set; }
+    public DateTime CreatedAt { get; set; }
 
-    public void AssignUsers(AppUser user, AppUser friend)
+
+    internal void AssignUsers(AppUser user, AppUser friend)
     {
-        User = user ?? throw new ArgumentNullException(nameof(user));
-        Friend = friend ?? throw new ArgumentNullException(nameof(friend));
+        User = user;
+        Friend = friend;
         UserId = user.Id;
         FriendId = friend.Id;
-        SetModified();
+    }
+
+    public static Friendship Create(AppUser user, AppUser friend)
+    {
+        var friendship = new Friendship();
+        friendship.AssignUsers(user, friend);
+        return friendship;
     }
 }

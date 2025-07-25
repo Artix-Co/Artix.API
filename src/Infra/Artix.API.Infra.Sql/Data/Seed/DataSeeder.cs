@@ -33,6 +33,7 @@ public static class DataSeeder
                 }
             }
 
+
             // Seed Friendships
             var friendships = new List<Friendship>
             {
@@ -48,6 +49,7 @@ public static class DataSeeder
                 }
             }
 
+
             // Seed Categories
             var categories = new List<Category>
             {
@@ -58,17 +60,17 @@ public static class DataSeeder
 
             context.Categories.AddRange(categories);
 
+
             // Seed Museums
             var museums = new List<Museum>
             {
                 Museum.Create("National History Museum", "A museum of historical artifacts", isActive: true),
                 Museum.Create("Art Gallery", "A collection of fine arts", isActive: true)
             };
-
             context.Museums.AddRange(museums);
 
 
-            // Now seed MuseumObjects
+            // Seed MuseumObjects
             var museumObjects = new List<MuseumObject>
             {
                 MuseumObject.Create(
@@ -94,55 +96,25 @@ public static class DataSeeder
                 ),
             };
 
-            context.MuseumObjects.AddRange(museumObjects);
+        
 
+   
+            context.MuseumObjects.Add(museumObjects[0]);
+            
 
-            // Seed MuseumObjectCategories
             var museumObjectCategories = new List<MuseumObjectCategory>
             {
-                MuseumObjectCategory.Create(
-                    museumObject: museumObjects[0],
-                    category: categories[0]
-                ),
-                MuseumObjectCategory.Create(
-                    museumObject: museumObjects[0],
-                    category: categories[0]
-                ),
-                MuseumObjectCategory.Create(
-                    museumObject: museumObjects[0],
-                    category: categories[0]
-                ),
-                MuseumObjectCategory.Create(
-                    museumObject: museumObjects[0],
-                    category: categories[0]
-                ),
-                MuseumObjectCategory.Create(
-                    museumObject: museumObjects[0],
-                    category: categories[0]
-                )
+                MuseumObjectCategory.Create(museumObjects[0], categories[0]), // Ancient Vase -> Historical
+                MuseumObjectCategory.Create(museumObjects[1], categories[1]), // Mona Lisa -> Art
+                MuseumObjectCategory.Create(museumObjects[2], categories[2]), // Bronze Statue -> Archaeological
             };
- 
-            
-            
-            foreach (var moc in museumObjectCategories)
-            {
-                if (!await context.MuseumObjectCategories.AnyAsync(m =>
-                        m.MuseumObjectId == moc.MuseumObjectId &&
-                        m.CategoryId == moc.CategoryId
-                    ))
-                {
-                    // Add to both MuseumObject and Category collections
-                    moc.MuseumObject.AddCategory(moc.Category);
-                    moc.Category.AddMuseumObject(moc.MuseumObject);
-                    context.MuseumObjectCategories.Add(moc);
-                }
-            }
 
+            context.MuseumObjectCategories.Add(museumObjectCategories[0]);
             await context.SaveChangesAsync();
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Console.WriteLine(e.Message);
             throw;
         }
     }

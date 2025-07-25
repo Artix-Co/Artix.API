@@ -6,31 +6,34 @@ using Microsoft.AspNetCore.Identity;
 
 public sealed class AppUser : IdentityUser<long>
 {
-    private readonly List<Collection> _collections = new();
-    private readonly List<Friendship> _friendshipFriends = new();
-    private readonly List<Friendship> _friendshipUsers = new();
-    private readonly List<MarketplaceItem> _marketplaceItems = new();
-    private readonly List<UserJournalEntry> _userJournalEntries = new();
-    private readonly List<UserMuseumKey> _userMuseumKeys = new();
-    private readonly List<UserObject> _userObjects = new();
-    private readonly List<UserSeasonProgress> _userSeasonProgresses = new();
-    private readonly List<UserStrike> _userStrikes = new();
-    private readonly List<UserTrack> _userTracks = new();
-    private readonly List<UserXp> _userXps = new();
-
-    public Guid BusinessId { get; private set; } = Guid.CreateVersion7();
+  public Guid BusinessId { get; private set; } = Guid.CreateVersion7();
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; private set; }
     public bool IsDeleted { get; private set; }
-
     public string? DisplayName { get; set; }
     public string? AvatarUrl { get; private set; }
     public bool IsPro { get; set; }
 
+    // Backing fields initialized as List<T> to support IReadOnlyCollection<T>
+    private readonly List<Collection> _collections = [];
+    private readonly List<MarketplaceItem> _marketplaceItems = [];
+    private readonly List<Friendship> _friendshipFriends = [];
+    private readonly List<UserJournalEntry> _userJournalEntries = [];
+    private readonly List<UserMuseumKey> _userMuseumKeys = [];
+    private readonly List<UserObject> _userObjects = [];
+    private readonly List<UserSeasonProgress> _userSeasonProgresses = [];
+    private readonly List<UserStrike> _userStrikes = [];
+    private readonly List<UserTrack> _userTracks = [];
+    private readonly List<UserXp> _userXps = [];
+
+    // Public read-only collections
     public IReadOnlyCollection<Collection> Collections => _collections.AsReadOnly();
-    public IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
-    public IReadOnlyCollection<Friendship> FriendshipUsers => _friendshipUsers.AsReadOnly();
     public IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
+    
+    
+
+    
+    public IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
     public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
     public IReadOnlyCollection<UserMuseumKey> UserMuseumKeys => _userMuseumKeys.AsReadOnly();
     public IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
@@ -39,8 +42,6 @@ public sealed class AppUser : IdentityUser<long>
     public IReadOnlyCollection<UserTrack> UserTracks => _userTracks.AsReadOnly();
     public IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
 
-    
-    
     public sealed class AppUserBuilder
     {
         private readonly AppUser _user;
@@ -95,7 +96,7 @@ public sealed class AppUser : IdentityUser<long>
     }
 
 
-    public void UpdateProfile(string? displayName, string? avatarUrl, bool isPro = false)
+    internal void UpdateProfile(string? displayName, string? avatarUrl, bool isPro = false)
     {
         DisplayName = displayName;
         AvatarUrl = avatarUrl;
@@ -103,14 +104,19 @@ public sealed class AppUser : IdentityUser<long>
         SetModified();
     }
 
-    public void MarkAsDeleted()
+    internal void MarkAsDeleted()
     {
         IsDeleted = true;
         SetModified();
     }
 
-    public void SetModified()
+    internal void SetModified()
     {
         ModifiedAt = DateTime.UtcNow;
+    }
+    
+    internal void AddFriendship(Friendship friendship)
+    {
+        _friendshipFriends.Add(friendship);
     }
 }

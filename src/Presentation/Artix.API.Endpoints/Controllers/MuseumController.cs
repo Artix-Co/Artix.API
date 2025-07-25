@@ -6,6 +6,7 @@ using Core.Contract.Features.Museums.Queries.GetById;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
+using Core.Contract.Features.Museums.Queries.GetObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,14 @@ public sealed class MuseumController : BaseController
     public async Task<IActionResult> GetMuseumKeyStatusAsync([FromRoute] long museumId)
     {
         var result = await _mediator.Send(new GetMuseumKeyStatusQuery { MuseumId = museumId });
+        return Ok(result);
+    }
+    
+    
+    [HttpGet("objects")]
+    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
+    {
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 }

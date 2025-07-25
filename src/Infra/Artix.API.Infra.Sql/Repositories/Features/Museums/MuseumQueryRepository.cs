@@ -6,6 +6,8 @@ using Core.Contract.Features.Museums.Queries.GetById;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
+using Core.Contract.Features.Museums.Queries.GetObjects;
+using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Museum;
 using Data;
 using Microsoft.EntityFrameworkCore;
@@ -224,4 +226,126 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             throw;
         }
     }
+
+    public async Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery query, CancellationToken cancellationToken = default)
+{
+    try
+    {
+        _logger.LogInformation("Fetching museum objects with query: {@Query}", query);
+
+        var objectsQuery = _queryDbContext.MuseumObjects
+            .AsNoTracking()
+            .Where(mo => !mo.IsDeleted);
+
+        // Apply filters
+        if (!string.IsNullOrWhiteSpace(query.NameFilter))
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.Name.Contains(query.NameFilter));
+        }
+
+        if (query.MuseumId.HasValue)
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.MuseumId == query.MuseumId.Value);
+        }
+
+        if (query.CategoryIds.Any())
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.MuseumObjectCategories
+                .Any(moc => query.CategoryIds.Contains(moc.CategoryId)));
+        }
+
+        if (query.IsSpecial.HasValue)
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.IsSpecial == query.IsSpecial.Value);
+        }
+
+        if (query.IsHidden.HasValue)
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.IsHidden == query.IsHidden.Value);
+        }
+
+        if (query.Tier.HasValue)
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.Tier == query.Tier.Value);
+        }
+
+        if (query.Version.HasValue)
+        {
+            objectsQuery = objectsQuery.Where(mo => mo.Version == query.Version.Value);
+        }
+
+        // Get total count before pagination
+        var totalCount = await objectsQuery.CountAsync(cancellationToken);
+
+        // Apply sorting
+        objectsQuery = query.SortBy?.ToLowerInvariant() switch
+        {
+            "createdat" => query.SortDescending
+                ? objectsQuery.OrderByDescending(mo => mo.CreatedAt)
+                : objectsQuery.OrderBy(mo => mo.CreatedAt),
+            "tier" => query.SortDescending
+                ? objectsQuery.OrderByDescending(mo => mo.Tier ?? int.MaxValue)
+                : objectsQuery.OrderBy(mo => mo.Tier ?? int.MaxValue),
+            _ => query.SortDescending
+                ? objectsQuery.OrderByDescending(mo => mo.Name)
+                : objectsQuery.OrderBy(mo => mo.Name)
+        };
+
+        // Apply pagination
+        objectsQuery = objectsQuery
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize);
+
+        // Project to DTO with category names
+        var objects = await objectsQuery
+            .GroupJoin(_queryDbContext.MuseumObjectCategories,
+                mo => mo.Id,
+                moc => moc.MuseumObjectId,
+                (mo, mocGroup) => new { MuseumObject = mo, MuseumObjectCategories = mocGroup })
+            .SelectMany(
+                x => x.MuseumObjectCategories.DefaultIfEmpty(),
+                (x, moc) => new { x.MuseumObject, MuseumObjectCategory = moc })
+            .GroupJoin(_queryDbContext.Categories.Where(c => !c.IsDeleted),
+                x => x.MuseumObjectCategory != null ? x.MuseumObjectCategory.CategoryId : 0,
+                c => c.Id,
+                (x, cGroup) => new
+                {
+                    x.MuseumObject,
+                    CategoryNames = cGroup.Select(c => c.Name).ToList()
+                })
+            .GroupBy(x => x.MuseumObject)
+            .Select(g => new AllObjectDto
+            {
+                Id = g.Key.Id,
+                Name = g.Key.Name,
+                Description = g.Key.Description,
+                MuseumId = g.Key.MuseumId,
+                QRCode = g.Key.QRCode,
+                IsSpecial = g.Key.IsSpecial,
+                IsHidden = g.Key.IsHidden,
+                Tier = g.Key.Tier,
+                Version = g.Key.Version,
+                CreatedAt = g.Key.CreatedAt,
+                CategoryNames = g.SelectMany(x => x.CategoryNames).Distinct().ToList().AsReadOnly()
+            })
+            .ToListAsync(cancellationToken);
+
+        _logger.LogInformation("Successfully retrieved {Count} museum objects for query", objects.Count);
+
+        var result = new PagedData<AllObjectDto>(
+            items: objects,
+            totalCount: totalCount,
+            pageSize: query.PageSize,
+            currentPage: query.Page
+        );
+        
+        
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error occurred while fetching museum objects for query");
+        throw;
+    }
+}
 }
