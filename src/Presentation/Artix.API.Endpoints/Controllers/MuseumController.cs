@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Endpoints.Controllers;
 
-using _primitives;
+using Common;
 using Core.Contract.Features.Museums.Queries.GetAll;
 using Core.Contract.Features.Museums.Queries.GetById;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;

@@ -1,19 +1,20 @@
-﻿namespace Artix.API.Core.Domain.Entities._primitives;
+﻿namespace Artix.API.Core.Domain.Entities.Common;
 
-public abstract class BaseAggregateRoot : BaseEntity
+
+public abstract class BaseAggregateRoot : BaseEntity, IAggregateRoot, IEntity
 {
     private readonly List<BaseEntity> _entities = new();
 
-    protected IReadOnlyCollection<BaseEntity> Entities => _entities.AsReadOnly();
+    public IReadOnlyCollection<BaseEntity> Entities => _entities.AsReadOnly();
 
-    protected void AddEntity(BaseEntity entity)
+    public void AddEntity(BaseEntity entity)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
         _entities.Add(entity);
         SetModified();
     }
 
-    protected void RemoveEntity(BaseEntity entity)
+    public void RemoveEntity(BaseEntity entity)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
         _entities.Remove(entity);
@@ -30,4 +31,10 @@ public abstract class BaseAggregateRoot : BaseEntity
         _entities.Clear();
         SetModified();
     }
+
+    protected void SetModified()
+    {
+        ModifiedAt = DateTime.UtcNow;
+    }
 }
+

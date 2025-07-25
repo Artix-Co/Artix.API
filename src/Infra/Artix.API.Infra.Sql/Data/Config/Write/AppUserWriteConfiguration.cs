@@ -10,22 +10,6 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
     {
         entity.ToTable("AppUsers");
 
-        // Property configurations
-        entity.Property(e => e.BusinessId)
-            .IsRequired()
-            .HasDefaultValueSql("NEWID()");
-
-        entity.Property(e => e.CreatedAt)
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
-
-        entity.Property(e => e.ModifiedAt)
-            .IsRequired(false);
-
-        entity.Property(e => e.IsDeleted)
-            .IsRequired()
-            .HasDefaultValue(false);
-
         entity.Property(e => e.DisplayName)
             .HasMaxLength(100)
             .IsRequired(false);
@@ -38,8 +22,6 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .IsRequired()
             .HasDefaultValue(false);
 
-        // Soft delete query filter
-        entity.HasQueryFilter(e => !e.IsDeleted);
 
         // Relationships
         entity.HasMany(e => e.Collections)
@@ -91,18 +73,12 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 
         
         
-        // Indexes
-        entity.HasIndex(e => e.BusinessId)
-            .HasDatabaseName("IX_AppUsers_BusinessId")
-            .IsUnique();
 
         entity.HasIndex(e => e.DisplayName)
             .HasDatabaseName("IX_AppUsers_DisplayName");
 
         entity.HasIndex(e => e.IsPro)
             .HasDatabaseName("IX_AppUsers_IsPro");
-
-        entity.HasIndex(e => e.IsDeleted)
-            .HasDatabaseName("IX_AppUsers_IsDeleted");
+ 
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config;
 
-using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -2,7 +2,7 @@
 
 namespace Artix.API.Endpoints.Controllers;
 
-using _primitives;
+using Common;
 using Core.Contract.Features.Users.Commands.Modify;
 using Core.Contract.Features.Users.Commands.RegisterAdmins;
 using Core.Contract.Features.Users.Commands.RegisterMobiles;

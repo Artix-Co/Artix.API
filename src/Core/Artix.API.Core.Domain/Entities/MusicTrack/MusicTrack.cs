@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.MusicTrack;
 
-using _primitives;
+using Common;
 using Museum;
 using Season;
 using User;

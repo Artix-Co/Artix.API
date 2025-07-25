@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.JournalEntry;
 
-using _primitives;
+
+using Common;
 using Museum;
 using User;
 
@@ -8,7 +9,7 @@ public sealed class JournalEntry : BaseAggregateRoot
 {
     public long ObjectId { get; set; }
     public MuseumObject Object { get; set; }
-    
+
 
     public string? Title { get; set; }
 
@@ -16,7 +17,6 @@ public sealed class JournalEntry : BaseAggregateRoot
 
     public string? Notes { get; set; }
 
-    
 
     private readonly List<UserJournalEntry> _userJournalEntries = new();
     public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
@@ -33,4 +33,3 @@ public sealed class JournalEntry : BaseAggregateRoot
         RemoveEntity(entry);
     }
 }
-

@@ -2,7 +2,7 @@
 
 namespace Artix.API.Core.Domain.Entities.MarketPlace;
 
-using _primitives;
+using Common;
 using Museum;
 using User;
 

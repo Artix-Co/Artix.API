@@ -1,12 +1,12 @@
 ﻿namespace Artix.API.Infra.Sql.Primitives;
 
 using Core.Contract.Primitives.Repositories;
-using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.Common;
 using Data;
 using EFCore.BulkExtensions;
 
 public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
-    : ICommandRepository<T> where T : BaseAggregateRoot
+    : ICommandRepository<T> where T : class, IAggregateRoot, IEntity
 {
     protected readonly ArtixCommandDbContext _commandDbContext = commandDbContext;
 

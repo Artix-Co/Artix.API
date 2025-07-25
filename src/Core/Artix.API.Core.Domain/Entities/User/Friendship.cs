@@ -11,7 +11,7 @@ public sealed class Friendship
     public DateTime CreatedAt { get; set; }
 
 
-    internal void AssignUsers(AppUser user, AppUser friend)
+    private void AssignUsers(AppUser user, AppUser friend)
     {
         User = user;
         Friend = friend;

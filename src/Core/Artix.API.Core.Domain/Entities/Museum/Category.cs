@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
-using _primitives;
+using Common;
 
 public sealed class Category : BaseEntity
 {

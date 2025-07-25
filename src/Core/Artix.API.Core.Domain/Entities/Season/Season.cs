@@ -1,12 +1,7 @@
-﻿
+﻿namespace Artix.API.Core.Domain.Entities.Season;
 
-namespace Artix.API.Core.Domain.Entities.Season;
-
-using _primitives;
+using Common;
 using User;
-
- 
-
 
 public sealed class Season : BaseAggregateRoot
 {
@@ -49,5 +44,3 @@ public sealed class Season : BaseAggregateRoot
         }
     }
 }
-
-

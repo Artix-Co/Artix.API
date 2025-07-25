@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Controllers._primitives;
+﻿namespace Artix.API.Endpoints.Controllers.Common;
 
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

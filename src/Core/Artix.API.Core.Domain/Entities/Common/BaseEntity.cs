@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Domain.Entities._primitives;
+﻿namespace Artix.API.Core.Domain.Entities.Common;
 
 using Microsoft.EntityFrameworkCore;
 

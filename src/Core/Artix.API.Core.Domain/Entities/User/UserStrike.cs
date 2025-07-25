@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
-using _primitives;
+using Common;
 
 public sealed class UserStrike : BaseEntity
 {

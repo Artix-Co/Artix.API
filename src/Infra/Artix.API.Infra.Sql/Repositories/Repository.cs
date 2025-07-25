@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories;
 
 using Core.Contract.Primitives.Repositories;
-using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.Common;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Sql.Data;
@@ -38,7 +39,8 @@ app.UseExceptionHandler(config =>
 
         context.Response.StatusCode = exception switch
         {
-            NotFoundException => StatusCodes.Status404NotFound,
+            InfrastructureNotFoundException => StatusCodes.Status404NotFound,
+            ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status500InternalServerError
         };
 

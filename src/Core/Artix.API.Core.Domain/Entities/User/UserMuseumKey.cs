@@ -2,7 +2,7 @@
 
 namespace Artix.API.Core.Domain.Entities.User;
 
-using _primitives;
+using Common;
 using Museum;
 
 public sealed class UserMuseumKey : BaseEntity

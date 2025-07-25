@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Season;
 
-using _primitives;
+using Common;
 
 public sealed class SeasonTask : BaseEntity
 {

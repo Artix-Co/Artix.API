@@ -39,7 +39,6 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
             .WithEmail(command.Email)
             .WithPhoneNumber(command.PhoneNumber)
             .WithDisplayName(command.DisplayName)
-            .WithModifiedAt()
             .Build();
 
         if (!string.IsNullOrWhiteSpace(command.Password))

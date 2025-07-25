@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Collection;
 
-using _primitives;
+using Common;
 using Museum;
 
 public sealed class CollectionItem

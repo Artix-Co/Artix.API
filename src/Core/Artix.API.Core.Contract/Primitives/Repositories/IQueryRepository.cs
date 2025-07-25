@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Repositories;
 
-using Domain.Entities._primitives;
+using Domain.Entities.Common;
 
-public interface IQueryRepository<T> where T : BaseEntity
+public interface IQueryRepository<T> where T : IAggregateRoot
 {
     T GetById(long id, Func<IQueryable<T>, IQueryable<T>> include = null);
 

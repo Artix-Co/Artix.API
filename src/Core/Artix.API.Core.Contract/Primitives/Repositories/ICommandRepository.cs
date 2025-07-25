@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Repositories;
 
-using Domain.Entities._primitives;
+using Domain.Entities.Common;
 
-public interface ICommandRepository<T> where T : BaseEntity
+public interface ICommandRepository<T> where T : IAggregateRoot
 {
     void InsertRange(IEnumerable<T> entities);
     void Insert(T entity);

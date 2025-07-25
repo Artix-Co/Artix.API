@@ -1,12 +1,14 @@
 ﻿namespace Artix.API.Infra.Sql.Primitives;
 
 using Core.Contract.Primitives.Repositories;
-using Core.Domain.Entities._primitives;
+using Core.Domain.Entities.Common;
 using Data;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-public class QueryRepository<T>(ArtixQueryDbContext queryDbContext) : IQueryRepository<T> where T : BaseAggregateRoot
+public class QueryRepository<T>(ArtixQueryDbContext queryDbContext)
+    : IQueryRepository<T>
+    where T : class, IAggregateRoot, IEntity
 {
     protected readonly ArtixQueryDbContext _queryDbContext = queryDbContext;
 
@@ -25,7 +27,7 @@ public class QueryRepository<T>(ArtixQueryDbContext queryDbContext) : IQueryRepo
 
         if (entity == null)
         {
-            throw InfrastructureException.DatabaseError($"{typeof(T).Name} with ID {id} was not found.");
+            throw InfrastructureNotFoundException.ForEntity(typeof(T).Name, id);
         }
 
         return entity;
@@ -48,7 +50,7 @@ public class QueryRepository<T>(ArtixQueryDbContext queryDbContext) : IQueryRepo
 
         if (entity == null)
         {
-            throw InfrastructureException.DatabaseError($"{typeof(T).Name} with ID {id} was not found.");
+            throw InfrastructureNotFoundException.ForEntity(typeof(T).Name, id);
         }
 
         return entity;

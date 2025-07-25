@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Infra.Sql.Data;
 
 using System.Reflection;
-using Core.Domain.Entities._primitives;
 using Core.Domain.Entities.Collection;
+using Core.Domain.Entities.Common;
 using Core.Domain.Entities.JournalEntry;
 using Core.Domain.Entities.MarketPlace;
 using Core.Domain.Entities.Museum;

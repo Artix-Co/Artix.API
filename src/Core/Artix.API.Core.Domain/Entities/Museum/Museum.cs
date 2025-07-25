@@ -1,16 +1,19 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
-using _primitives;
+using Common;
+
 public sealed class Museum : BaseAggregateRoot
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
     public bool IsActive { get; private set; }
-    
+
     private readonly List<MuseumObject> _objects = new();
     public IReadOnlyCollection<MuseumObject> MuseumObjects => _objects.AsReadOnly();
 
-    private Museum() { }
+    private Museum()
+    {
+    }
 
     private Museum(string name, string description, bool isActive)
     {

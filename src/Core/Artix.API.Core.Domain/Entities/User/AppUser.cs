@@ -1,20 +1,18 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
+using Common;
 using Collection;
+using Exceptions;
 using MarketPlace;
-using Microsoft.AspNetCore.Identity;
+using Museum;
 
-public sealed class AppUser : IdentityUser<long>
+public sealed class AppUser : IdentityAggregateRoot
 {
-  public Guid BusinessId { get; private set; } = Guid.CreateVersion7();
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    public DateTime? ModifiedAt { get; private set; }
-    public bool IsDeleted { get; private set; }
     public string? DisplayName { get; set; }
     public string? AvatarUrl { get; private set; }
     public bool IsPro { get; set; }
 
-    // Backing fields initialized as List<T> to support IReadOnlyCollection<T>
+
     private readonly List<Collection> _collections = [];
     private readonly List<MarketplaceItem> _marketplaceItems = [];
     private readonly List<Friendship> _friendshipFriends = [];
@@ -29,10 +27,8 @@ public sealed class AppUser : IdentityUser<long>
     // Public read-only collections
     public IReadOnlyCollection<Collection> Collections => _collections.AsReadOnly();
     public IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
-    
-    
 
-    
+
     public IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
     public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
     public IReadOnlyCollection<UserMuseumKey> UserMuseumKeys => _userMuseumKeys.AsReadOnly();
@@ -83,14 +79,6 @@ public sealed class AppUser : IdentityUser<long>
             return this;
         }
 
-        public AppUserBuilder WithModifiedAt(DateTime? modifiedAt = null)
-        {
-            _user.GetType()
-                .GetProperty(nameof(ModifiedAt))?
-                .SetValue(_user, modifiedAt ?? DateTime.UtcNow);
-
-            return this;
-        }
 
         public AppUser Build() => _user;
     }
@@ -101,20 +89,18 @@ public sealed class AppUser : IdentityUser<long>
         DisplayName = displayName;
         AvatarUrl = avatarUrl;
         IsPro = isPro;
-        SetModified();
     }
 
-    internal void MarkAsDeleted()
+
+    public void AddToCollection(long collectionId, MuseumObject museumObject)
     {
-        IsDeleted = true;
-        SetModified();
+        var collection = _collections.FirstOrDefault(c => c.Id == collectionId) ??
+                         throw DomainException.NotFound("Collection", collectionId);
+
+        collection.AddMuseumObject(museumObject);
     }
 
-    internal void SetModified()
-    {
-        ModifiedAt = DateTime.UtcNow;
-    }
-    
+
     internal void AddFriendship(Friendship friendship)
     {
         _friendshipFriends.Add(friendship);

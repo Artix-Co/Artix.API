@@ -425,7 +425,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         ).FirstOrDefaultAsync(cancellationToken);
 
         if (result is null)
-            throw NotFoundException.ForEntity("MuseumObject", dto.Id);
+            throw InfrastructureNotFoundException.ForEntity("MuseumObject", dto.Id);
 
         return result;
     }
