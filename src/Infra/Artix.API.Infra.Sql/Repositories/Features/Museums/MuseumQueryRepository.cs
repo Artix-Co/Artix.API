@@ -359,20 +359,30 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             throw;
         }
     }
+
+    
     public async Task<ObjectScanDto> GetObjectScanAsync(GetObjectScanQuery dto, CancellationToken cancellationToken)
     {
         var result = await (
             from mo in _queryDbContext.MuseumObjects
             where mo.Id == dto.Id
-            join m in _queryDbContext.Museums on mo.MuseumId equals m.Id
+
+            join m in _queryDbContext.Museums
+                on mo.MuseumId equals m.Id
+
             join moc in _queryDbContext.MuseumObjectCategories
                 on mo.Id equals moc.MuseumObjectId into mocGroup
             from moc in mocGroup.DefaultIfEmpty()
+
             join c in _queryDbContext.Categories
                 on moc.CategoryId equals c.Id into cGroup
             from c in cGroup.DefaultIfEmpty()
 
-            group c by new
+            join mt in _queryDbContext.MusicTracks
+                on mo.Id equals mt.MuseumObjectId into mtGroup
+            from mt in mtGroup.DefaultIfEmpty()
+
+            group new { c, mt } by new
             {
                 mo.Id,
                 mo.Name,
@@ -383,8 +393,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 mo.IsSpecial,
                 mo.IsHidden,
                 mo.MuseumId,
-                MuseumName = m.Name,
-                mo.VoiceAssistantAudioBase64
+                MuseumName = m.Name
             } into g
 
             select new ObjectScanDto
@@ -399,8 +408,17 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 IsHidden = g.Key.IsHidden,
                 MuseumId = g.Key.MuseumId,
                 MuseumName = g.Key.MuseumName,
-                VoiceAssistantAudioBase64 = g.Key.VoiceAssistantAudioBase64,
+
+                VoiceAssistantAudio = g
+                    .Select(x => x.mt?.Url)
+                    .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
+
+                VoiceAssistantTitle = g.Select(x => x.mt?.Title).FirstOrDefault(),
+                VoiceAssistantIsFree = g.Select(x => x.mt?.IsFree).FirstOrDefault(),
+                VoiceAssistantArtist = g.Select(x => x.mt?.Artist).FirstOrDefault(),
+                
                 Categories = g
+                    .Select(x => x.c)
                     .Where(c => c != null)
                     .ToList()
             }
