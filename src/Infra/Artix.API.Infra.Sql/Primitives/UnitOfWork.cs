@@ -2,6 +2,7 @@
 
 using Core.Contract.Primitives.Repositories;
 using Data;
+using Data.DbContexts;
 using Microsoft.EntityFrameworkCore.Storage;
 
 public class UnitOfWork : IUnitOfWork

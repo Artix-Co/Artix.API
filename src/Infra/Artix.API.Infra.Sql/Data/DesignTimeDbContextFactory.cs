@@ -1,6 +1,6 @@
 namespace Artix.API.Infra.Sql.Data;
 
-
+using DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;

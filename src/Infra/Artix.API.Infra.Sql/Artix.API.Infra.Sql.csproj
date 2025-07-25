@@ -33,7 +33,6 @@
   
     <ItemGroup>
       <Folder Include="Data\Config\Read\" />
-      <Folder Include="Data\DbContexts\" />
     </ItemGroup>
 
 </Project>

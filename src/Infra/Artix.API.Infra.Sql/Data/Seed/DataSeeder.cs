@@ -2,6 +2,7 @@
 
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
+using DbContexts;
 using Microsoft.EntityFrameworkCore;
 
 public static class DataSeeder

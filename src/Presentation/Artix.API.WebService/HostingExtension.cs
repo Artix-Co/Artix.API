@@ -11,6 +11,7 @@ using Endpoints;
 using Filters;
 using Infra.Sql;
 using Infra.Sql.Data;
+using Infra.Sql.Data.DbContexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.JsonWebTokens;

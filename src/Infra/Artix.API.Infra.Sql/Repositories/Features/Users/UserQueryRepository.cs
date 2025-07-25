@@ -3,6 +3,7 @@
 using Core.Contract.Features.Users.Queries;
 using Core.Domain.Entities.User;
 using Data;
+using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;
 

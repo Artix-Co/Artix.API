@@ -2,6 +2,7 @@ namespace Artix.API.Infra.Sql;
 
 using Core.Contract.Primitives.Repositories;
 using Data;
+using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

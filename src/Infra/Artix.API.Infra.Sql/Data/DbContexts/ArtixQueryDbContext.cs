@@ -1,13 +1,13 @@
-﻿namespace Artix.API.Infra.Sql.Data;
+﻿namespace Artix.API.Infra.Sql.Data.DbContexts;
 
 using System.Reflection;
-using Core.Domain.Entities.Collection;
-using Core.Domain.Entities.JournalEntry;
-using Core.Domain.Entities.MarketPlace;
-using Core.Domain.Entities.Museum;
-using Core.Domain.Entities.MusicTrack;
-using Core.Domain.Entities.Season;
-using Core.Domain.Entities.User;
+using Artix.API.Core.Domain.Entities.Collection;
+using Artix.API.Core.Domain.Entities.JournalEntry;
+using Artix.API.Core.Domain.Entities.MarketPlace;
+using Artix.API.Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.Entities.MusicTrack;
+using Artix.API.Core.Domain.Entities.Season;
+using Artix.API.Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

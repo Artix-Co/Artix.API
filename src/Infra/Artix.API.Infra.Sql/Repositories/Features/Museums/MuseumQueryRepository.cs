@@ -12,6 +12,7 @@ using Core.Contract.Features.Museums.Queries.GetObjectScans;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Museum;
 using Data;
+using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

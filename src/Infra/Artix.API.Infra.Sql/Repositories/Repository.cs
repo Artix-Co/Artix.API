@@ -3,6 +3,7 @@
 using Core.Contract.Primitives.Repositories;
 using Core.Domain.Entities.Common;
 using Data;
+using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
