@@ -40,7 +40,7 @@ internal sealed class MarketplaceItemWriteConfiguration : BaseEntityConfiguratio
         entity.HasOne(e => e.Seller)
             .WithMany()
             .HasForeignKey(e => e.SellerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.ObjectId)
             .HasDatabaseName("IX_MarketplaceItems_ObjectId");

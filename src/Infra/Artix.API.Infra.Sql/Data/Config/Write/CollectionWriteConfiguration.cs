@@ -29,7 +29,7 @@ internal sealed class CollectionWriteConfiguration : BaseEntityConfiguration<Col
         entity.HasOne(e => e.User)
             .WithMany()
             .HasForeignKey(e => e.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(e => e.Items)
             .WithOne()

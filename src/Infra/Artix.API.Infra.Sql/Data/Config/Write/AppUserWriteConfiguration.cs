@@ -25,61 +25,38 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 
         // Relationships
         entity.HasMany(e => e.Collections)
-            .WithOne(c => c.User)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(c => c.User);
 
         entity.HasMany(e => e.MarketplaceItems)
-            .WithOne(mi => mi.Seller)
-            .HasForeignKey(mi => mi.SellerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(mi => mi.Seller);
 
         entity.HasMany(e => e.UserJournalEntries)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserMuseumKeys)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserObjects)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserSeasonProgresses)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserStrikes)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
 
         entity.HasMany(e => e.UserTracks)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserXps)
-            .WithOne()
-            .HasForeignKey("UserId")
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne(e => e.User);
 
-   
-
-        
-        
 
         entity.HasIndex(e => e.DisplayName)
             .HasDatabaseName("IX_AppUsers_DisplayName");
 
         entity.HasIndex(e => e.IsPro)
             .HasDatabaseName("IX_AppUsers_IsPro");
- 
     }
 }

@@ -26,12 +26,12 @@ internal sealed class UserStrikeWriteConfiguration : BaseEntityConfiguration<Use
         entity.Property(e => e.LastInteraction)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
-
+        
         entity.HasOne(e => e.User)
             .WithMany(u => u.UserStrikes)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
+        
 
 
         entity.HasCheckConstraint("CK_UserStrikes_StrikeCount_NonNegative",
