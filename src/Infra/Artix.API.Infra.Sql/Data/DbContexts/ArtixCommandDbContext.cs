@@ -50,17 +50,8 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
- 
-        
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
             type => type.Name.EndsWith("WriteConfiguration"));
-        
-        Console.WriteLine("Entity Types:");
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            Console.WriteLine($"- {entityType.ClrType.FullName}");
-        }
-
     }
 
     #region SaveChanges

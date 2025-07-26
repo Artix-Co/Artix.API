@@ -3,43 +3,68 @@
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
 using DbContexts;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(ArtixCommandDbContext context)
+    public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager)
     {
+        const int USER_SEED_COUNT = 100;
+        const int MENU_SEED_COUNT = 100;
         try
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            // Seed AppUsers
-            var users = new List<AppUser>
-            {
-                new AppUser
-                {
-                    UserName = "user1@example.com", Email = "user1@example.com", DisplayName = "User One"
-                },
-                new AppUser
-                {
-                    UserName = "user2@example.com", Email = "user2@example.com", DisplayName = "User Two"
-                }
-            };
+            #region user seeder
 
-            foreach (var user in users)
+            const string clientRole = "Client";
+            var roleExists = await roleManager.RoleExistsAsync(clientRole);
+            if (!roleExists)
             {
-                if (!await context.AppUsers.AnyAsync(u => u.UserName == user.UserName))
-                {
-                    context.AppUsers.Add(user);
-                }
+                var roleCreateResult = await roleManager.CreateAsync(new AppRole(clientRole));
+                if (!roleCreateResult.Succeeded)
+                    throw new ApplicationException("Failed to create Client role: " +
+                                                   string.Join(", ",
+                                                       roleCreateResult.Errors.Select(e => e.Description)));
             }
 
-
-            // Seed Friendships
-            var friendships = new List<Friendship>
+            var users = new List<AppUser>();
+            for (int i = 0; i < 100; i++)
             {
-                Friendship.Create(users[0], users[1]), Friendship.Create(users[1], users[0])
-            };
+                var newUser = new AppUser
+                {
+                    UserName = $"username{i}",
+                    Email = $"username{i}@gmail.com",
+                    PhoneNumber = "0987654321",
+                    DisplayName = $"Fake User {i}"
+                };
+
+                var createResult = await userManager.CreateAsync(newUser, "Heli@ghar771379");
+                var roleResult = await userManager.AddToRoleAsync(newUser, clientRole);
+
+                if (!createResult.Succeeded)
+                    throw new ApplicationException("User creation failed: " +
+                                                   string.Join(", ", createResult.Errors.Select(e => e.Description)));
+
+                if (!roleResult.Succeeded)
+                    throw new ApplicationException("Role assignment failed: " +
+                                                   string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+
+                users.Add(newUser);
+            }
+
+            // Seed Friendships (connect each user to every other user)
+            var friendships = new List<Friendship>();
+            for (int i = 0; i < users.Count; i++)
+            {
+                for (int j = i + 1; j < users.Count; j++)
+                {
+                    friendships.Add(Friendship.Create(users[i], users[j]));
+                    friendships.Add(Friendship.Create(users[j], users[i]));
+                }
+            }
 
             foreach (var friendship in friendships)
             {
@@ -50,19 +75,22 @@ public static class DataSeeder
                 }
             }
 
+            #endregion
 
-            // Seed Categories
+
+            #region Seed Categories (assuming categories are needed for MuseumObjectCategory)
+
             var categories = new List<Category>
             {
-                Category.Create("Historical", "Artifacts from historical periods"),
-                Category.Create("Art", "Artistic works and paintings"),
-                Category.Create("Archaeological", "Items from archaeological digs")
+                Category.Create("Historical"), Category.Create("Art"), Category.Create("Archaeological")
             };
-
             context.Categories.AddRange(categories);
 
+            #endregion
 
-            // Seed Museums
+
+            #region Seed Museums
+
             var museums = new List<Museum>
             {
                 Museum.Create("National History Museum", "A museum of historical artifacts", isActive: true),
@@ -70,8 +98,11 @@ public static class DataSeeder
             };
             context.Museums.AddRange(museums);
 
+            #endregion
 
-            // Seed MuseumObjects
+
+            #region Seed MuseumObjects (managed through Museum aggregate root)
+
             var museumObjects = new List<MuseumObject>
             {
                 MuseumObject.Create(
@@ -94,23 +125,29 @@ public static class DataSeeder
                     museum: museums[0],
                     isSpecial: false,
                     isHidden: true
-                ),
+                )
             };
 
-        
 
-   
-            context.MuseumObjects.Add(museumObjects[0]);
-            
+            foreach (var museumObject in museumObjects)
+                museumObject.Museum.AddObject(museumObject);
+
+            #endregion
+
+
+            #region Seed MuseumObjectCategories
 
             var museumObjectCategories = new List<MuseumObjectCategory>
             {
                 MuseumObjectCategory.Create(museumObjects[0], categories[0]), // Ancient Vase -> Historical
                 MuseumObjectCategory.Create(museumObjects[1], categories[1]), // Mona Lisa -> Art
-                MuseumObjectCategory.Create(museumObjects[2], categories[2]), // Bronze Statue -> Archaeological
+                MuseumObjectCategory.Create(museumObjects[2], categories[2]) // Bronze Statue -> Archaeological
             };
+            context.MuseumObjectCategories.AddRange(museumObjectCategories);
 
-            context.MuseumObjectCategories.Add(museumObjectCategories[0]);
+            #endregion 
+          
+            
             await context.SaveChangesAsync();
         }
         catch (Exception e)

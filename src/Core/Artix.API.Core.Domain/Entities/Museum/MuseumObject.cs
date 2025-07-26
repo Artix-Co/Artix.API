@@ -42,9 +42,9 @@ public sealed class MuseumObject : BaseEntity
 
     public void UpdateDetails(string? description, int? version, int? tier)
     {
-        if (version.HasValue && version < 0)
+        if (version is < 0)
             throw new ArgumentException("Version cannot be negative.");
-        if (tier.HasValue && tier < 0)
+        if (tier is < 0)
             throw new ArgumentException("Tier cannot be negative.");
 
         Description = description;
@@ -98,7 +98,7 @@ public sealed class MuseumObject : BaseEntity
         IsHidden = true;
     }
 
-    public void Unhide()
+    public void Visible()
     {
         IsHidden = false;
     }

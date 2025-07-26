@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
+using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Sql.Data;
 using Artix.API.Infra.Sql.Data.DbContexts;
@@ -9,6 +10,7 @@ using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Nest;
@@ -26,8 +28,12 @@ Log.Logger.Information("Application built!");
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+
+
     await context.Database.MigrateAsync();
-    // await DataSeeder.SeedAsync(context);
+    await DataSeeder.SeedAsync(context, userManager, roleManager);
 }
 
 app.UseExceptionHandler(config =>
@@ -45,10 +51,7 @@ app.UseExceptionHandler(config =>
             _ => StatusCodes.Status500InternalServerError
         };
 
-        var result = JsonSerializer.Serialize(new
-        {
-            error = exception?.Message
-        });
+        var result = JsonSerializer.Serialize(new { error = exception?.Message });
 
         await context.Response.WriteAsync(result);
     });
