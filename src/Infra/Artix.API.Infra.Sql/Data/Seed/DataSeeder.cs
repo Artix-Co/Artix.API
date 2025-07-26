@@ -11,13 +11,16 @@ public static class DataSeeder
     public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager)
     {
-        const int USER_SEED_COUNT = 100;
-        const int MENU_SEED_COUNT = 100;
+        const int USER_SEED_COUNT = 7;
+        const int MUEUM_SEED_COUNT = 7;
+        const int CATEGORY_SEED_COUNT = 7;
+
+
         try
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            #region user seeder
+            #region Seed Users and Friendship
 
             const string clientRole = "Client";
             var roleExists = await roleManager.RoleExistsAsync(clientRole);
@@ -31,7 +34,7 @@ public static class DataSeeder
             }
 
             var users = new List<AppUser>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < USER_SEED_COUNT; i++)
             {
                 var newUser = new AppUser
                 {
@@ -55,14 +58,13 @@ public static class DataSeeder
                 users.Add(newUser);
             }
 
-            // Seed Friendships (connect each user to every other user)
             var friendships = new List<Friendship>();
-            for (int i = 0; i < users.Count; i++)
+            foreach (var oddUser in users.Where(u => u.Id % 2 != 0))
             {
-                for (int j = i + 1; j < users.Count; j++)
+                foreach (var evenUser in users.Where(u => u.Id % 2 == 0))
                 {
-                    friendships.Add(Friendship.Create(users[i], users[j]));
-                    friendships.Add(Friendship.Create(users[j], users[i]));
+                    friendships.Add(Friendship.Create(oddUser, evenUser));
+                    friendships.Add(Friendship.Create(evenUser, oddUser));
                 }
             }
 
@@ -80,10 +82,15 @@ public static class DataSeeder
 
             #region Seed Categories (assuming categories are needed for MuseumObjectCategory)
 
-            var categories = new List<Category>
+            var categories = new List<Category>();
+
+            for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
             {
-                Category.Create("Historical"), Category.Create("Art"), Category.Create("Archaeological")
-            };
+                var category = Category.Create($"Fake category {i}", $"Fake description category {i}");
+                categories.Add(category);
+            }
+
+
             context.Categories.AddRange(categories);
 
             #endregion
@@ -91,11 +98,15 @@ public static class DataSeeder
 
             #region Seed Museums
 
-            var museums = new List<Museum>
+            var museums = new List<Museum>();
+            for (int i = 0; i < MUEUM_SEED_COUNT; i++)
             {
-                Museum.Create("National History Museum", "A museum of historical artifacts", isActive: true),
-                Museum.Create("Art Gallery", "A collection of fine arts", isActive: true)
-            };
+                var museum = Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}",
+                    isActive: true);
+                museums.Add(museum);
+            }
+
+
             context.Museums.AddRange(museums);
 
             #endregion
@@ -103,51 +114,55 @@ public static class DataSeeder
 
             #region Seed MuseumObjects (managed through Museum aggregate root)
 
-            var museumObjects = new List<MuseumObject>
+            foreach (var museum in museums)
             {
-                MuseumObject.Create(
-                    name: "Ancient Vase",
-                    qrCode: "QR_VASE_001",
-                    museum: museums[0],
-                    isSpecial: true,
-                    isHidden: false
-                ),
-                MuseumObject.Create(
-                    name: "Mona Lisa",
-                    qrCode: "QR_MONA_001",
-                    museum: museums[0],
-                    isSpecial: true,
-                    isHidden: false
-                ),
-                MuseumObject.Create(
-                    name: "Bronze Statue",
-                    qrCode: "QR_STATUE_001",
-                    museum: museums[0],
-                    isSpecial: false,
-                    isHidden: true
-                )
-            };
+                var museumObjects = new List<MuseumObject>
+                {
+                    MuseumObject.Create(
+                        name: "Ancient Vase",
+                        qrCode: "QR_VASE_001",
+                        museum: museum,
+                        isSpecial: true,
+                        isHidden: false
+                    ),
+                    MuseumObject.Create(
+                        name: "Mona Lisa",
+                        qrCode: "QR_MONA_001",
+                        museum: museum,
+                        isSpecial: true,
+                        isHidden: false
+                    ),
+                    MuseumObject.Create(
+                        name: "Bronze Statue",
+                        qrCode: "QR_STATUE_001",
+                        museum: museum,
+                        isSpecial: false,
+                        isHidden: true
+                    )
+                };
+
+                museumObjects.AddRange(museumObjects);
+
+                foreach (var museumObject in museumObjects)
+                    museumObject.Museum.AddObject(museumObject);
 
 
-            foreach (var museumObject in museumObjects)
-                museumObject.Museum.AddObject(museumObject);
+                #region Seed MuseumObjectCategories
+
+                var museumObjectCategories = new List<MuseumObjectCategory>
+                {
+                    MuseumObjectCategory.Create(museumObjects[0], categories[0]),
+                    MuseumObjectCategory.Create(museumObjects[1], categories[1]),
+                    MuseumObjectCategory.Create(museumObjects[2], categories[2])
+                };
+                context.MuseumObjectCategories.AddRange(museumObjectCategories);
+
+                #endregion
+            }
 
             #endregion
 
 
-            #region Seed MuseumObjectCategories
-
-            var museumObjectCategories = new List<MuseumObjectCategory>
-            {
-                MuseumObjectCategory.Create(museumObjects[0], categories[0]), // Ancient Vase -> Historical
-                MuseumObjectCategory.Create(museumObjects[1], categories[1]), // Mona Lisa -> Art
-                MuseumObjectCategory.Create(museumObjects[2], categories[2]) // Bronze Statue -> Archaeological
-            };
-            context.MuseumObjectCategories.AddRange(museumObjectCategories);
-
-            #endregion 
-          
-            
             await context.SaveChangesAsync();
         }
         catch (Exception e)
