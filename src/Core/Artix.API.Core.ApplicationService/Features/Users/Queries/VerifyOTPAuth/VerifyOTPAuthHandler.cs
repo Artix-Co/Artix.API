@@ -90,12 +90,14 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             if (!roleResult.Succeeded)
                 throw new ApplicationException("Role assignment failed: " +
                                                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-
+            var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(newUser);
+            
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
             
-            var token = await _jwtTokenGenerator.GenerateTokenAsync(newUser);
-            return new VerifyOTPAuthDto { IsNewUser = true, UserId = newUser.Id, Token = token };
+  
+            
+            return new VerifyOTPAuthDto { IsNewUser = true, UserId = newUser.Id, Token = tokenString };
         }
         else if (otp.Purpose == "Login" && user != null)
         {
@@ -106,9 +108,13 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
 
             // Sign in and generate JWT token
             await _signInManager.SignInAsync(user, isPersistent: false);
-            var token = await _jwtTokenGenerator.GenerateTokenAsync(user);
-
-            return new VerifyOTPAuthDto { IsNewUser = false, UserId = user.Id, Token = token };
+            var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
+            
+            var smsMessage = $"Welcome {user.DisplayName}! You are now registered.";
+            // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
+            
+            
+            return new VerifyOTPAuthDto { IsNewUser = false, UserId = user.Id, Token = tokenString };
         }
         else
         {

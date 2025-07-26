@@ -1,6 +1,5 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Museums;
 
-using System.Linq.Expressions;
 using Core.Contract.Features.Museums.Queries;
 using Core.Contract.Features.Museums.Queries.GetAll;
 using Core.Contract.Features.Museums.Queries.GetById;
@@ -8,12 +7,9 @@ using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
-using Core.Contract.Features.Museums.Queries.GetObjectScans;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Museum;
-using Data;
 using Data.DbContexts;
-using Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Primitives;
@@ -360,75 +356,4 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             throw;
         }
     }
-
-    
-    public async Task<ObjectScanDto> GetObjectScanAsync(GetObjectScanQuery dto, CancellationToken cancellationToken)
-    {
-        var result = await (
-            from mo in _queryDbContext.MuseumObjects
-            where mo.Id == dto.Id
-
-            join m in _queryDbContext.Museums
-                on mo.MuseumId equals m.Id
-
-            join moc in _queryDbContext.MuseumObjectCategories
-                on mo.Id equals moc.MuseumObjectId into mocGroup
-            from moc in mocGroup.DefaultIfEmpty()
-
-            join c in _queryDbContext.Categories
-                on moc.CategoryId equals c.Id into cGroup
-            from c in cGroup.DefaultIfEmpty()
-
-            join mt in _queryDbContext.MusicTracks
-                on mo.Id equals mt.MuseumObjectId into mtGroup
-            from mt in mtGroup.DefaultIfEmpty()
-
-            group new { c, mt } by new
-            {
-                mo.Id,
-                mo.Name,
-                mo.QRCode,
-                mo.Description,
-                mo.Version,
-                mo.Tier,
-                mo.IsSpecial,
-                mo.IsHidden,
-                mo.MuseumId,
-                MuseumName = m.Name
-            } into g
-
-            select new ObjectScanDto
-            {
-                Id = g.Key.Id,
-                Name = g.Key.Name,
-                QrCode = g.Key.QRCode,
-                Description = g.Key.Description,
-                Version = g.Key.Version,
-                Tier = g.Key.Tier,
-                IsSpecial = g.Key.IsSpecial,
-                IsHidden = g.Key.IsHidden,
-                MuseumId = g.Key.MuseumId,
-                MuseumName = g.Key.MuseumName,
-
-                // VoiceAssistantAudio = g
-                //     .Select(x => x.mt?.Url)
-                //     .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
-                //
-                // VoiceAssistantTitle = g.Select(x => x.mt?.Title).FirstOrDefault(),
-                // VoiceAssistantIsFree = g.Select(x => x.mt?.IsFree).FirstOrDefault(),
-                // VoiceAssistantArtist = g.Select(x => x.mt?.Artist).FirstOrDefault(),
-                
-                Categories = g
-                    .Select(x => x.c)
-                    .Where(c => c != null)
-                    .ToList()
-            }
-        ).FirstOrDefaultAsync(cancellationToken);
-
-        if (result is null)
-            throw InfrastructureNotFoundException.ForEntity("MuseumObject", dto.Id);
-
-        return result;
-    }
-
 }

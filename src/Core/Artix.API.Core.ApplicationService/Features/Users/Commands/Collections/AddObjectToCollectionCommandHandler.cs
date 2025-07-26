@@ -19,7 +19,7 @@ internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<A
         //     .GetUserWithCollectionsAsync(command.UserId, cancellationToken);
         //
         // if (user is null)
-        //     throw ApplicationServiceNotFoundException.ForEntity("User", command.UserId);
+        //     throw ApplicationServiceNotFoundException.ForEntity(nameof(user), command.UserId);
         //
         // var museumObject = await _unitOfWork.MuseumObjects
         //     .GetByIdAsync(command.ObjectId, cancellationToken);

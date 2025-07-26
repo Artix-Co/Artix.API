@@ -38,7 +38,8 @@ public class QueryRepository<T>(ArtixQueryDbContext queryDbContext)
 
     #region Async Methods
 
-    public async Task<T> GetByIdAsync(long id, Func<IQueryable<T>, IQueryable<T>> include = null)
+    public async Task<T> GetByIdAsync(long id, CancellationToken cancellationToken = default,
+        Func<IQueryable<T>, IQueryable<T>> include = null)
     {
         IQueryable<T> query = this._queryDbContext.Set<T>();
 
@@ -47,7 +48,7 @@ public class QueryRepository<T>(ArtixQueryDbContext queryDbContext)
             query = include(query);
         }
 
-        var entity = await query.FirstOrDefaultAsync(e => e.Id == id);
+        var entity = await query.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         if (entity == null)
         {

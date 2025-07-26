@@ -7,29 +7,28 @@ using GetMuseumJournalEntries;
 using GetMuseumKeyStatus;
 using GetMuseumObjects;
 using GetObjects;
-using GetObjectScans;
 using Primitives.Models;
 using Primitives.Repositories;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {
     Task<IEnumerable<AllMuseumDto>>
-        GetAllAsync(GetAllMuseumsQuery query, CancellationToken cancellationToken = default);
+        GetAllAsync(GetAllMuseumsQuery dto, CancellationToken cancellationToken = default);
 
-    Task<MuseumByIdDto?> GetDetailsByIdAsync(GetMuseumByIdQuery query, CancellationToken cancellationToken = default);
+    Task<MuseumByIdDto?> GetDetailsByIdAsync(GetMuseumByIdQuery dto, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<MuseumObjectDto>> GetObjectsAsync(GetMuseumObjectsQuery query,
+    Task<IEnumerable<MuseumObjectDto>> GetObjectsAsync(GetMuseumObjectsQuery dto,
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<MuseumJournalEntryDto>> GetJournalEntriesAsync(GetMuseumJournalEntriesQuery query,
+    Task<IEnumerable<MuseumJournalEntryDto>> GetJournalEntriesAsync(GetMuseumJournalEntriesQuery dto,
         CancellationToken cancellationToken = default);
 
-    Task<MuseumKeyStatusDto?> GetKeyStatusAsync(GetMuseumKeyStatusQuery query,
+    Task<MuseumKeyStatusDto?> GetKeyStatusAsync(GetMuseumKeyStatusQuery dto,
         CancellationToken cancellationToken = default);
 
 
-    Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery query,
+    Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default);
 
-    Task<ObjectScanDto> GetObjectScanAsync(GetObjectScanQuery query, CancellationToken cancellationToken);
+
 }

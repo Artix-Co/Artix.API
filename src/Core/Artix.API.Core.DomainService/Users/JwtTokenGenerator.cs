@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Core.DomainService.Users;
 
 using Domain.Entities.User;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
@@ -53,12 +52,38 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         {
             Subject = new ClaimsIdentity(authClaims),
             Expires = DateTime.UtcNow.AddSeconds(_expireTimeInSeconds),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = _issuer,
             Audience = _audience
         };
 
         var token = _tokenHandler.CreateToken(tokenDescriptor);
-        return _tokenHandler.WriteToken(token);
+        var tokenString = _tokenHandler.WriteToken(token);
+
+        
+        
+        // Remove any existing token to avoid conflicts
+        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+
+        
+        // Store the new token
+        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", tokenString);
+        if (!result.Succeeded)
+        {
+            throw new Exception("Failed to store authentication token: " +
+                                string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        // Verify stored token
+        var storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        
+        
+        if (storedToken != tokenString)
+        {
+            throw new Exception("Token storage verification failed.");
+        }
+
+        return tokenString;
     }
 }

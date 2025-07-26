@@ -10,6 +10,10 @@ public sealed class OTP : BaseEntity
     public bool IsUsed { get; set; }
     public string Purpose { get; set; } = string.Empty; // "Registration" or "Login"
 
+    private OTP()
+    {
+    }
+
     public static OTP Create(string phoneNumber, string purpose, int validityMinutes = 5)
     {
         var code = new Random().Next(100000, 999999).ToString(); // Generate 6-digit OTP

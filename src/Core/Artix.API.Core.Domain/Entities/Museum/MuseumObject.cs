@@ -155,7 +155,6 @@ public sealed class MuseumObject : BaseEntity
     private void SetMuseum(Museum museum)
     {
         Museum = museum ?? throw DomainException.InvalidValue(nameof(museum));
-        ;
         MuseumId = museum.Id;
     }
 

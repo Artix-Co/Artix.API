@@ -42,26 +42,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         var userRoles = await this._userManager.GetRolesAsync(user);
         var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
 
-        // Remove any existing token to avoid conflicts
-        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-
-        // Store the new token
-        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", tokenString);
-        if (!result.Succeeded)
-        {
-            Console.WriteLine($"Token storage failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            throw new Exception("Failed to store authentication token: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
-
-        // Verify stored token
-        var storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-        Console.WriteLine($"Generated Token: {tokenString}");
-        Console.WriteLine($"Stored Token: {storedToken}");
-        if (storedToken != tokenString)
-        {
-            Console.WriteLine("Token storage verification failed: Stored token does not match generated token.");
-            throw new Exception("Token storage verification failed.");
-        }
+        
 
         return new LoginDto
         {

@@ -1,13 +1,13 @@
 ﻿namespace Artix.API.Endpoints.Controllers;
 
 using Common;
+using Core.Contract.Features.Museums.Commands.ScanObject;
 using Core.Contract.Features.Museums.Queries.GetAll;
 using Core.Contract.Features.Museums.Queries.GetById;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
-using Core.Contract.Features.Museums.Queries.GetObjectScans;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -71,11 +71,11 @@ public sealed class MuseumController : BaseController
         return Ok(result);
     }
 
-
-    [HttpGet("objects/{objectId:long}/scan")]
-    public async Task<IActionResult> GetObjectScanAsync([FromRoute] long objectId)
+    [Authorize]
+    [HttpPost("object/scan")]
+    public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
     {
-        var result = await _mediator.Send(new GetObjectScanQuery { Id = objectId });
+        var result = await _mediator.Send(command);
         return Ok(result);
     }
 }
