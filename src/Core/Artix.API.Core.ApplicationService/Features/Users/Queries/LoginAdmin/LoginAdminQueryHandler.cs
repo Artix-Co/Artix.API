@@ -7,6 +7,7 @@ using Primitives;
 using Contract.Configs.Authentication;
 using Artix.API.Core.Contract.Features.Users.Queries.Login;
 using Domain.Entities.User;
+using DomainService.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -16,20 +17,14 @@ using Microsoft.IdentityModel.Tokens;
 internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly string _signingKey;
-    private readonly string _issuer;
-    private readonly string _audience;
-    private readonly int _expireTimeInSeconds;
+ private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IOptions<AuthenticationSettings> authenticationSettings) : base(cache,
+        UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator) : base(cache,
         httpContextAccessor)
     {
         this._userManager = userManager;
-        this._signingKey = authenticationSettings.Value.IssuerSigningKey;
-        this._audience = authenticationSettings.Value.Audience;
-        this._issuer = authenticationSettings.Value.Issuer;
-        this._expireTimeInSeconds = authenticationSettings.Value.ExpireTime;
+        this._jwtTokenGenerator = jwtTokenGenerator;
     }
 
     public override async Task<LoginDto> Handle(GetLoginQuery query, CancellationToken cancellationToken)
@@ -44,36 +39,8 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         {
             throw new UnauthorizedAccessException("Invalid credentials");
         }
-
         var userRoles = await this._userManager.GetRolesAsync(user);
-
-        var authClaims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.UserName!),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()) 
-        };
-
-        foreach (var role in userRoles)
-        {
-            authClaims.Add(new Claim(ClaimTypes.Role, role));
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(this._signingKey);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(authClaims),
-            Expires = DateTime.UtcNow.AddSeconds(this._expireTimeInSeconds),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = this._issuer,
-            Audience = this._audience
-        };
-
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        var tokenString = tokenHandler.WriteToken(token);
+        var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
 
         // Remove any existing token to avoid conflicts
         await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
