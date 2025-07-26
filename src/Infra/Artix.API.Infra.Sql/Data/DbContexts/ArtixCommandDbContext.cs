@@ -38,6 +38,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserStrike> UserStrikes { get; set; }
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
+    public DbSet<OTP> OTPs { get; set; }
 
      
     public DbSet<Museum> Museums { get; set; }

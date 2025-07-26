@@ -3,12 +3,13 @@
 namespace Artix.API.Endpoints.Controllers;
 
 using Common;
+using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
 using Core.Contract.Features.Users.Commands.Modify;
 using Core.Contract.Features.Users.Commands.RegisterAdmins;
-using Core.Contract.Features.Users.Commands.RegisterMobiles;
 using Core.Contract.Features.Users.Queries.GetUserProfile;
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
+using Core.Contract.Features.Users.Queries.VerifyOTPAuth;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -23,23 +24,30 @@ public sealed class AuthenticationController : BaseController
         this._mediator = mediator;
     }
 
-    
-    [HttpPost("register-mobile")]
-    public async Task<IActionResult> RegisterMobileAsync(RegisterMobileCommand command)
+
+    [HttpPost("send-otp")]
+    public async Task<IActionResult> RegisterMobileAsync(InitiateOTPAuthCommand command)
     {
         var result = await this._mediator.Send(command);
         return Ok(result);
     }
-    
-    
+
+    [HttpGet("verify-otp")]
+    public async Task<IActionResult> RegisterMobileAsync([FromQuery] GetVerifyOTPAuthQuery query)
+    {
+        var result = await this._mediator.Send(query);
+        return Ok(result);
+    }
+
+
     [HttpPost("register-admin")]
     public async Task<IActionResult> RegisterAdminAdmin(RegisterAdminCommand command)
     {
         var result = await this._mediator.Send(command);
         return Ok(result);
     }
-    
-   
+
+
     [HttpPost("login")]
     public async Task<IActionResult> LoginAsync(GetLoginQuery query)
     {
@@ -64,9 +72,8 @@ public sealed class AuthenticationController : BaseController
         var result = await this._mediator.Send(query);
         return Ok(result);
     }
-   
 
- 
+
     [Authorize]
     [HttpPatch("modify-profile")]
     public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)

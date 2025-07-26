@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj" />
     <ProjectReference Include="..\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
+    <ProjectReference Include="..\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj" />
   </ItemGroup>
   
 </Project>

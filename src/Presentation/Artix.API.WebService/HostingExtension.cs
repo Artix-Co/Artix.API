@@ -7,6 +7,7 @@ using Core.Contract;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Domain.Entities.User;
+using Core.DomainService;
 using Endpoints;
 using Filters;
 using Infra.Sql;
@@ -181,6 +182,8 @@ public static class HostingExtension
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
+        services.AddDomainServiceServices();
+        
         services.AddControllers();
 
         services.AddSwaggerGen(options =>

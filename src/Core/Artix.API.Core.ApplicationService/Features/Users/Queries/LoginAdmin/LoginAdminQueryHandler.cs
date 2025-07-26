@@ -1,19 +1,19 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.Login;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.LoginAdmin;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Primitives;
 using Contract.Configs.Authentication;
-using Contract.Features.Users.Queries.Login;
+using Artix.API.Core.Contract.Features.Users.Queries.Login;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Primitives;
 
-internal sealed class LoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
+internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly string _signingKey;
@@ -21,7 +21,7 @@ internal sealed class LoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginD
     private readonly string _audience;
     private readonly int _expireTimeInSeconds;
 
-    public LoginQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
+    public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IOptions<AuthenticationSettings> authenticationSettings) : base(cache,
         httpContextAccessor)
     {
@@ -39,13 +39,13 @@ internal sealed class LoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginD
             throw new UnauthorizedAccessException("Username or password cannot be empty.");
         }
 
-        var user = await _userManager.FindByNameAsync(query.Username);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, query.Password))
+        var user = await this._userManager.FindByNameAsync(query.Username);
+        if (user == null || !await this._userManager.CheckPasswordAsync(user, query.Password))
         {
             throw new UnauthorizedAccessException("Invalid credentials");
         }
 
-        var userRoles = await _userManager.GetRolesAsync(user);
+        var userRoles = await this._userManager.GetRolesAsync(user);
 
         var authClaims = new List<Claim>
         {
@@ -76,10 +76,10 @@ internal sealed class LoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginD
         var tokenString = tokenHandler.WriteToken(token);
 
         // Remove any existing token to avoid conflicts
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
 
         // Store the new token
-        var result = await _userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", tokenString);
+        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", tokenString);
         if (!result.Succeeded)
         {
             Console.WriteLine($"Token storage failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
@@ -87,7 +87,7 @@ internal sealed class LoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginD
         }
 
         // Verify stored token
-        var storedToken = await _userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        var storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
         Console.WriteLine($"Generated Token: {tokenString}");
         Console.WriteLine($"Stored Token: {storedToken}");
         if (storedToken != tokenString)
