@@ -1,10 +1,13 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Common;
 
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 public abstract class BaseAggregateRoot : IAggregateRoot, IEntity
 {
+    [Key]
     public long Id { get; protected set; }
     public DateTime CreatedAt { get; protected init; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; protected set; }
@@ -60,11 +63,24 @@ public abstract class BaseAggregateRoot : IAggregateRoot, IEntity
         return Id.GetHashCode() * 31;
     }
 
-    public virtual void ApplyGraphTracking(DbContext context)
+ 
+    
+    public virtual void LoadEntitiesFromGraph()
     {
-        if (context.Entry(this).State == EntityState.Detached)
+        var entityType = GetType();
+        var props = entityType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (var prop in props)
         {
-            context.Entry(this).State = EntityState.Modified;
+            if (typeof(IEnumerable<IEntity>).IsAssignableFrom(prop.PropertyType))
+            {
+                if (prop.GetValue(this) is IEnumerable<IEntity> value)
+                {
+                    foreach (var entity in value)
+                        AddEntity(entity);
+                }
+            }
         }
     }
+
 }

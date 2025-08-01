@@ -27,9 +27,6 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
 
     public void Update(T entity)
     {
-        if (entity is BaseEntity baseEntity)
-            baseEntity.ApplyGraphTracking(_commandDbContext);
-
         _commandDbContext.SaveChanges();
     }
 

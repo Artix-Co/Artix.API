@@ -1,9 +1,10 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Common;
 
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 public abstract class BaseEntity : IEntity
 {
+    [Key]
     public long Id { get; set; }
     public DateTime CreatedAt { get; protected init; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; set; }
@@ -29,14 +30,5 @@ public abstract class BaseEntity : IEntity
     public override int GetHashCode()
     {
         return Id.GetHashCode() * 31;
-    }
-
-     
-    public virtual void ApplyGraphTracking(DbContext context)
-    {
-        if (context.Entry(this).State == EntityState.Detached)
-        {
-            context.Entry(this).State = EntityState.Modified;
-        }
     }
 }
