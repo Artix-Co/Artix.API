@@ -2,7 +2,6 @@
 
 using Core.Contract.Primitives.Repositories;
 using Core.Domain.Entities.Common;
-using Data;
 using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,11 +21,11 @@ public class Repository<T> : IRepository<T> where T : class
 
     #region Async methods
 
-    public virtual async Task<T> GetByIdAsync(Guid id)
+    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Getting entity of type {EntityType} by id {Id}", typeof(T).Name, id);
 
-        T entity;
+        T? entity;
 
         entity = await this._dbSet.FindAsync(id);
 
@@ -36,40 +35,41 @@ public class Repository<T> : IRepository<T> where T : class
         }
         else
         {
-            this._logger.LogInformation("Entity of type {EntityType} with id {Id} found in database", typeof(T).Name, id);
+            this._logger.LogInformation("Entity of type {EntityType} with id {Id} found in database", typeof(T).Name,
+                id);
         }
 
         return entity;
     }
 
-    public virtual async Task AddAsync(T entity)
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Adding entity of type {EntityType}", typeof(T).Name);
-        await this._dbSet.AddAsync(entity);
-        this._logger.LogInformation("Entity of type {EntityType} added");
+        await this._dbSet.AddAsync(entity, cancellationToken);
+        this._logger.LogInformation("Entity of type {EntityType} added", typeof(T).Name);
 
-        await this.CommitAsync();
+        await this.CommitAsync(cancellationToken);
     }
 
-    public virtual async Task AddRangeAsync(IEnumerable<T> entity)
+    public virtual async Task AddRangeAsync(IEnumerable<T> entity, CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Adding range entity of type {EntityType}", typeof(T).Name);
-        await this._dbSet.AddRangeAsync(entity);
-        this._logger.LogInformation("Entity of type {EntityType} added");
+        await this._dbSet.AddRangeAsync(entity, cancellationToken);
+        this._logger.LogInformation("Entity of type {EntityType} added", typeof(T).Name);
 
-        await this.CommitAsync();
+        await this.CommitAsync(cancellationToken);
     }
-    
-    
-    public virtual async Task<int> CommitAsync()
+
+
+    public virtual async Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Committing transaction asynchronously");
-        var result = await this._context.SaveChangesAsync();
+        var result = await this._context.SaveChangesAsync(cancellationToken);
         this._logger.LogInformation("Transaction committed asynchronously");
         return result;
     }
 
-    public async Task UpdateAsync(T entity)
+    public async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Updating entity of type {EntityType}", typeof(T).Name);
 
@@ -78,11 +78,11 @@ public class Repository<T> : IRepository<T> where T : class
             await this._dbSet
                 .Where(e => e.Equals(entity))
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(e => (e as BaseEntity).IsDeleted, true)
-                );
+                        .SetProperty(e => ((e as BaseEntity)!).IsDeleted, true)
+                    , cancellationToken);
 
             this._logger.LogInformation("Entity of type {EntityType} updated", typeof(T).Name);
-            await this.CommitAsync();
+            await this.CommitAsync(cancellationToken);
         }
         else
         {
@@ -91,7 +91,7 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
 
-    public async Task DeleteAsync(T entity)
+    public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Soft deleting entity of type {EntityType}", typeof(T).Name);
 
@@ -100,19 +100,19 @@ public class Repository<T> : IRepository<T> where T : class
             await this._dbSet
                 .Where(e => e.Equals(entity))
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(e => (e as BaseEntity).IsDeleted, false)
+                        .SetProperty(e => ((e as BaseEntity)!).IsDeleted, false),
+                    cancellationToken
                 );
 
             this._logger.LogInformation("Entity of type {EntityType} soft deleted", typeof(T).Name);
 
-            await this.CommitAsync();
+            await this.CommitAsync(cancellationToken);
         }
         else
         {
             this._logger.LogWarning("Entity of type {EntityType} does not inherit from BaseEntity", typeof(T).Name);
         }
     }
-
 
     #endregion
 
@@ -131,7 +131,7 @@ public class Repository<T> : IRepository<T> where T : class
     {
         this._logger.LogInformation("Updating entity of type {EntityType}", typeof(T).Name);
         this._dbSet.Update(entity);
-        this._logger.LogInformation("Entity of type {EntityType} updated");
+        this._logger.LogInformation("Entity of type {EntityType} updated", typeof(T).Name);
 
         this.Commit();
     }
@@ -145,7 +145,7 @@ public class Repository<T> : IRepository<T> where T : class
             this._dbSet
                 .Where(e => e.Equals(entity))
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(e => (e as BaseEntity).IsDeleted, true)
+                    .SetProperty(e => ((e as BaseEntity)!).IsDeleted, true)
                 );
 
             this._logger.LogInformation("Entity of type {EntityType} soft deleted", typeof(T).Name);
@@ -159,12 +159,11 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
 
-
-    public T GetById(Guid id)
+    public T? GetById(Guid id)
     {
         this._logger.LogInformation("Getting entity of type {EntityType} by id {Id}", typeof(T).Name, id);
 
-        T entity;
+        T? entity;
 
         entity = this._dbSet.Find(id);
 
@@ -174,7 +173,8 @@ public class Repository<T> : IRepository<T> where T : class
         }
         else
         {
-            this._logger.LogInformation("Entity of type {EntityType} with id {Id} found in database", typeof(T).Name, id);
+            this._logger.LogInformation("Entity of type {EntityType} with id {Id} found in database", typeof(T).Name,
+                id);
         }
 
         return entity;
@@ -192,14 +192,13 @@ public class Repository<T> : IRepository<T> where T : class
     {
         this._logger.LogInformation("Adding entity of type {EntityType}", typeof(T).Name);
         this._dbSet.Add(entity);
-        this._logger.LogInformation("Entity of type {EntityType} added");
+        this._logger.LogInformation("Entity of type {EntityType} added", typeof(T).Name);
 
         this.Commit();
     }
 
     #endregion
 
- 
 
     public virtual void BeginTransaction()
     {

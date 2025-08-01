@@ -4,7 +4,7 @@ public interface IRepository<T> where T : class
 {
     #region Sync methods
 
-    T GetById(Guid id);
+    T? GetById(Guid id);
     int Commit();
     void Add(T entity);
     void AddRange(IEnumerable<T> entity);
@@ -16,12 +16,12 @@ public interface IRepository<T> where T : class
 
     #region Asunc methods
 
-    Task<T> GetByIdAsync(Guid id);
-    Task AddAsync(T entity);
-    Task AddRangeAsync(IEnumerable<T> entity);
-    Task<int> CommitAsync();
-    Task UpdateAsync(T entity);
-    Task DeleteAsync(T entity);
+    Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task AddAsync(T entity, CancellationToken cancellationToken = default);
+    Task AddRangeAsync(IEnumerable<T> entity, CancellationToken cancellationToken = default);
+    Task<int> CommitAsync(CancellationToken cancellationToken = default);
+    Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
+    Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
 
     #endregion
 

@@ -57,30 +57,27 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
 
     #region Async Methods
 
-    public async Task InsertRangeAsync(IEnumerable<T> entities)
+    public async Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         await this._commandDbContext.BulkInsertAsync(entities);
     }
 
 
-    public async Task InsertAsync(T entity)
+    public async Task InsertAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await this._commandDbContext.Set<T>().AddAsync(entity);
-        await this._commandDbContext.SaveChangesAsync();
+        await this._commandDbContext.Set<T>().AddAsync(entity, cancellationToken);
+        await this._commandDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync(T entity)
+    public async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        if (entity is BaseEntity baseEntity)
-            baseEntity.ApplyGraphTracking(_commandDbContext);
-
-        await _commandDbContext.SaveChangesAsync();
+        await _commandDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(long id)
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         var dbSet = this._commandDbContext.Set<T>();
-        var entity = dbSet.Find(id);
+        var entity = await dbSet.FindAsync(id);
 
         var entityType = typeof(T);
 
@@ -93,7 +90,7 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
 
 
         this._commandDbContext.Update(entity);
-        await this._commandDbContext.SaveChangesAsync();
+        await this._commandDbContext.SaveChangesAsync(cancellationToken);
     }
 
     #endregion

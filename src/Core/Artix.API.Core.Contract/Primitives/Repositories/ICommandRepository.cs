@@ -10,8 +10,8 @@ public interface ICommandRepository<T> where T : IAggregateRoot
     void Delete(long id);
 
 
-    Task InsertRangeAsync(IEnumerable<T> entities);
-    Task InsertAsync(T entity);
-    Task UpdateAsync(T entity);
-    Task DeleteAsync(long id);
+    Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+    Task InsertAsync(T entity, CancellationToken cancellationToken = default);
+    Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
+    Task DeleteAsync(long id, CancellationToken cancellationToken = default);
 }

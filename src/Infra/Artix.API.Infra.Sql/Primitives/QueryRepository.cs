@@ -7,56 +7,59 @@ using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-public class QueryRepository<T>(ArtixQueryDbContext queryDbContext)
-    : IQueryRepository<T>
-    where T : class, IAggregateRoot, IEntity
+public class QueryRepository<T> : IQueryRepository<T> where T : class, IAggregateRoot
 {
-    protected readonly ArtixQueryDbContext _queryDbContext = queryDbContext;
+    private readonly DbContext _context;
 
-    #region Sync Methods
-
-    public T GetById(long id, Func<IQueryable<T>, IQueryable<T>> include = null)
+    public QueryRepository(DbContext context)
     {
-        IQueryable<T> query = this._queryDbContext.Set<T>();
+        _context = context;
+    }
 
-        if (include != null)
+    public T? GetById(long id)
+    {
+        return _context.Set<T>().Find(id);
+    }
+
+    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<T>().FindAsync(new object[] { id }, cancellationToken);
+    }
+
+    public T? GetGraphById(long id)
+    {
+        var query = IncludeRequiredNavigations(_context.Set<T>());
+        return query.FirstOrDefault(e => EF.Property<long>(e, "Id") == id);
+    }
+
+    public async Task<T?> GetGraphByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        var query = IncludeRequiredNavigations(_context.Set<T>());
+        var entity = await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id, cancellationToken);
+
+        if (entity is BaseAggregateRoot aggregateRoot)
         {
-            query = include(query);
-        }
-
-        var entity = query.FirstOrDefault(e => e.Id == id);
-
-        if (entity == null)
-        {
-            throw InfrastructureNotFoundException.ForEntity(typeof(T).Name, id);
+            aggregateRoot.LoadEntitiesFromGraph();
         }
 
         return entity;
     }
 
-    #endregion
-
-    #region Async Methods
-
-    public async Task<T> GetByIdAsync(long id, CancellationToken cancellationToken = default,
-        Func<IQueryable<T>, IQueryable<T>> include = null)
+    private IQueryable<T?> IncludeRequiredNavigations(IQueryable<T> query)
     {
-        IQueryable<T> query = this._queryDbContext.Set<T>();
+        var entityType = _context.Model.FindEntityType(typeof(T));
 
-        if (include != null)
+        var requiredNavigations = entityType?
+            .GetNavigations()
+            .Where(n => !n.IsOnDependent && !n.IsCollection &&
+                        !n.ForeignKey.IsRequiredDependent) // exclude optional/collection
+            .ToList();
+
+        foreach (var navigation in requiredNavigations)
         {
-            query = include(query);
+            query = query.Include(navigation.Name);
         }
 
-        var entity = await query.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
-
-        if (entity == null)
-        {
-            throw InfrastructureNotFoundException.ForEntity(typeof(T).Name, id);
-        }
-
-        return entity;
+        return query;
     }
-
-    #endregion
 }
