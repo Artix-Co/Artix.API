@@ -6,7 +6,7 @@ using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T> : IRepository<T> where T : class, IAggregateRoot, IEntity
 {
     protected readonly ArtixCommandDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -69,48 +69,50 @@ public class Repository<T> : IRepository<T> where T : class
         return result;
     }
 
+
     public async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        this._logger.LogInformation("Updating entity of type {EntityType}", typeof(T).Name);
+        _logger.LogInformation("Updating entity of type {EntityType} with ID {EntityId}", typeof(T).Name, entity.Id);
 
-        if (entity is BaseEntity baseEntity)
+        if (entity is IEntity)
         {
-            await this._dbSet
-                .Where(e => e.Equals(entity))
+            await _dbSet
+                .Where(e => e.Id == entity.Id)
                 .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(e => ((e as BaseEntity)!).IsDeleted, true)
-                    , cancellationToken);
+                        .SetProperty(e => e.ModifiedAt, DateTime.UtcNow),
+                    cancellationToken);
 
-            this._logger.LogInformation("Entity of type {EntityType} updated", typeof(T).Name);
-            await this.CommitAsync(cancellationToken);
+            _logger.LogInformation("Entity of type {EntityType} with ID {EntityId} updated", typeof(T).Name, entity.Id);
+
+            await CommitAsync(cancellationToken);
         }
         else
         {
-            this._logger.LogWarning("Entity of type {EntityType} does not inherit from BaseEntity", typeof(T).Name);
+            _logger.LogWarning("Entity of type {EntityType} does not implement IEntity", typeof(T).Name);
         }
     }
 
-
     public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
-        this._logger.LogInformation("Soft deleting entity of type {EntityType}", typeof(T).Name);
+        _logger.LogInformation("Soft deleting entity of type {EntityType} with ID {EntityId}", typeof(T).Name,
+            entity.Id);
 
-        if (entity is BaseEntity)
+        if (entity is IEntity)
         {
-            await this._dbSet
-                .Where(e => e.Equals(entity))
+            await _dbSet
+                .Where(e => e.Id == entity.Id)
                 .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(e => ((e as BaseEntity)!).IsDeleted, false),
-                    cancellationToken
-                );
+                        .SetProperty(e => e.IsDeleted, true),
+                    cancellationToken);
 
-            this._logger.LogInformation("Entity of type {EntityType} soft deleted", typeof(T).Name);
+            _logger.LogInformation("Entity of type {EntityType} with ID {EntityId} soft deleted", typeof(T).Name,
+                entity.Id);
 
-            await this.CommitAsync(cancellationToken);
+            await CommitAsync(cancellationToken);
         }
         else
         {
-            this._logger.LogWarning("Entity of type {EntityType} does not inherit from BaseEntity", typeof(T).Name);
+            _logger.LogWarning("Entity of type {EntityType} does not implement IEntity", typeof(T).Name);
         }
     }
 
@@ -138,23 +140,25 @@ public class Repository<T> : IRepository<T> where T : class
 
     public virtual void Delete(T entity)
     {
-        this._logger.LogInformation("Soft deleting entity of type {EntityType}", typeof(T).Name);
+        _logger.LogInformation("Soft deleting entity of type {EntityType} with ID {EntityId}", typeof(T).Name,
+            entity.Id);
 
-        if (entity is BaseEntity)
+        if (entity is IEntity)
         {
-            this._dbSet
-                .Where(e => e.Equals(entity))
+            _dbSet
+                .Where(e => e.Id == entity.Id)
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(e => ((e as BaseEntity)!).IsDeleted, true)
+                    .SetProperty(e => e.IsDeleted, true)
                 );
 
-            this._logger.LogInformation("Entity of type {EntityType} soft deleted", typeof(T).Name);
+            _logger.LogInformation("Entity of type {EntityType} with ID {EntityId} soft deleted", typeof(T).Name,
+                entity.Id);
 
-            this.Commit();
+            Commit();
         }
         else
         {
-            this._logger.LogWarning("Entity of type {EntityType} does not inherit from BaseEntity", typeof(T).Name);
+            _logger.LogWarning("Entity of type {EntityType} does not implement IEntity", typeof(T).Name);
         }
     }
 

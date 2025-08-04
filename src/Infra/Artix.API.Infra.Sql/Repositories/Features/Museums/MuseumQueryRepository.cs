@@ -20,7 +20,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     private readonly ArtixQueryDbContext _queryDbContext;
 
     public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger)
-        : base(queryDbContext)
+        : base(queryDbContext,logger)
     {
         _logger = logger;
         _queryDbContext = queryDbContext;
