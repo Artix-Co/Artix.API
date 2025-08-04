@@ -1,6 +1,8 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Repositories;
 
-public interface IRepository<T> where T : class
+using Domain.Entities.Common;
+
+public interface IRepository<T> where T : class, IAggregateRoot, IEntity
 {
     #region Sync methods
 

@@ -29,6 +29,4 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
 
     Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default);
-
-
 }
