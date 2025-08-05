@@ -3,6 +3,6 @@
 using Domain.Entities.Museum;
 using Primitives.Repositories;
 
-public interface IObjectCommandRepository : ICommandRepository<MuseumObject>
+public interface IObjectCommandRepository : ICommandRepository<Object>
 {
 }

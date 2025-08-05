@@ -6,7 +6,7 @@ using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-public sealed class ObjectQueryRepository : QueryRepository<MuseumObject>, IObjectQueryRepository
+public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
     private readonly ILogger<ObjectQueryRepository> _logger;
     private readonly ArtixQueryDbContext _queryDbContext;

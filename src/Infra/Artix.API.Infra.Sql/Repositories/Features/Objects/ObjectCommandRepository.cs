@@ -6,7 +6,7 @@ using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-public sealed class ObjectCommandRepository : CommandRepository<MuseumObject>, IObjectCommandRepository
+public sealed class ObjectCommandRepository : CommandRepository<Object>, IObjectCommandRepository
 {
     private readonly ILogger<ObjectCommandRepository> _logger;
     private readonly ArtixCommandDbContext _commandDbContext;
