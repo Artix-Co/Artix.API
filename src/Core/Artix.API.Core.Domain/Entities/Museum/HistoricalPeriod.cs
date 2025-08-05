@@ -2,13 +2,14 @@
 
 using Common;
 using Exceptions;
+using ValueObjects;
 
 public class HistoricalPeriod : BaseEntity
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
-    public DateTime? StartDate { get; private set; }
-    public DateTime? EndDate { get; private set; }
+    public HistoricalDate? StartDate { get; private set; }
+    public HistoricalDate? EndDate { get; private set; }
 
     private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
 
@@ -19,10 +20,10 @@ public class HistoricalPeriod : BaseEntity
     {
     }
 
-    private HistoricalPeriod(string name, string? description, DateTime? startDate, DateTime? endDate)
+    private HistoricalPeriod(string name, string? description, HistoricalDate? startDate, HistoricalDate? endDate)
     {
         ValidateName(name);
-        ValidateDates(startDate, endDate);
+ 
 
         Name = name;
         Description = description;
@@ -30,17 +31,17 @@ public class HistoricalPeriod : BaseEntity
         EndDate = endDate;
     }
 
-    public static HistoricalPeriod Create(string name, string? description = null, DateTime? startDate = null,
-        DateTime? endDate = null)
+    public static HistoricalPeriod Create(string name, string? description = null, HistoricalDate? startDate = null,
+        HistoricalDate? endDate = null)
     {
         return new HistoricalPeriod(name, description, startDate, endDate);
     }
 
-    public void UpdateDetails(string name, string? description = null, DateTime? startDate = null,
-        DateTime? endDate = null)
+    public void UpdateDetails(string name, string? description = null, HistoricalDate? startDate = null,
+        HistoricalDate? endDate = null)
     {
         ValidateName(name);
-        ValidateDates(startDate, endDate);
+    
 
         Name = name;
         Description = description;
@@ -74,11 +75,5 @@ public class HistoricalPeriod : BaseEntity
     {
         if (string.IsNullOrWhiteSpace(name))
             throw DomainException.InvalidValue(nameof(name));
-    }
-
-    private void ValidateDates(DateTime? startDate, DateTime? endDate)
-    {
-        if (startDate.HasValue && endDate.HasValue && startDate > endDate)
-            throw DomainException.InvalidValue("StartDate cannot be later than EndDate.");
     }
 }

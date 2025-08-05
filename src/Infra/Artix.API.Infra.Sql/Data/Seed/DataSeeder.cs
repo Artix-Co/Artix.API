@@ -1,10 +1,19 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Seed;
+using Type = Core.Domain.Entities.Museum.Type;
+using Object = Core.Domain.Entities.Museum.Object;
 
-using Core.Domain.Entities.Museum;
-using Core.Domain.Entities.User;
-using DbContexts;
+ 
+ 
+using Artix.API.Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Core.Domain.Entities.ValueObjects;
+using DbContexts;
 
 public static class DataSeeder
 {
@@ -17,9 +26,8 @@ public static class DataSeeder
             return; // Skip seeding if any table has data
         }
 
-
         const int USER_SEED_COUNT = 7;
-        const int MUEUM_SEED_COUNT = 7;
+        const int MUSEUM_SEED_COUNT = 7;
         const int CATEGORY_SEED_COUNT = 7;
 
         if (context == null) throw new ArgumentNullException(nameof(context));
@@ -33,8 +41,7 @@ public static class DataSeeder
             var roleCreateResult = await roleManager.CreateAsync(new AppRole(clientRole));
             if (!roleCreateResult.Succeeded)
                 throw new ApplicationException("Failed to create Client role: " +
-                                               string.Join(", ",
-                                                   roleCreateResult.Errors.Select(e => e.Description)));
+                                               string.Join(", ", roleCreateResult.Errors.Select(e => e.Description)));
         }
 
         var users = new List<AppUser>();
@@ -81,42 +88,52 @@ public static class DataSeeder
             }
         }
 
+        await context.SaveChangesAsync();
+
         #endregion
 
-
-        #region Seed Categories (assuming categories are needed for MuseumObjectCategory)
+        #region Seed Categories
 
         var categories = new List<Type>();
-
         for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
         {
             var category = Type.Create($"Fake category {i}", $"Fake description category {i}");
             categories.Add(category);
         }
 
-
         context.Types.AddRange(categories);
+        await context.SaveChangesAsync(); // Save to generate Category IDs
 
         #endregion
 
+        #region Seed HistoricalPeriods
+
+        var historicalPeriods = new List<HistoricalPeriod>
+        {
+            HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire (100–400 AD)", new HistoricalDate(100, 1, 1), new HistoricalDate(400, 12, 31)),
+            HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period (1300–1600 AD)", new HistoricalDate(1300, 1, 1), new HistoricalDate(1600, 12, 31)),
+            HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)", new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
+        };
+
+        context.HistoricalPeriods.AddRange(historicalPeriods);
+        await context.SaveChangesAsync(); // Save to generate HistoricalPeriod IDs
+
+        #endregion
 
         #region Seed Museums
 
         var museums = new List<Museum>();
-        for (int i = 0; i < MUEUM_SEED_COUNT; i++)
+        for (int i = 0; i < MUSEUM_SEED_COUNT; i++)
         {
-            var museum = Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}",
-                isActive: true);
+            var museum = Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true);
             museums.Add(museum);
         }
 
-
         context.Museums.AddRange(museums);
+        await context.SaveChangesAsync(); // Save to generate Museum IDs
 
         #endregion
 
-
-        
         #region Seed Objects
 
         var objects = new List<Object>
@@ -157,74 +174,65 @@ public static class DataSeeder
         };
 
         context.Objects.AddRange(objects);
-
+        await context.SaveChangesAsync(); // Save to generate Object IDs
 
         #endregion
 
-        #region Seed MuseumObjects (managed through Museum aggregate root)
+        #region Seed ObjectTypes
 
-        foreach (var museum in museums)
+        var objectTypes = new List<ObjectType>();
+        for (int i = 0; i < objects.Count; i++)
         {
-            var museumObjects = new List<MuseumObject>
-            {
-                MuseumObject.Create(objects[0], museum, "QR_VASE_001", isSpecial: true, isHidden: false),
-                MuseumObject.Create(objects[1], museum, "QR_MONA_001", isSpecial: true, isHidden: false),
-                MuseumObject.Create(objects[2], museum, "QR_STATUE_001", isSpecial: false, isHidden: true)
-            };
-
-            // Assign IDs for seeded MuseumObjects
-            var museumObjectId = museum.Id * 1000 + 1; // Unique IDs per museum
-            foreach (var museumObject in museumObjects)
-            {
-                museumObject.GetType().GetProperty("Id")?.SetValue(museumObject, museumObjectId++);
-                museum.AddObject(objects[museumObjects.IndexOf(museumObject)], museumObject.QRCode, museumObject.IsSpecial, museumObject.IsHidden);
-            }
-
-            context.MuseumObjects.AddRange(museumObjects);
-
-            #region Seed ObjectTypes
-
-            var objectTypes = new List<ObjectType>
-            {
-                ObjectType.Create(objects[0], categories[0]),
-                ObjectType.Create(objects[1], categories[1]),
-                ObjectType.Create(objects[2], categories[2])
-            };
-            context.ObjectTypes.AddRange(objectTypes);
-
-            #endregion
-
-            #region Seed ObjectHistoricalPeriods
-
-            // Seed HistoricalPeriods
-            var historicalPeriods = new List<HistoricalPeriod>
-            {
-                HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire", new DateTime(100, 1, 1), new DateTime(400, 12, 31)),
-                HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period", new DateTime(1300, 1, 1), new DateTime(1600, 12, 31)),
-                HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece", new DateTime(-800, 1, 1), new DateTime(-100, 12, 31))
-            };
-          
-            context.HistoricalPeriods.AddRange(historicalPeriods);
-            
-            
-            var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>
-            {
-                ObjectHistoricalPeriod.Create(objects[0], historicalPeriods[0]),
-                ObjectHistoricalPeriod.Create(objects[1], historicalPeriods[1]),
-                ObjectHistoricalPeriod.Create(objects[2], historicalPeriods[2])
-            };
-
-            context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
-            #endregion
+            var objectType = ObjectType.Create(objects[i], categories[i % categories.Count]);
+            objectTypes.Add(objectType);
         }
 
+        context.ObjectTypes.AddRange(objectTypes);
+        await context.SaveChangesAsync(); // Save to generate ObjectType relationships
+
         #endregion
 
-        await context.SaveChangesAsync();
+        #region Seed ObjectHistoricalPeriods
+
+        var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
+        for (int i = 0; i < objects.Count; i++)
+        {
+            var objectHistoricalPeriod = ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]);
+            objectHistoricalPeriods.Add(objectHistoricalPeriod);
+        }
+
+        context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
+        await context.SaveChangesAsync(); // Save to generate ObjectHistoricalPeriod relationships
+
+        #endregion
+
+        #region Seed MuseumObjects
+
+        var museumObjects = new List<MuseumObject>();
+        for (int i = 0; i < objects.Count; i++)
+        {
+            var museum = museums[i % museums.Count]; // Assign each object to one museum
+            var museumObject = MuseumObject.Create(
+                obj: objects[i],
+                museum: museum,
+                qrCode: objects[i].QrCode,
+                isSpecial: objects[i].IsSpecial,
+                isHidden: objects[i].IsHidden
+            );
+            museumObjects.Add(museumObject);
+            museum.AddObject(objects[i], museumObject.QRCode, museumObject.IsSpecial, museumObject.IsHidden);
+        }
+
+        context.MuseumObjects.AddRange(museumObjects);
+        await context.SaveChangesAsync(); // Save MuseumObjects
+
+        #endregion
     }
 
     private static async Task<bool> IsDatabaseSeededAsync(ArtixCommandDbContext context)
     {
-        return await context.Users.AnyAsync();
+        return await context.Users.AnyAsync() ||
+               await context.Museums.AnyAsync() ||
+               await context.Objects.AnyAsync();
     }
 }

@@ -36,8 +36,9 @@ internal sealed class MuseumObjectWriteConfiguration : BaseEntityConfiguration<M
         entity.HasIndex(mo => mo.MuseumId)
             .HasDatabaseName("IX_MuseumObjects_MuseumId");
 
-        entity.HasIndex(mo => mo.ObjectId)
-            .HasDatabaseName("IX_MuseumObjects_ObjectId")
-            .IsUnique(); // Assuming each Object can be linked to only one Museum
+        // TODO: uncomment it when production, i commented it to seeding db with redundant object
+        // entity.HasIndex(mo => mo.ObjectId)
+        //     .HasDatabaseName("IX_MuseumObjects_ObjectId")
+        //     .IsUnique(); // Assuming each Object can be linked to only one Museum
     }
 }
