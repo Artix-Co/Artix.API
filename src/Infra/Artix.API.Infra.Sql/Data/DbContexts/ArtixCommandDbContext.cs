@@ -54,12 +54,13 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
 
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
-    public DbSet<Type> Categories { get; set; }
-    public DbSet<ObjectType> MuseumObjectCategories { get; set; }
+    public DbSet<Type> Types { get; set; }
+    
     public DbSet<Object> Objects { get; set; }
     public DbSet<ObjectType> ObjectTypes { get; set; }
-    public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
     public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
+    public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
+ 
 
     #endregion
 

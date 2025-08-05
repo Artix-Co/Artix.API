@@ -95,7 +95,7 @@ public static class DataSeeder
         }
 
 
-        context.Categories.AddRange(categories);
+        context.Types.AddRange(categories);
 
         #endregion
 

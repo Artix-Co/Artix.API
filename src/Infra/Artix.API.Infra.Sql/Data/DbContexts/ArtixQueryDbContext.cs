@@ -28,8 +28,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<CollectionItem> CollectionItems { get; set; }
     public DbSet<JournalEntry> JournalEntries { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
-    public DbSet<Museum> Museums { get; set; }
-    public DbSet<MuseumObject> MuseumObjects { get; set; }
+
     public DbSet<MusicTrack> MusicTracks { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<SeasonTask> SeasonTasks { get; set; }
@@ -44,8 +43,14 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
 
-    public DbSet<Type> Categories { get; set; }
-    public DbSet<ObjectType> MuseumObjectCategories { get; set; }
+    public DbSet<Museum> Museums { get; set; }
+    public DbSet<MuseumObject> MuseumObjects { get; set; }
+    public DbSet<Type> Types { get; set; }
+    
+    public DbSet<Object> Objects { get; set; }
+    public DbSet<ObjectType> ObjectTypes { get; set; }
+    public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
+    public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
 
     #endregion
 
