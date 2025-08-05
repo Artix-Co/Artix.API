@@ -4,9 +4,9 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class CategoryWriteConfiguration : BaseEntityConfiguration<Category>
+internal sealed class CategoryWriteConfiguration : BaseEntityConfiguration<Type>
 {
-    public void Configure(EntityTypeBuilder<Category> entity)
+    public void Configure(EntityTypeBuilder<Type> entity)
     {
         base.Configure(entity);
 
@@ -20,8 +20,8 @@ internal sealed class CategoryWriteConfiguration : BaseEntityConfiguration<Categ
             .HasMaxLength(1000)
             .IsRequired(false);
 
-        entity.HasMany(e => e.MuseumObjectCategories)
-            .WithOne(moc => moc.Category)
+        entity.HasMany(e => e.ObjectTypes)
+            .WithOne(moc => moc.Type)
             .HasForeignKey(moc => moc.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 

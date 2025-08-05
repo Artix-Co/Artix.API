@@ -4,9 +4,9 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MuseumObjectCategoryWriteConfiguration : IEntityTypeConfiguration<MuseumObjectCategory>
+internal sealed class MuseumObjectCategoryWriteConfiguration : IEntityTypeConfiguration<ObjectType>
 {
-    public void Configure(EntityTypeBuilder<MuseumObjectCategory> entity)
+    public void Configure(EntityTypeBuilder<ObjectType> entity)
     {
         entity.ToTable("MuseumObjectCategories");
 
@@ -20,8 +20,8 @@ internal sealed class MuseumObjectCategoryWriteConfiguration : IEntityTypeConfig
             .HasForeignKey(moc => moc.MuseumObjectId);
 
         entity
-            .HasOne(moc => moc.Category)
-            .WithMany(c => c.MuseumObjectCategories)
+            .HasOne(moc => moc.Type)
+            .WithMany(c => c.ObjectTypes)
             .HasForeignKey(moc => moc.CategoryId);
  
         

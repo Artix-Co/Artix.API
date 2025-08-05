@@ -86,11 +86,11 @@ public static class DataSeeder
 
         #region Seed Categories (assuming categories are needed for MuseumObjectCategory)
 
-        var categories = new List<Category>();
+        var categories = new List<Type>();
 
         for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
         {
-            var category = Category.Create($"Fake category {i}", $"Fake description category {i}");
+            var category = Type.Create($"Fake category {i}", $"Fake description category {i}");
             categories.Add(category);
         }
 
@@ -153,11 +153,11 @@ public static class DataSeeder
 
             #region Seed MuseumObjectCategories
 
-            var museumObjectCategories = new List<MuseumObjectCategory>
+            var museumObjectCategories = new List<ObjectType>
             {
-                MuseumObjectCategory.Create(museumObjects[0], categories[0]),
-                MuseumObjectCategory.Create(museumObjects[1], categories[1]),
-                MuseumObjectCategory.Create(museumObjects[2], categories[2])
+                ObjectType.Create(museumObjects[0], categories[0]),
+                ObjectType.Create(museumObjects[1], categories[1]),
+                ObjectType.Create(museumObjects[2], categories[2])
             };
             context.MuseumObjectCategories.AddRange(museumObjectCategories);
 

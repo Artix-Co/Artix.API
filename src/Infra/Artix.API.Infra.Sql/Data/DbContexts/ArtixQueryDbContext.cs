@@ -44,8 +44,8 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
 
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; }
+    public DbSet<Type> Categories { get; set; }
+    public DbSet<ObjectType> MuseumObjectCategories { get; set; }
 
     #endregion
 

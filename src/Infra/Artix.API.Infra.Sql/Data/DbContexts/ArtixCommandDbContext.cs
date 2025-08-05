@@ -52,8 +52,8 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
 
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; }
+    public DbSet<Type> Categories { get; set; }
+    public DbSet<ObjectType> MuseumObjectCategories { get; set; }
 
     #endregion
 

@@ -9,36 +9,29 @@ public class Museum : BaseEntity
     public string? Description { get; private set; }
     public bool IsActive { get; private set; }
 
-    private readonly List<MuseumObject> _museumObjects = new(); // Renamed to match convention
+    private readonly List<MuseumObject> _museumObjects = new();
     public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
 
     protected Museum()
     {
     }
 
-    private Museum(string name, string description, bool isActive)
+    private Museum(string name, string? description, bool isActive)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue(nameof(name));
-
-        if (string.IsNullOrWhiteSpace(description))
-            throw DomainException.InvalidValue(nameof(description));
-
+        ValidateName(name);
         Name = name;
         Description = description;
         IsActive = isActive;
     }
 
-    public static Museum Create(string name, string description, bool isActive)
+    public static Museum Create(string name, string? description = null, bool isActive = true)
     {
         return new Museum(name, description, isActive);
     }
 
     public void UpdateDetails(string name, string? description = null)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue(nameof(name));
-
+        ValidateName(name);
         Name = name;
         Description = description;
     }
@@ -46,8 +39,7 @@ public class Museum : BaseEntity
     public void Activate()
     {
         if (IsActive)
-            throw DomainException.InvalidOperation("Museum is already active");
-
+            throw DomainException.InvalidOperation("Museum is already active.");
         IsActive = true;
     }
 
@@ -55,44 +47,49 @@ public class Museum : BaseEntity
     {
         if (!IsActive)
             throw DomainException.InvalidOperation("Museum is already inactive.");
-
-
         IsActive = false;
     }
 
-    public void AddObject(MuseumObject obj)
+    public void AddObject(Object obj, string qrCode, bool isSpecial = false, bool isHidden = false)
     {
-        // if (obj == null)
-        //     throw new ArgumentNullException(nameof(obj));
-        // if (_objects.Any(o => o.Id == obj.Id))
-        //     throw new InvalidOperationException("Object already exists in the museum.");
-        // if (obj.MuseumId != Id)
-        //     throw new InvalidOperationException("MuseumObject must belong to this museum.");
+        if (!IsActive)
+            throw DomainException.InvalidOperation("Cannot add objects to an inactive museum.");
+        if (obj == null)
+            throw DomainException.InvalidValue(nameof(obj));
+        if (_museumObjects.Any(o => o.ObjectId == obj.Id))
+            throw DomainException.InvalidOperation("Object already exists in the museum.");
 
-        this._museumObjects.Add(obj);
+        var museumObject = MuseumObject.Create(obj, this, qrCode, isSpecial, isHidden);
+        _museumObjects.Add(museumObject);
     }
 
-    public void RemoveObject(MuseumObject obj)
+    public void RemoveObject(Object obj)
     {
         if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+            throw DomainException.InvalidValue(nameof(obj));
 
-
-        this._museumObjects.Remove(obj);
+        var museumObject = _museumObjects.FirstOrDefault(o => o.ObjectId == obj.Id);
+        if (museumObject != null)
+            _museumObjects.Remove(museumObject);
     }
 
-    public bool HasObject(long museumObjectId)
-    {
-        return this._museumObjects.Any(o => o.Id == museumObjectId);
-    }
+    public bool HasObject(long objectId) => _museumObjects.Any(o => o.ObjectId == objectId);
 
-    public virtual IReadOnlyCollection<MuseumObject> GetVisibleObjects()
-    {
-        return this._museumObjects.Where(o => o.IsVisible()).ToList().AsReadOnly();
-    }
+    public IReadOnlyCollection<Object> GetVisibleObjects() =>
+        _museumObjects.Where(o => o.Object.IsVisible())
+            .Select(o => o.Object)
+            .ToList()
+            .AsReadOnly();
 
-    public virtual IReadOnlyCollection<MuseumObject> GetSpecialObjects()
+    public IReadOnlyCollection<Object> GetSpecialObjects() =>
+        _museumObjects.Where(o => o.Object.IsSpecial)
+            .Select(o => o.Object)
+            .ToList()
+            .AsReadOnly();
+
+    private void ValidateName(string name)
     {
-        return this._museumObjects.Where(o => o.IsSpecial).ToList().AsReadOnly();
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.InvalidValue(nameof(name));
     }
 }

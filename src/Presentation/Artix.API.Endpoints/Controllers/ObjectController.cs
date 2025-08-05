@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Endpoints.Controllers;
 
 using Common;
-using Core.Contract.Features.Objects.Commands.ScanObject;
+using Core.Contract.Features.Objects.Commands.Scan;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +28,14 @@ public sealed class ObjectController : BaseController
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetObject(long id)
+    {
+        var query = new GetObjectDetailByIdQuery { Id = id };
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+    
+    [HttpPatch("{id}/upgrade")]
+    public async Task<IActionResult> UpgradeObject(long id)
     {
         var query = new GetObjectDetailByIdQuery { Id = id };
         var result = await _mediator.Send(query);

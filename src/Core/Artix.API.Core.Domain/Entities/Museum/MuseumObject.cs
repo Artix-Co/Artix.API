@@ -5,157 +5,57 @@ using Exceptions;
 
 public class MuseumObject : BaseEntity
 {
-    public string Name { get; private set; }
-    public string QRCode { get; private set; }
-    public string? Description { get; private set; }
-    public int? Version { get; private set; }
-    public int? Tier { get; private set; }
-    public bool IsSpecial { get; private set; }
-    public bool IsHidden { get; private set; }
     public long MuseumId { get; private set; }
     public virtual Museum Museum { get; private set; }
-    private readonly List<MuseumObjectCategory> _museumObjectCategories = new();
-    public virtual IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
 
-    protected MuseumObject()
-    {
-    }
+    public long ObjectId { get; private set; }
+    public virtual Object Object { get; private set; }
 
-   
-    private MuseumObject(string name, string qrCode, Museum museum, bool isSpecial, bool isHidden)
+    public string Name { get; private set; }
+    public string QRCode { get; private set; }
+    public bool IsSpecial { get; private set; }
+    public bool IsHidden { get; private set; }
+
+    protected MuseumObject() { }
+
+    private MuseumObject(Object obj, Museum museum, string qrCode, bool isSpecial, bool isHidden)
     {
-        ValidateName(name);
+        if (obj == null)
+            throw DomainException.InvalidValue(nameof(obj));
+        if (museum == null)
+            throw DomainException.InvalidValue(nameof(museum));
+
+        ValidateName(obj.Name);
         ValidateQRCode(qrCode);
-        Name = name;
+
+        Object = obj;
+        ObjectId = obj.Id;
+        Museum = museum;
+        MuseumId = museum.Id;
+        Name = obj.Name;
         QRCode = qrCode;
-        SetMuseum(museum);
         IsSpecial = isSpecial;
         IsHidden = isHidden;
     }
 
-    public static MuseumObject Create(string name, string qrCode, Museum museum, bool isSpecial = false,
-        bool isHidden = false)
+    public static MuseumObject Create(Object obj, Museum museum, string qrCode, bool isSpecial = false, bool isHidden = false)
     {
-        return new MuseumObject(name, qrCode, museum, isSpecial, isHidden);
+        return new MuseumObject(obj, museum, qrCode, isSpecial, isHidden);
     }
 
-
-    public void UpdateDetails(string? description, int? version, int? tier)
+    public void UpdateDetails(string? qrCode, bool? isSpecial = null, bool? isHidden = null)
     {
-        if (version is < 0)
-            throw new ArgumentException("Version cannot be negative.");
-        if (tier is < 0)
-            throw new ArgumentException("Tier cannot be negative.");
+        if (qrCode != null)
+        {
+            ValidateQRCode(qrCode);
+            QRCode = qrCode;
+        }
 
-        Description = description;
-        Version = version;
-        Tier = tier;
-    }
+        if (isSpecial.HasValue)
+            IsSpecial = isSpecial.Value;
 
-    public void AssignVersionAndTier(int version, int tier)
-    {
-        if (version < 0)
-            throw new ArgumentException("Version cannot be negative.");
-        if (tier < 0)
-            throw new ArgumentException("Tier cannot be negative.");
-
-        Version = version;
-        Tier = tier;
-    }
-
-    public void Rename(string newName)
-    {
-        ValidateName(newName);
-        Name = newName;
-    }
-
-    public void ChangeQRCode(string newQRCode)
-    {
-        ValidateQRCode(newQRCode);
-        QRCode = newQRCode;
-    }
-
-    public void UpdateMuseum(Museum newMuseum)
-    {
-        if (newMuseum == null)
-            throw DomainException.InvalidValue(nameof(newMuseum));
-
-        SetMuseum(newMuseum);
-    }
-
-    public void MarkAsSpecial()
-    {
-        IsSpecial = true;
-    }
-
-    public void UnmarkAsSpecial()
-    {
-        IsSpecial = false;
-    }
-
-    public void Hide()
-    {
-        IsHidden = true;
-    }
-
-    public void Visible()
-    {
-        IsHidden = false;
-    }
-
-    public bool IsVisible()
-    {
-        return !IsHidden;
-    }
-
-    public bool IsEligibleForDisplay()
-    {
-        return !IsHidden && IsSpecial;
-    }
-
-    public bool IsValidForExhibition()
-    {
-        return !string.IsNullOrWhiteSpace(Name) &&
-               !string.IsNullOrWhiteSpace(QRCode) &&
-               !IsHidden;
-    }
-
-    public void AddCategory(Category category)
-    {
-        if (category == null)
-            throw DomainException.InvalidValue(nameof(category));
-
-        if (_museumObjectCategories.Any(c => c.CategoryId == category.Id))
-            return;
-
-        var link = MuseumObjectCategory.Create(this, category);
-        _museumObjectCategories.Add(link);
-    }
-
-    public void RemoveCategory(Category category)
-    {
-        if (category == null)
-            throw DomainException.InvalidValue(nameof(category));
-
-        var link = _museumObjectCategories.FirstOrDefault(c => c.CategoryId == category.Id);
-        if (link != null)
-            _museumObjectCategories.Remove(link);
-    }
-
-    public void ClearCategories()
-    {
-        _museumObjectCategories.Clear();
-    }
-
-    public bool HasCategory(long categoryId)
-    {
-        return _museumObjectCategories.Any(c => c.CategoryId == categoryId);
-    }
-
-    private void SetMuseum(Museum museum)
-    {
-        Museum = museum ?? throw DomainException.InvalidValue(nameof(museum));
-        MuseumId = museum.Id;
+        if (isHidden.HasValue)
+            IsHidden = isHidden.Value;
     }
 
     private void ValidateName(string name)
