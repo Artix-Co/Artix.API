@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
+// TODO: develop validator for this handler
 internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObjectDetailByIdQuery, ObjectDetailByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
@@ -25,10 +26,11 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
 
         if (museumObject == null)
         {
+            // TODO: convert it to ApplicationServiceNotFoundException.ForEntity
             throw new KeyNotFoundException("The given object could not be found.");
         }
 
-        result.Title = museumObject.Name;
+        result.Name = museumObject.Name;
         result.GeneralInformation = museumObject.Description;
         result.SpecializedInformation = museumObject.Description;
         result.HistoricalPeriod = "دوره آرتیکسیان";

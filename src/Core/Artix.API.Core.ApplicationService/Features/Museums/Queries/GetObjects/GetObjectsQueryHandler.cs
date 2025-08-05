@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
+// TODO: develop validator for this handler
 internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQuery, PagedData<AllObjectDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;

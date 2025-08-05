@@ -2,7 +2,7 @@
 
 public sealed class ObjectDetailByIdDto
 {
-    public string Title { get; set; }
+    public string Name { get; set; }
     public string HistoricalPeriod { get; set; }
     public string? GeneralInformation { get; set; }
     public string? SpecializedInformation { get; set; }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
+// TODO: develop validator for this handler
 internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumByIdQuery, MuseumByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
@@ -23,6 +24,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
 
         if (result == null)
         {
+            // TODO: convert it to ApplicationServiceNotFoundException.ForEntity
             throw new KeyNotFoundException("The given museum could not be found.");
         }
         return result;

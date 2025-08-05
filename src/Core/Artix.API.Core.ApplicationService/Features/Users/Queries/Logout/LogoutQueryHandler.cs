@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
+// TODO: develop validator for this handler
 internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

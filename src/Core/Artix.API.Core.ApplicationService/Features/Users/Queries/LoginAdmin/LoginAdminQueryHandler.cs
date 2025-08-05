@@ -14,6 +14,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
+// TODO: develop validator for this handler
 internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
 {
     private readonly UserManager<AppUser> _userManager;
