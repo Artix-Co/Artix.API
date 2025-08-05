@@ -6,17 +6,17 @@ using Common;
 using Exceptions;
 using JournalEntry;
 
-public sealed class UserJournalEntry : BaseEntity
+public class UserJournalEntry : BaseEntity
 {
   
   
     public DateTime? UnlockedAt { get; private set; }
 
     public long EntryId { get; private set; }
-    public JournalEntry Entry { get; private set; }
+    public virtual JournalEntry Entry { get; private set; }
     
     public long UserId { get; private set; }
-    public AppUser User { get; private set; }
+    public virtual AppUser User { get; private set; }
 
     public void AssignEntry(AppUser user, JournalEntry entry, DateTime? unlockedAt = null)
     {
@@ -25,6 +25,6 @@ public sealed class UserJournalEntry : BaseEntity
         UserId = user.Id;
         EntryId = entry.Id;
         UnlockedAt = unlockedAt;
-        SetModified();
+        
     }
 }

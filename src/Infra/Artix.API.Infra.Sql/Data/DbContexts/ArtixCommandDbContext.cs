@@ -7,10 +7,18 @@ using Artix.API.Core.Domain.Entities.JournalEntry;
 using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, long>
+public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, long,
+    IdentityUserClaim<long>,
+    IdentityUserRole<long>,
+    IdentityUserLogin<long>,
+    IdentityRoleClaim<long>,
+    IdentityUserToken<long>>
+
 {
     public ArtixCommandDbContext(DbContextOptions<ArtixCommandDbContext> options)
         : base(options)
@@ -18,18 +26,19 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     }
 
     #region DbSets
+
     public DbSet<AppRole> AppRoles { get; set; }
     public DbSet<AppUser> AppUsers { get; set; }
-    
+
     public DbSet<Collection> Collections { get; set; }
     public DbSet<CollectionItem> CollectionItems { get; set; }
     public DbSet<JournalEntry> JournalEntries { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
-  
+
     public DbSet<MusicTrack> MusicTracks { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<SeasonTask> SeasonTasks { get; set; }
- 
+
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
@@ -40,11 +49,12 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserXp> UserXps { get; set; }
     public DbSet<OTP> OTPs { get; set; }
 
-     
+
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
-    public DbSet<Category> Categories { get; set; } 
-    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; } 
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; }
+
     #endregion
 
 
@@ -54,7 +64,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
             type => type.Name.EndsWith("WriteConfiguration"));
     }
-
+ 
     #region SaveChanges
 
     public override int SaveChanges()
@@ -75,10 +85,10 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
 
     private void UpdateTimestamps()
     {
-        var entries = this.ChangeTracker.Entries()
+        IEnumerable<EntityEntry>? entries = this.ChangeTracker.Entries()
             .Where(e => e is { Entity: BaseEntity, State: EntityState.Added or EntityState.Modified });
 
-        foreach (var entityEntry in entries)
+        foreach (EntityEntry? entityEntry in entries)
         {
             var entity = (BaseEntity)entityEntry.Entity;
             if (entityEntry.State != EntityState.Modified) continue;
@@ -88,4 +98,5 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     }
 
     #endregion
+
 }

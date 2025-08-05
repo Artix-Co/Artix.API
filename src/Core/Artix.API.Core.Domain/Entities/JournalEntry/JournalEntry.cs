@@ -5,10 +5,10 @@ using Common;
 using Museum;
 using User;
 
-public sealed class JournalEntry : BaseAggregateRoot
+public class JournalEntry : BaseEntity
 {
     public long ObjectId { get; set; }
-    public MuseumObject Object { get; set; }
+    public virtual MuseumObject Object { get; set; }
 
 
     public string? Title { get; set; }
@@ -19,7 +19,7 @@ public sealed class JournalEntry : BaseAggregateRoot
 
 
     private readonly List<UserJournalEntry> _userJournalEntries = new();
-    public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
+    public virtual IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
 
     // public void AddUserJournalEntry(UserJournalEntry entry)
     // {

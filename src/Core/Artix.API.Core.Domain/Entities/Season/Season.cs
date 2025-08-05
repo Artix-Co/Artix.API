@@ -4,7 +4,7 @@ using Common;
 using Exceptions;
 using User;
 
-public sealed class Season : BaseAggregateRoot
+public class Season : BaseEntity
 {
     public string? Name { get; private set; }
     public DateOnly? StartDate { get; private set; }
@@ -12,10 +12,10 @@ public sealed class Season : BaseAggregateRoot
     public bool? IsActive { get; private set; }
 
     private readonly List<SeasonTask> _seasonTasks = new();
-    public IReadOnlyCollection<SeasonTask> SeasonTasks => _seasonTasks.AsReadOnly();
+    public virtual IReadOnlyCollection<SeasonTask> SeasonTasks => _seasonTasks.AsReadOnly();
 
     private readonly List<UserSeasonProgress> _userSeasonProgresses = new();
-    public IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
+    public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
 
     public void UpdateDetails(string? name, DateOnly? startDate, DateOnly? endDate, bool? isActive)
     {
@@ -23,7 +23,7 @@ public sealed class Season : BaseAggregateRoot
         StartDate = startDate;
         EndDate = endDate;
         IsActive = isActive;
-        SetModified();
+        
     }
 
     // public void AddSeasonTask(SeasonTask task)

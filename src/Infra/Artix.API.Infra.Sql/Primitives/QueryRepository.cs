@@ -7,7 +7,7 @@ using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-public class QueryRepository<T> : IQueryRepository<T> where T : class, IAggregateRoot
+public class QueryRepository<T> : IQueryRepository<T> where T : BaseEntity
 {
     private readonly DbContext _context;
 
@@ -37,10 +37,7 @@ public class QueryRepository<T> : IQueryRepository<T> where T : class, IAggregat
         var query = IncludeRequiredNavigations(_context.Set<T>());
         var entity = await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id, cancellationToken);
 
-        if (entity is BaseAggregateRoot aggregateRoot)
-        {
-            aggregateRoot.LoadEntitiesFromGraph();
-        }
+     
 
         return entity;
     }

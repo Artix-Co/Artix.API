@@ -3,9 +3,10 @@
 using Common;
 using Collection;
 using Exceptions;
+using Microsoft.AspNetCore.Identity;
 using Museum;
 
-public sealed class AppUser : IdentityAggregateRoot
+public class AppUser : IdentityUser<long>
 {
     public string? DisplayName { get; set; }
     public string? AvatarUrl { get; private set; }
@@ -24,18 +25,18 @@ public sealed class AppUser : IdentityAggregateRoot
     private readonly List<UserXp> _userXps = [];
 
     // Public read-only collections
-    public IReadOnlyCollection<Collection> Collections => _collections.AsReadOnly();
-    public IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
+    public virtual IReadOnlyCollection<Collection> Collections => _collections.AsReadOnly();
+    public virtual IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
 
 
-    public IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
-    public IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
-    public IReadOnlyCollection<UserMuseumKey> UserMuseumKeys => _userMuseumKeys.AsReadOnly();
-    public IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
-    public IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
-    public IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
-    public IReadOnlyCollection<UserTrack> UserTracks => _userTracks.AsReadOnly();
-    public IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
+    public virtual IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
+    public virtual IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
+    public virtual IReadOnlyCollection<UserMuseumKey> UserMuseumKeys => _userMuseumKeys.AsReadOnly();
+    public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
+    public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
+    public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
+    public virtual IReadOnlyCollection<UserTrack> UserTracks => _userTracks.AsReadOnly();
+    public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
 
     public sealed class AppUserBuilder
     {

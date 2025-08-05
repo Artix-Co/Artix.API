@@ -3,16 +3,16 @@
 using Common;
 using Exceptions;
 
-public sealed class Museum : BaseAggregateRoot
+public class Museum : BaseEntity
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
     public bool IsActive { get; private set; }
 
-    private readonly List<MuseumObject> _objects = new();
-    public IReadOnlyCollection<MuseumObject> MuseumObjects => _objects.AsReadOnly();
+    private readonly List<MuseumObject> _museumObjects = new(); // Renamed to match convention
+    public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
 
-    private Museum()
+    protected Museum()
     {
     }
 
@@ -60,40 +60,40 @@ public sealed class Museum : BaseAggregateRoot
         IsActive = false;
     }
 
-    public void AddObject(MuseumObject obj)
-    {
-        // if (obj == null)
-        //     throw new ArgumentNullException(nameof(obj));
-        // if (_objects.Any(o => o.Id == obj.Id))
-        //     throw new InvalidOperationException("Object already exists in the museum.");
-        // if (obj.MuseumId != Id)
-        //     throw new InvalidOperationException("MuseumObject must belong to this museum.");
-    
-        _objects.Add(obj);
-        AddEntity(obj);
-    }
-    
-    public void RemoveObject(MuseumObject obj)
-    {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
-    
-        if (_objects.Remove(obj))
-            RemoveEntity(obj);
-    }
+    // public void AddObject(MuseumObject obj)
+    // {
+    //     // if (obj == null)
+    //     //     throw new ArgumentNullException(nameof(obj));
+    //     // if (_objects.Any(o => o.Id == obj.Id))
+    //     //     throw new InvalidOperationException("Object already exists in the museum.");
+    //     // if (obj.MuseumId != Id)
+    //     //     throw new InvalidOperationException("MuseumObject must belong to this museum.");
+    //
+    //     _objects.Add(obj);
+    //     AddEntity(obj);
+    // }
+    //
+    // public void RemoveObject(MuseumObject obj)
+    // {
+    //     if (obj == null)
+    //         throw new ArgumentNullException(nameof(obj));
+    //
+    //     if (_objects.Remove(obj))
+    //         RemoveEntity(obj);
+    // }
 
     public bool HasObject(long museumObjectId)
     {
-        return _objects.Any(o => o.Id == museumObjectId);
+        return this._museumObjects.Any(o => o.Id == museumObjectId);
     }
 
-    public IReadOnlyCollection<MuseumObject> GetVisibleObjects()
+    public virtual IReadOnlyCollection<MuseumObject> GetVisibleObjects()
     {
-        return _objects.Where(o => o.IsVisible()).ToList().AsReadOnly();
+        return this._museumObjects.Where(o => o.IsVisible()).ToList().AsReadOnly();
     }
 
-    public IReadOnlyCollection<MuseumObject> GetSpecialObjects()
+    public virtual IReadOnlyCollection<MuseumObject> GetSpecialObjects()
     {
-        return _objects.Where(o => o.IsSpecial).ToList().AsReadOnly();
+        return this._museumObjects.Where(o => o.IsSpecial).ToList().AsReadOnly();
     }
 }

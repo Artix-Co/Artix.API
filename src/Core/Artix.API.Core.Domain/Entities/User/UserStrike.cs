@@ -2,10 +2,10 @@
 
 using Common;
 
-public sealed class UserStrike : BaseEntity
+public class UserStrike : BaseEntity
 {
     public long UserId { get; private set; }
-    public AppUser User { get; private set; }
+    public virtual AppUser User { get; private set; }
     
     
     public DateTime StrikeStart { get; private set; }
@@ -19,7 +19,7 @@ public sealed class UserStrike : BaseEntity
     {
         StrikeCount++;
         LastInteraction = DateTime.UtcNow;
-        SetModified();
+        
     }
 
     public void ResetStrike(DateTime resetTime)
@@ -27,12 +27,12 @@ public sealed class UserStrike : BaseEntity
         StrikeCount = 0;
         StrikeStart = resetTime;
         LastInteraction = resetTime;
-        SetModified();
+        
     }
 
     public void UpdateLastInteraction(DateTime interactionTime)
     {
         LastInteraction = interactionTime;
-        SetModified();
+        
     }
 }

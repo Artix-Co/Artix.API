@@ -3,7 +3,7 @@
 using Common;
 using Exceptions;
 
-public sealed class MuseumObject : BaseEntity
+public class MuseumObject : BaseEntity
 {
     public string Name { get; private set; }
     public string QRCode { get; private set; }
@@ -13,15 +13,15 @@ public sealed class MuseumObject : BaseEntity
     public bool IsSpecial { get; private set; }
     public bool IsHidden { get; private set; }
     public long MuseumId { get; private set; }
-    public Museum Museum { get; private set; }
+    public virtual Museum Museum { get; private set; }
     private readonly List<MuseumObjectCategory> _museumObjectCategories = new();
-    public IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
+    public virtual IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
 
-    private MuseumObject()
+    protected MuseumObject()
     {
     }
 
-
+   
     private MuseumObject(string name, string qrCode, Museum museum, bool isSpecial, bool isHidden)
     {
         ValidateName(name);

@@ -25,16 +25,16 @@ var app = builder.Build();
 Log.Logger.Information("Application built!");
 
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
-
-
-    await context.Database.MigrateAsync();
-    await DataSeeder.SeedAsync(context, userManager, roleManager);
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+//     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+//     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+//
+//
+//     await context.Database.MigrateAsync();
+//     await DataSeeder.SeedAsync(context, userManager, roleManager);
+// }
 
 app.UseExceptionHandler(config =>
 {

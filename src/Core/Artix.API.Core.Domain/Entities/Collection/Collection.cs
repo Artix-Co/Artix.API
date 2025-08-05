@@ -5,7 +5,7 @@ using Exceptions;
 using Museum;
 using User;
 
-public sealed class Collection : BaseAggregateRoot
+public class Collection : BaseEntity
 {
     public string? Name { get; set; }
 
@@ -14,13 +14,13 @@ public sealed class Collection : BaseAggregateRoot
     public bool IsPublic { get; set; }
     public long UserId { get; set; }
 
-    public AppUser User { get; set; }
+    public virtual AppUser User { get; set; }
 
     private readonly List<CollectionItem> _items = new();
-    public IReadOnlyCollection<CollectionItem> Items => _items.AsReadOnly();
+    public virtual IReadOnlyCollection<CollectionItem> Items => _items.AsReadOnly();
 
 
-    private Collection()
+    protected Collection()
     {
     }
 

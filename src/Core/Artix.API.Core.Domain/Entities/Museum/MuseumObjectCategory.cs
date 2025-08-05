@@ -2,14 +2,14 @@
 
 using Exceptions;
 
-public sealed class MuseumObjectCategory
+public class MuseumObjectCategory
 {
     public long MuseumObjectId { get; private set; }
-    public MuseumObject MuseumObject { get; private set; }
+    public virtual MuseumObject MuseumObject { get; private set; }
     public long CategoryId { get; private set; }
-    public Category Category { get; private set; }
+    public virtual Category Category { get; private set; }
 
-    private MuseumObjectCategory() { }
+    protected MuseumObjectCategory() { }
 
     private MuseumObjectCategory(MuseumObject museumObject, Category category)
     {

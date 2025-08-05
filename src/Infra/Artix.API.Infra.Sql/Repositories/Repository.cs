@@ -6,7 +6,7 @@ using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-public class Repository<T> : IRepository<T> where T : class, IAggregateRoot, IEntity
+public class Repository<T> : IRepository<T> where T : BaseEntity
 {
     protected readonly ArtixCommandDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -74,7 +74,7 @@ public class Repository<T> : IRepository<T> where T : class, IAggregateRoot, IEn
     {
         _logger.LogInformation("Updating entity of type {EntityType} with ID {EntityId}", typeof(T).Name, entity.Id);
 
-        if (entity is IEntity)
+        if (entity is BaseEntity)
         {
             await _dbSet
                 .Where(e => e.Id == entity.Id)
@@ -97,7 +97,7 @@ public class Repository<T> : IRepository<T> where T : class, IAggregateRoot, IEn
         _logger.LogInformation("Soft deleting entity of type {EntityType} with ID {EntityId}", typeof(T).Name,
             entity.Id);
 
-        if (entity is IEntity)
+        if (entity is BaseEntity)
         {
             await _dbSet
                 .Where(e => e.Id == entity.Id)
@@ -143,7 +143,7 @@ public class Repository<T> : IRepository<T> where T : class, IAggregateRoot, IEn
         _logger.LogInformation("Soft deleting entity of type {EntityType} with ID {EntityId}", typeof(T).Name,
             entity.Id);
 
-        if (entity is IEntity)
+        if (entity is BaseEntity)
         {
             _dbSet
                 .Where(e => e.Id == entity.Id)

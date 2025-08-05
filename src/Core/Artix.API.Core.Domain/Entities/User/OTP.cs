@@ -10,7 +10,7 @@ public sealed class OTP : BaseEntity
     public bool IsUsed { get; set; }
     public string Purpose { get; set; } = string.Empty; // "Registration" or "Login"
 
-    private OTP()
+    protected OTP()
     {
     }
 

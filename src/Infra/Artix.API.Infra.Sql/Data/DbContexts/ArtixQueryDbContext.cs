@@ -6,18 +6,24 @@ using Artix.API.Core.Domain.Entities.JournalEntry;
 using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, long>
+public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, long,
+    IdentityUserClaim<long>,
+    IdentityUserRole<long>,
+    IdentityUserLogin<long>,
+    IdentityRoleClaim<long>,
+    IdentityUserToken<long>>
 {
     public ArtixQueryDbContext(DbContextOptions<ArtixQueryDbContext> options)
         : base(options)
     {
     }
-    
+
     #region DbSets
-    
+
     public DbSet<Collection> Collections { get; set; }
     public DbSet<CollectionItem> CollectionItems { get; set; }
     public DbSet<JournalEntry> JournalEntries { get; set; }
@@ -37,17 +43,18 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<UserStrike> UserStrikes { get; set; }
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserXp> UserXps { get; set; }
-    
-    public DbSet<Category> Categories { get; set; } 
-    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; } 
-    
+
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<MuseumObjectCategory> MuseumObjectCategories { get; set; }
+
     #endregion
 
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseLazyLoadingProxies();
         optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        base.OnConfiguring(optionsBuilder);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -3,14 +3,14 @@
 using Common;
 using Season;
 
-public sealed class UserSeasonProgress : BaseEntity
+public class UserSeasonProgress : BaseEntity
 {
     public long UserId { get; private set; }
-    public AppUser User { get; private set; }
+    public virtual AppUser User { get; private set; }
     
     
     public long SeasonId { get; private set; }
-    public Season Season { get; private set; }
+    public virtual Season Season { get; private set; }
     
     
     public int TotalXp { get; private set; }
@@ -26,12 +26,12 @@ public sealed class UserSeasonProgress : BaseEntity
         if (xp <= 0) return;
         TotalXp += xp;
         LastUpdated = DateTime.UtcNow;
-        SetModified();
+        
     }
 
     public void UpdateLastUpdated(DateTime dateTime)
     {
         LastUpdated = dateTime;
-        SetModified();
+        
     }
 }

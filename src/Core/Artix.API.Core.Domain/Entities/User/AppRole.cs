@@ -3,7 +3,7 @@
 using Common;
 using Microsoft.AspNetCore.Identity;
 
-public sealed class AppRole : IdentityRole<long>
+public class AppRole : IdentityRole<long>
 {
     public AppRole(string roleName) : base(roleName)
     {

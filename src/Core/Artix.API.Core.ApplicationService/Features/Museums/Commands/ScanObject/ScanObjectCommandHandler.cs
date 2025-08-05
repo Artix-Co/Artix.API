@@ -8,6 +8,7 @@ using Domain.Entities.User;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Primitives;
 
 internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
@@ -45,7 +46,11 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
             throw new UnauthorizedAccessException("User not found");
 
 
+     
+
+        
         var museum = await _museumQueryRepository.GetByIdAsync(command.MuseumId, cancellationToken);
+
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
@@ -73,7 +78,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
             userObject.RecordScan();
         }
 
-        await _museumCommandRepository.UpdateAsync(museum);
+        await _museumCommandRepository.UpdateAsync(museum, cancellationToken);
 
         return userObject.Id;
     }

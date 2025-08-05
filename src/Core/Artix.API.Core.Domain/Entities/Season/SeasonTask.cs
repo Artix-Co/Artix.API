@@ -3,10 +3,10 @@
 using Common;
 using Exceptions;
 
-public sealed class SeasonTask : BaseEntity
+public class SeasonTask :BaseEntity
 {
     public long SeasonId { get; private set; }
-    public Season Season { get; private set; }
+    public virtual Season Season { get; private set; }
 
     public string? Description { get; private set; }
     public int XpReward { get; private set; }
@@ -17,7 +17,6 @@ public sealed class SeasonTask : BaseEntity
     {
         Season = season ??  throw DomainException.InvalidValue(nameof(season));
         SeasonId = season.Id;
-        SetModified();
     }
 
     public void UpdateDetails(string? description, int xpReward = 0, bool isPro = false)
@@ -25,6 +24,5 @@ public sealed class SeasonTask : BaseEntity
         Description = description;
         XpReward = xpReward;
         IsPro = isPro;
-        SetModified();
     }
 }

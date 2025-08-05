@@ -3,17 +3,17 @@
 using Common;
 using Exceptions;
 
-public sealed class Category : BaseEntity
+public class Category : BaseEntity
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
     private readonly List<MuseumObjectCategory> _museumObjectCategories = new();
-    public IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
+    public virtual IReadOnlyCollection<MuseumObjectCategory> MuseumObjectCategories => _museumObjectCategories.AsReadOnly();
 
-    private Category()
+    protected Category()
     {
     }
-
+ 
     public static Category Create(string name, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(name))

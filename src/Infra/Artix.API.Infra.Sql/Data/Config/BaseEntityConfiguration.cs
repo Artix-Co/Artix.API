@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
-    where TEntity : class, IEntity
+    where TEntity : BaseEntity
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
@@ -44,4 +44,3 @@ public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguratio
         return date < min ? min : date > max ? max : date;
     }
 }
-
