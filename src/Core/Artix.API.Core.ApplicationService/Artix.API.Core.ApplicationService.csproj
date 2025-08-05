@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Museums\Commands\" />
+    <Folder Include="Features\Objects\" />
   </ItemGroup>
   
 </Project>

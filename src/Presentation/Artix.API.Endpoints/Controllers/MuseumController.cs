@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Endpoints.Controllers;
 
 using Common;
-using Core.Contract.Features.Museums.Commands.ScanObject;
 using Core.Contract.Features.Museums.Queries.GetAll;
 using Core.Contract.Features.Museums.Queries.GetById;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
@@ -68,14 +67,6 @@ public sealed class MuseumController : BaseController
     public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
     {
         var result = await _mediator.Send(query);
-        return Ok(result);
-    }
-
-    [Authorize]
-    [HttpPost("object/scan")]
-    public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
-    {
-        var result = await _mediator.Send(command);
         return Ok(result);
     }
 }

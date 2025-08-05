@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Commands.ScanObject;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Commands.ScanObject;
 
 using Primitives.Handlers;
 

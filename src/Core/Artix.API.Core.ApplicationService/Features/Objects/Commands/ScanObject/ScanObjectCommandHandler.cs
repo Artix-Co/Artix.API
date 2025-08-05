@@ -1,16 +1,16 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Commands.ScanObject;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.ScanObject;
 
 using System.Security.Claims;
-using Contract.Features.Museums.Commands;
-using Contract.Features.Museums.Commands.ScanObject;
-using Contract.Features.Museums.Queries;
-using Contract.Features.UserObjects.Commands;
-using Domain.Entities.User;
-using Exceptions;
+using Artix.API.Core.ApplicationService.Exceptions;
+using Artix.API.Core.ApplicationService.Primitives;
+using Artix.API.Core.Contract.Features.Museums.Commands;
+using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Features.UserObjects.Commands;
+using Artix.API.Core.Domain.Entities.User;
+using Contract.Features.Objects.Commands.ScanObject;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Primitives;
 
 internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
 {
@@ -27,29 +27,29 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         UserManager<AppUser> userManager, IUserObjectCommandRepository userObjectCommandRepository)
         : base(httpContextAccessor)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _museumCommandRepository = museumCommandRepository;
-        _museumQueryRepository = museumQueryRepository;
-        _userManager = userManager;
-        _userObjectCommandRepository = userObjectCommandRepository;
+        this._httpContextAccessor = httpContextAccessor;
+        this._museumCommandRepository = museumCommandRepository;
+        this._museumQueryRepository = museumQueryRepository;
+        this._userManager = userManager;
+        this._userObjectCommandRepository = userObjectCommandRepository;
     }
 
 
     public override async Task<long> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = this._httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
         {
             throw new Exception("User is not authenticated or user ID is invalid.");
         }
         
-        var user = await _userManager.Users
+        var user = await this._userManager.Users
             .Include(u => u.UserObjects)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user == null)
             throw new UnauthorizedAccessException("User not found");
 
-        var museum = await _museumQueryRepository.GetByIdAsync(command.MuseumId, cancellationToken);
+        var museum = await this._museumQueryRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
@@ -73,7 +73,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
             await this._userObjectCommandRepository.UpdateAsync(userObject, cancellationToken);
         }
 
-        await _museumCommandRepository.UpdateAsync(museum, cancellationToken);
+        await this._museumCommandRepository.UpdateAsync(museum, cancellationToken);
         return userObject.Id;
     }
 }

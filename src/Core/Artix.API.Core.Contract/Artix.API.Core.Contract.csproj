@@ -25,4 +25,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
   </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Folder Include="Features\Objects\Commands\" />
+  </ItemGroup>
 </Project>
