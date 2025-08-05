@@ -8,7 +8,7 @@ internal sealed class MuseumObjectCategoryWriteConfiguration : IEntityTypeConfig
 {
     public void Configure(EntityTypeBuilder<ObjectType> entity)
     {
-        entity.ToTable("MuseumObjectCategories");
+        entity.ToTable("ObjectTypes");
 
         // Composite primary key for the relationship
         entity.HasKey(ot => new { ot.ObjectId, ot.CategoryId });
