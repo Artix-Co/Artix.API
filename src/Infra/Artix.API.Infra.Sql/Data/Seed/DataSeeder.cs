@@ -147,8 +147,8 @@ public static class DataSeeder
 
             museumObjects.AddRange(museumObjects);
 
-            // foreach (var museumObject in museumObjects)
-            //     museumObject.Museum.AddObject(museumObject);
+            foreach (var museumObject in museumObjects)
+                museumObject.Museum.AddObject(museumObject);
 
 
             #region Seed MuseumObjectCategories

@@ -60,27 +60,26 @@ public class Museum : BaseEntity
         IsActive = false;
     }
 
-    // public void AddObject(MuseumObject obj)
-    // {
-    //     // if (obj == null)
-    //     //     throw new ArgumentNullException(nameof(obj));
-    //     // if (_objects.Any(o => o.Id == obj.Id))
-    //     //     throw new InvalidOperationException("Object already exists in the museum.");
-    //     // if (obj.MuseumId != Id)
-    //     //     throw new InvalidOperationException("MuseumObject must belong to this museum.");
-    //
-    //     _objects.Add(obj);
-    //     AddEntity(obj);
-    // }
-    //
-    // public void RemoveObject(MuseumObject obj)
-    // {
-    //     if (obj == null)
-    //         throw new ArgumentNullException(nameof(obj));
-    //
-    //     if (_objects.Remove(obj))
-    //         RemoveEntity(obj);
-    // }
+    public void AddObject(MuseumObject obj)
+    {
+        // if (obj == null)
+        //     throw new ArgumentNullException(nameof(obj));
+        // if (_objects.Any(o => o.Id == obj.Id))
+        //     throw new InvalidOperationException("Object already exists in the museum.");
+        // if (obj.MuseumId != Id)
+        //     throw new InvalidOperationException("MuseumObject must belong to this museum.");
+
+        this._museumObjects.Add(obj);
+    }
+
+    public void RemoveObject(MuseumObject obj)
+    {
+        if (obj == null)
+            throw new ArgumentNullException(nameof(obj));
+
+
+        this._museumObjects.Remove(obj);
+    }
 
     public bool HasObject(long museumObjectId)
     {

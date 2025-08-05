@@ -27,23 +27,17 @@ public class UserObject : BaseEntity
 
  
     
-    public static UserObject Create(AppUser user, MuseumObject museumObject)
+    public static UserObject Create(long userId, long museumObjectId)
     {
-        if (user == null)
-            throw DomainException.InvalidValue(nameof(user));
-        if (museumObject == null)
-            throw DomainException.InvalidValue(nameof(museumObject));
-        if (user.Id <= 0)
-            throw new ArgumentException("User ID must be positive.", nameof(user));
-        if (museumObject.Id <= 0)
-            throw new ArgumentException("MuseumObject ID must be positive.", nameof(museumObject));
+        if (userId <= 0)
+            throw new ArgumentException("User ID must be positive.", nameof(userId));
+        if (museumObjectId <= 0)
+            throw new ArgumentException("MuseumObject ID must be positive.", nameof(museumObjectId));
 
         return new UserObject
         {
-            UserId = user.Id,
-            User = user,
-            ObjectId = museumObject.Id,
-            Object = museumObject,
+            UserId = userId,
+            ObjectId = museumObjectId,
             ScanCount = 0,
             AcquiredAt = null,
             IsUpgraded = false,
