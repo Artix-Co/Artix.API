@@ -2,6 +2,7 @@
 
 using Common;
 using Core.Contract.Features.Objects.Commands.ScanObject;
+using Core.Contract.Features.Objects.Queries.GetDetailByIds;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,14 @@ public sealed class ObjectController : BaseController
     public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
     {
         var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetObject(long id)
+    {
+        var query = new GetObjectDetailByIdQuery { Id = id };
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 }
