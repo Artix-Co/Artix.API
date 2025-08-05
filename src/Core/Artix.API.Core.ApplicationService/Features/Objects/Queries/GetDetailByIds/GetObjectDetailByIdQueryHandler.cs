@@ -31,8 +31,8 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
         }
 
         result.Name = museumObject.Name;
-        result.GeneralInformation = museumObject.Description;
-        result.SpecializedInformation = museumObject.Description;
+        result.GeneralInformation = museumObject.GeneralInformation;
+        result.SpecializedInformation = museumObject.SpecialInformation;
         result.HistoricalPeriod = "دوره آرتیکسیان";
         result.Model3DBase64 = "base64-string-model";
 
