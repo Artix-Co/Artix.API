@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.ScanObject;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
 
 using System.Security.Claims;
 using Artix.API.Core.ApplicationService.Exceptions;
@@ -7,7 +7,7 @@ using Artix.API.Core.Contract.Features.Museums.Commands;
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Features.UserObjects.Commands;
 using Artix.API.Core.Domain.Entities.User;
-using Contract.Features.Objects.Commands.ScanObject;
+using Contract.Features.Objects.Commands.Scan;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
