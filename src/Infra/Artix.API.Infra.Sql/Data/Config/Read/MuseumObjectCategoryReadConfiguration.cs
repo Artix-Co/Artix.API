@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
 
-using Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,20 +10,28 @@ internal sealed class MuseumObjectCategoryReadConfiguration : IEntityTypeConfigu
     {
         entity.ToTable("MuseumObjectCategories");
 
-        entity.HasKey(moc => new { moc.MuseumObjectId, moc.CategoryId });;
+        // Composite primary key for the relationship
+        entity.HasKey(ot => new { ot.ObjectId, ot.CategoryId });
 
-       
-
+        // Relationship with Object
         entity
-            .HasOne(moc => moc.MuseumObject)
-            .WithMany(mo => mo.MuseumObjectCategories)
-            .HasForeignKey(moc => moc.MuseumObjectId);
+            .HasOne(ot => ot.Object)
+            .WithMany(o => o.ObjectTypes)
+            .HasForeignKey(ot => ot.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        // Relationship with Type
         entity
-            .HasOne(moc => moc.Type)
-            .WithMany(c => c.ObjectTypes)
-            .HasForeignKey(moc => moc.CategoryId);
- 
-        
+            .HasOne(ot => ot.Type)
+            .WithMany(t => t.ObjectTypes)
+            .HasForeignKey(ot => ot.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Indexes for performance
+        entity.HasIndex(ot => ot.ObjectId)
+            .HasDatabaseName("IX_MuseumObjectCategories_ObjectId");
+
+        entity.HasIndex(ot => ot.CategoryId)
+            .HasDatabaseName("IX_MuseumObjectCategories_CategoryId");
     }
 }

@@ -1,67 +1,43 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
 
-using Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 internal sealed class MuseumObjectReadConfiguration : BaseEntityConfiguration<MuseumObject>
 {
-    public void Configure(EntityTypeBuilder<MuseumObject> entity)
+    public override void Configure(EntityTypeBuilder<MuseumObject> entity)
     {
         base.Configure(entity);
 
         entity.ToTable("MuseumObjects");
 
-        entity.Property(e => e.Description)
-            .HasMaxLength(500)
-            .IsRequired(false);
-
-        entity.Property(e => e.Version)
-            .IsRequired(false);
-
-        entity.Property(e => e.Tier)
-            .IsRequired(false);
-
-        entity.Property(e => e.MuseumId)
+        // Properties
+        entity.Property(mo => mo.MuseumId)
             .IsRequired();
 
-        entity.Property(e => e.Name)
-            .HasMaxLength(100)
+        entity.Property(mo => mo.ObjectId)
             .IsRequired();
 
-        entity.Property(e => e.QRCode)
-            .HasMaxLength(200)
-            .IsRequired();
-
-        entity.Property(e => e.IsSpecial)
-            .IsRequired()
-            .HasDefaultValue(false);
-
-        entity.Property(e => e.IsHidden)
-            .IsRequired()
-            .HasDefaultValue(false);
-
-       entity
+        // Relationships
+        entity
             .HasOne(mo => mo.Museum)
             .WithMany(m => m.MuseumObjects)
             .HasForeignKey(mo => mo.MuseumId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        
-        entity.HasMany(e => e.MuseumObjectCategories)
-            .WithOne(moc => moc.MuseumObject)
-            .HasForeignKey(moc => moc.MuseumObjectId)
+
+        entity
+            .HasOne(mo => mo.Object)
+            .WithMany() // No navigation property in Object for MuseumObjects
+            .HasForeignKey(mo => mo.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.HasIndex(e => e.MuseumId)
+        // Indexes
+        entity.HasIndex(mo => mo.MuseumId)
             .HasDatabaseName("IX_MuseumObjects_MuseumId");
 
-        entity.HasIndex(e => e.Name)
-            .HasDatabaseName("IX_MuseumObjects_Name");
-
-        entity.HasIndex(e => e.QRCode)
-            .HasDatabaseName("IX_MuseumObjects_QRCode")
-            .IsUnique();
+        entity.HasIndex(mo => mo.ObjectId)
+            .HasDatabaseName("IX_MuseumObjects_ObjectId")
+            .IsUnique(); // Assuming each Object can be linked to only one Museum
     }
-
 }

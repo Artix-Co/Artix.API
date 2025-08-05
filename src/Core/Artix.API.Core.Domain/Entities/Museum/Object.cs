@@ -218,20 +218,52 @@ public class Object : BaseEntity
 
  
 
-    private Object(string name, string? qrCode, bool isSpecial = false, bool isHidden = false)
+    
+
+    private Object(
+        string name,
+        string? qrCode,
+        string? generalInformation,
+        string? specialInformation,
+        int? version,
+        int? tier,
+        bool isSpecial,
+        bool isHidden,
+        string? model3DBase64)
     {
-        ValidateName(name);
-        ValidateQrCode(qrCode);
+        // TODO: fix exception according to domain exceptions
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+        if (string.IsNullOrWhiteSpace(qrCode))
+            throw new ArgumentException("QrCode cannot be null or empty.", nameof(qrCode));
+        if (version is < 0)
+            throw new ArgumentException("Version cannot be negative.", nameof(version));
+        if (tier is < 0)
+            throw new ArgumentException("Tier cannot be negative.", nameof(tier));
 
         Name = name;
         QrCode = qrCode;
+        GeneralInformation = generalInformation;
+        SpecialInformation = specialInformation;
+        Version = version;
+        Tier = tier;
         IsSpecial = isSpecial;
         IsHidden = isHidden;
+        Model3DBase64 = model3DBase64;
     }
 
-    public static Object Create(string name, string? qrCode, bool isSpecial = false, bool isHidden = false)
+    public static Object Create(
+        string name,
+        string qrCode,
+        string? generalInformation = null,
+        string? specialInformation = null,
+        int? version = null,
+        int? tier = null,
+        bool isSpecial = false,
+        bool isHidden = false,
+        string? model3DBase64 = null)
     {
-        return new Object(name, qrCode, isSpecial, isHidden);
+        return new Object(name, qrCode, generalInformation, specialInformation, version, tier, isSpecial, isHidden, model3DBase64);
     }
 
     public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)

@@ -20,6 +20,8 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     IdentityUserToken<long>>
 
 {
+  
+
     public ArtixCommandDbContext(DbContextOptions<ArtixCommandDbContext> options)
         : base(options)
     {
@@ -54,6 +56,10 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<MuseumObject> MuseumObjects { get; set; }
     public DbSet<Type> Categories { get; set; }
     public DbSet<ObjectType> MuseumObjectCategories { get; set; }
+    public DbSet<Object> Objects { get; set; }
+    public DbSet<ObjectType> ObjectTypes { get; set; }
+    public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
+    public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
 
     #endregion
 
