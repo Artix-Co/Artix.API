@@ -2,6 +2,7 @@
 
 using Common;
 using Core.Contract.Features.Objects.Commands.Scan;
+using Core.Contract.Features.Objects.Commands.Upgrade;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -34,11 +35,11 @@ public sealed class ObjectController : BaseController
         return Ok(result);
     }
     
-    [HttpPatch("{id}/upgrade")]
-    public async Task<IActionResult> UpgradeObject(long id)
+    [Authorize]
+    [HttpPatch("upgrade")]
+    public async Task<IActionResult> UpgradeObject([FromBody] UpgradeObjectCommand command)
     {
-        var query = new GetObjectDetailByIdQuery { Id = id };
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(command);
         return Ok(result);
     }
 }

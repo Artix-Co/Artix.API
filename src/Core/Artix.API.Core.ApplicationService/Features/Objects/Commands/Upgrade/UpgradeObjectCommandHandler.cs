@@ -1,90 +1,140 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Upgrade;
 
+using System.Security.Claims;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Upgrade;
 using Contract.Features.Objects.Queries;
+using Domain.Entities.User;
 using Exceptions;
+using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Primitives;
-using Object = Domain.Entities.Museum.Object;
 
 internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly IObjectQueryRepository _objectQueryRepository;
-    public UpgradeObjectCommandHandler(IHttpContextAccessor httpContextAccessor, IObjectCommandRepository objectCommandRepository, IObjectQueryRepository objectQueryRepository) : base(httpContextAccessor)
+    private readonly IFileService _fileService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly UserManager<AppUser> _userManager;
+
+    public UpgradeObjectCommandHandler(
+        IHttpContextAccessor httpContextAccessor,
+        IObjectCommandRepository objectCommandRepository,
+        IObjectQueryRepository objectQueryRepository,
+        IFileService fileService, UserManager<AppUser> userManager)
+        : base(httpContextAccessor)
     {
-        this._objectCommandRepository = objectCommandRepository;
-        this._objectQueryRepository = objectQueryRepository;
+        _httpContextAccessor = httpContextAccessor;
+        _objectCommandRepository = objectCommandRepository;
+        _objectQueryRepository = objectQueryRepository;
+        _fileService = fileService;
+        _userManager = userManager;
     }
 
-  public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
-{
-    var @object = await this._objectQueryRepository.GetByIdAsync(command.Id, cancellationToken);
-
-    if (@object == null)
+    public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
     {
-        throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.Id);
+        // Authenticate user
+        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            throw new Exception("User is not authenticated or user ID is invalid.");
+        }
+
+        var user = await _userManager.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            throw new UnauthorizedAccessException("User not found");
+
+        // Retrieve object
+        var @object = await _objectQueryRepository.GetByIdAsync(command.Id, cancellationToken);
+        if (@object == null)
+        {
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.Id);
+        }
+
+        // Update properties if provided
+        if (!string.IsNullOrWhiteSpace(command.Name))
+        {
+            @object.Rename(command.Name);
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.GeneralInformation) ||
+            !string.IsNullOrWhiteSpace(command.SpecializedInformation) ||
+            command.Tier.HasValue || command.Version.HasValue)
+        {
+            @object.UpdateDetails(
+                command.GeneralInformation,
+                command.SpecializedInformation,
+                command.Version,
+                command.Tier);
+        }
+
+        byte[]? model3DFileData = null;
+      
+        
+        // Handle 3D model file upload
+        if (command.Model3DFileDataBase64 != null &&
+            !string.IsNullOrWhiteSpace(command.Model3DFileDataBase64) &&
+            !string.IsNullOrWhiteSpace(command.Model3DFileName) &&
+            !string.IsNullOrWhiteSpace(command.Model3DFileMimeType))
+        {
+            try
+            {
+                // Remove the data URI prefix (e.g., "data:model/gltf-binary;base64,")
+                var base64String = command.Model3DFileDataBase64;
+                if (base64String.StartsWith("data:"))
+                {
+                    base64String = base64String.Substring(base64String.IndexOf(',') + 1);
+                }
+                model3DFileData = Convert.FromBase64String(base64String);
+            }
+            catch (FormatException ex)
+            {
+                throw new Exception($"Invalid Base64 string for Model3DFileData: {ex.Message}");
+            }
+            
+            
+            var allowedMimeTypes = new[]
+            {
+                // 3D model formats
+                "model/gltf-binary", // .glb
+                "model/obj",         // .obj
+                "model/gltf+json",   // .gltf
+            };
+            var fileEntity = await _fileService.UploadFileFromBytesAsync(
+                model3DFileData,
+                command.Model3DFileName,
+                command.Model3DFileMimeType,
+                "Object",
+                @object.Id,
+                user.Id,
+                allowedMimeTypes);
+
+            @object.Assign3DModel(fileEntity);
+        }
+
+        // TODO: Handle HistoricalPeriod if provided
+        // Example:
+        // if (!string.IsNullOrWhiteSpace(command.HistoricalPeriod))
+        // {
+        //     var historicalPeriod = await _historicalPeriodQueryRepository.GetByNameAsync(command.HistoricalPeriod, cancellationToken);
+        //     if (historicalPeriod != null)
+        //     {
+        //         @object.AssignHistoricalPeriod(historicalPeriod);
+        //     }
+        //     else
+        //     {
+        //         throw ApplicationServiceNotFoundException.ForEntity(nameof(HistoricalPeriod), command.HistoricalPeriod);
+        //     }
+        // }
+
+        // Update the object in the repository
+        await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
+
+        return @object.Id;
     }
-
-    var objectBuilder = Object.CreateBuilder();
-
-    if (!string.IsNullOrWhiteSpace(command.Name))
-    {
-        objectBuilder.WithName(command.Name);
-    }
-    
-    if (!string.IsNullOrWhiteSpace(command.GeneralInformation))
-    {
-        objectBuilder.WithGeneralInformation(command.GeneralInformation);
-    }
-
-    if (!string.IsNullOrWhiteSpace(command.SpecializedInformation))
-    {
-        objectBuilder.WithSpecialInformation(command.SpecializedInformation);
-    }
-
-    if (command.Tier.HasValue)
-    {
-        objectBuilder.WithTier(command.Tier.Value);
-    }
-
-    if (command.Version.HasValue)
-    {
-        objectBuilder.WithVersion(command.Version.Value);
-    }
-
-    if (!string.IsNullOrWhiteSpace(command.Model3DBase64))
-    {
-        objectBuilder.WithModel3DBase64(command.Model3DBase64);
-    }
-
-    // TODO: Handle HistoricalPeriod if provided
-    // if (!string.IsNullOrWhiteSpace(command.HistoricalPeriod))
-    // {
-    //     // Assuming HistoricalPeriod is a name that needs to be resolved to a HistoricalPeriod entity
-    //     var historicalPeriod = await this._historicalPeriodQueryRepository.GetByNameAsync(command.HistoricalPeriod, cancellationToken);
-    //     if (historicalPeriod != null)
-    //     {
-    //         var objectHistoricalPeriod = ObjectHistoricalPeriod.Create(@object, historicalPeriod);
-    //         objectBuilder.WithHistoricalPeriod(objectHistoricalPeriod);
-    //     }
-    //     else
-    //     {
-    //         throw ApplicationServiceNotFoundException.ForEntity(nameof(HistoricalPeriod), command.HistoricalPeriod);
-    //     }
-    // }
-
-    // Apply special status if explicitly set in the command
-    // Assuming a property or logic to determine IsSpecial (not directly in command, so we skip unless specified)
-    // Example: if (command.IsSpecial.HasValue) objectBuilder.AsSpecial(); // Add if command is extended
-
-    // Build the updated object
-    var updatedObject = objectBuilder.Build();
-
-    // Update the object in the repository
-    await this._objectCommandRepository.UpdateAsync(updatedObject, cancellationToken);
-
-    return @object.Id;
-}
 }

@@ -10,6 +10,7 @@ using Core.Domain.Entities.User;
 using Core.DomainService;
 using Endpoints;
 using Filters;
+using Infra.File;
 using Infra.Sql;
 using Infra.Sql.Data;
 using Infra.Sql.Data.DbContexts;
@@ -182,6 +183,7 @@ public static class HostingExtension
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
+        services.AddFileService(configuration);
         services.AddDomainServiceServices();
         
         services.AddControllers();

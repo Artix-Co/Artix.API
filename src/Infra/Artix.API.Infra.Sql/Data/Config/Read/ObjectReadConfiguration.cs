@@ -14,55 +14,61 @@ internal sealed class ObjectReadConfiguration : BaseEntityConfiguration<Object>
 
         // Properties
         entity.Property(o => o.Name)
-              .HasMaxLength(100)
-              .IsRequired();
+            .HasMaxLength(100)
+            .IsRequired();
 
         entity.Property(o => o.QrCode)
-              .HasMaxLength(200)
-              .IsRequired();
+            .HasMaxLength(200)
+            .IsRequired();
 
         entity.Property(o => o.GeneralInformation)
-              .HasMaxLength(500)
-              .IsRequired(false);
+            .HasMaxLength(500)
+            .IsRequired(false);
 
         entity.Property(o => o.SpecialInformation)
-              .HasMaxLength(500)
-              .IsRequired(false);
+            .HasMaxLength(500)
+            .IsRequired(false);
 
         entity.Property(o => o.Version)
-              .IsRequired(false);
+            .IsRequired(false);
 
         entity.Property(o => o.Tier)
-              .IsRequired(false);
+            .IsRequired(false);
 
         entity.Property(o => o.IsSpecial)
-              .IsRequired()
-              .HasDefaultValue(false);
+            .IsRequired()
+            .HasDefaultValue(false);
 
         entity.Property(o => o.IsHidden)
-              .IsRequired()
-              .HasDefaultValue(false);
-
-        entity.Property(o => o.Model3DBase64)
-              .IsRequired(false); // Assuming large string, no max length specified
+            .IsRequired()
+            .HasDefaultValue(false);
 
         // Relationships
         entity.HasMany(o => o.ObjectTypes)
-              .WithOne(ot => ot.Object)
-              .HasForeignKey(ot => ot.ObjectId)
-              .OnDelete(DeleteBehavior.Cascade);
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(ot => ot.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(o => o.ObjectHistoricalPeriods)
-              .WithOne(ohp => ohp.Object)
-              .HasForeignKey(ohp => ohp.ObjectId)
-              .OnDelete(DeleteBehavior.Cascade);
+            .WithOne(ohp => ohp.Object)
+            .HasForeignKey(ohp => ohp.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure relationship with Files
+        entity.HasMany(o => o.Files)
+            .WithOne()
+            .HasForeignKey(f => f.EntityId)
+            .HasConstraintName("FK_Files_Object")
+            .OnDelete(DeleteBehavior.Cascade)
+            .HasPrincipalKey(o => o.Id);
+
 
         // Indexes
         entity.HasIndex(o => o.Name)
-              .HasDatabaseName("IX_Objects_Name");
+            .HasDatabaseName("IX_Objects_Name");
 
         entity.HasIndex(o => o.QrCode)
-              .HasDatabaseName("IX_Objects_QrCode")
-              .IsUnique();
+            .HasDatabaseName("IX_Objects_QrCode")
+            .IsUnique();
     }
 }

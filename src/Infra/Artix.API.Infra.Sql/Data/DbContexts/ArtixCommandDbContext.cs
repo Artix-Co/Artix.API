@@ -7,6 +7,7 @@ using Artix.API.Core.Domain.Entities.JournalEntry;
 using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
+using Core.Domain.Entities.File;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -60,7 +61,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<ObjectType> ObjectTypes { get; set; }
     public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
     public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
- 
+    public DbSet<FileEntity> Files { get; set; }
 
     #endregion
 

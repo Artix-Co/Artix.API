@@ -146,8 +146,7 @@ public static class DataSeeder
                 version: 1,
                 tier: 2,
                 isSpecial: true,
-                isHidden: false,
-                model3DBase64: "base64_vase"
+                isHidden: false
             ),
             Object.Create(
                 name: "Mona Lisa",
@@ -157,8 +156,7 @@ public static class DataSeeder
                 version: 1,
                 tier: 3,
                 isSpecial: true,
-                isHidden: false,
-                model3DBase64: "base64_mona"
+                isHidden: false
             ),
             Object.Create(
                 name: "Bronze Statue",
@@ -168,8 +166,7 @@ public static class DataSeeder
                 version: 1,
                 tier: 1,
                 isSpecial: false,
-                isHidden: true,
-                model3DBase64: "base64_statue"
+                isHidden: true
             )
         };
 

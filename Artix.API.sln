@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Endpoints", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.WebService", "src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj", "{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.File", "src\Infra\Artix.API.Infra.File\Artix.API.Infra.File.csproj", "{1C13849C-C529-4887-94A7-51CFF25B0906}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,7 @@ Global
 		{80E52C0B-46E9-466E-B615-2F59B899D199} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 		{BAAC395F-0C8C-4F41-8C10-CD389CF5B6D9} = {882E216E-2060-4283-8D24-B892BE6688F6}
 		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC} = {882E216E-2060-4283-8D24-B892BE6688F6}
+		{1C13849C-C529-4887-94A7-51CFF25B0906} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6796302F-F731-4823-A529-E25355C88DB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -81,5 +84,9 @@ Global
 		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C13849C-C529-4887-94A7-51CFF25B0906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C13849C-C529-4887-94A7-51CFF25B0906}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C13849C-C529-4887-94A7-51CFF25B0906}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C13849C-C529-4887-94A7-51CFF25B0906}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -2,8 +2,7 @@
 
 using Common;
 using Exceptions;
-
-
+using File;
 
 public class Object : BaseEntity
 {
@@ -15,7 +14,9 @@ public class Object : BaseEntity
     public int? Tier { get; private set; }
     public bool IsSpecial { get; private set; }
     public bool IsHidden { get; private set; }
-    public string? Model3DBase64 { get; set; }
+
+    private readonly List<FileEntity> _files = new();
+    public virtual IReadOnlyCollection<FileEntity> Files => _files.AsReadOnly();
 
     private readonly List<ObjectType> _objectTypes = new();
     public virtual IReadOnlyCollection<ObjectType> ObjectTypes => _objectTypes.AsReadOnly();
@@ -23,7 +24,7 @@ public class Object : BaseEntity
     private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
     public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods => _objectHistoricalPeriods.AsReadOnly();
 
-    // Protected constructor for the builder
+    // Protected constructor for EF Core
     protected Object() { }
 
     private Object(
@@ -35,7 +36,6 @@ public class Object : BaseEntity
         int? tier,
         bool isSpecial,
         bool isHidden,
-        string? model3DBase64,
         List<ObjectType> objectTypes,
         List<ObjectHistoricalPeriod> objectHistoricalPeriods)
     {
@@ -52,7 +52,6 @@ public class Object : BaseEntity
         Tier = tier;
         IsSpecial = isSpecial;
         IsHidden = isHidden;
-        Model3DBase64 = model3DBase64;
 
         _objectTypes = objectTypes ?? new List<ObjectType>();
         _objectHistoricalPeriods = objectHistoricalPeriods ?? new List<ObjectHistoricalPeriod>();
@@ -93,7 +92,6 @@ public class Object : BaseEntity
         private int? _tier;
         private bool _isSpecial;
         private bool _isHidden;
-        private string? _model3DBase64;
         private readonly List<ObjectType> _objectTypes = new();
         private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
 
@@ -142,12 +140,6 @@ public class Object : BaseEntity
         public ObjectBuilder AsHidden()
         {
             _isHidden = true;
-            return this;
-        }
-
-        public ObjectBuilder WithModel3DBase64(string? model3DBase64)
-        {
-            _model3DBase64 = model3DBase64;
             return this;
         }
 
@@ -202,7 +194,6 @@ public class Object : BaseEntity
                 _tier,
                 _isSpecial,
                 _isHidden,
-                _model3DBase64,
                 _objectTypes,
                 _objectHistoricalPeriods
             );
@@ -215,11 +206,6 @@ public class Object : BaseEntity
         return new ObjectBuilder();
     }
 
-
- 
-
-    
-
     private Object(
         string name,
         string? qrCode,
@@ -228,18 +214,16 @@ public class Object : BaseEntity
         int? version,
         int? tier,
         bool isSpecial,
-        bool isHidden,
-        string? model3DBase64)
+        bool isHidden)
     {
-        // TODO: fix exception according to domain exceptions
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+            throw DomainException.InvalidValue("Name cannot be null or empty.");
         if (string.IsNullOrWhiteSpace(qrCode))
-            throw new ArgumentException("QrCode cannot be null or empty.", nameof(qrCode));
+            throw DomainException.InvalidValue("QrCode cannot be null or empty.");
         if (version is < 0)
-            throw new ArgumentException("Version cannot be negative.", nameof(version));
+            throw DomainException.InvalidValue("Version cannot be negative.");
         if (tier is < 0)
-            throw new ArgumentException("Tier cannot be negative.", nameof(tier));
+            throw DomainException.InvalidValue("Tier cannot be negative.");
 
         Name = name;
         QrCode = qrCode;
@@ -249,7 +233,6 @@ public class Object : BaseEntity
         Tier = tier;
         IsSpecial = isSpecial;
         IsHidden = isHidden;
-        Model3DBase64 = model3DBase64;
     }
 
     public static Object Create(
@@ -260,10 +243,9 @@ public class Object : BaseEntity
         int? version = null,
         int? tier = null,
         bool isSpecial = false,
-        bool isHidden = false,
-        string? model3DBase64 = null)
+        bool isHidden = false)
     {
-        return new Object(name, qrCode, generalInformation, specialInformation, version, tier, isSpecial, isHidden, model3DBase64);
+        return new Object(name, qrCode, generalInformation, specialInformation, version, tier, isSpecial, isHidden);
     }
 
     public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)
@@ -370,5 +352,38 @@ public class Object : BaseEntity
         if (link != null)
             _objectHistoricalPeriods.Remove(link);
     }
-    
+
+    // New methods for 3D model file management
+    public void Assign3DModel(FileEntity fileEntity)
+    {
+        if (fileEntity == null)
+            throw DomainException.InvalidValue(nameof(fileEntity));
+
+        if (fileEntity.EntityType != "Object" || fileEntity.EntityId != Id)
+            throw DomainException.InvalidValue("FileEntity must be associated with this Object.");
+
+        // Optional: Enforce single 3D model by removing existing model
+        var existingModel = _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+        if (existingModel != null)
+            _files.Remove(existingModel);
+
+        _files.Add(fileEntity);
+    }
+
+    public void Remove3DModel()
+    {
+        var model = _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+        if (model != null)
+            _files.Remove(model);
+    }
+
+    public FileEntity? Get3DModel()
+    {
+        return _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+    }
+
+    public bool Has3DModel()
+    {
+        return _files.Any(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+    }
 }

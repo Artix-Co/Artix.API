@@ -3,6 +3,7 @@
 using Artix.API.Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Write;
 
 internal sealed class HistoricalPeriodReadConfiguration : BaseEntityConfiguration<HistoricalPeriod>
 {
@@ -22,9 +23,13 @@ internal sealed class HistoricalPeriodReadConfiguration : BaseEntityConfiguratio
             .IsRequired(false);
 
         entity.Property(hp => hp.StartDate)
+            .HasConversion<HistoricalDateConverter>()
+            .HasColumnType("nvarchar(50)") // Store as string (e.g., "800 BC")
             .IsRequired(false);
 
         entity.Property(hp => hp.EndDate)
+            .HasConversion<HistoricalDateConverter>()
+            .HasColumnType("nvarchar(50)")
             .IsRequired(false);
 
         // Relationships
