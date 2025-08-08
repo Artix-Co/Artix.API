@@ -2,20 +2,13 @@
 
 using System.Text.Json.Serialization;
 
-public class RecentObjectDto
+public class RecentObjectDto : RecentBaseEntity
 {
-    public long Id { get; private set; }
-    public string Name { get; private set; }
-
-  
-
-    
-
-    public static RecentObjectDto Create(long id,string name)
+    public static RecentObjectDto Create(long id, string name)
     {
         return new RecentObjectDto(id, name);
     }
-    
+
     [JsonConstructor]
     public RecentObjectDto(long id, string name)
     {

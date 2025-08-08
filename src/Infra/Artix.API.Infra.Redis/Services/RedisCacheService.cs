@@ -5,11 +5,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Interfaces;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 using System.Diagnostics;
-using System.Text.Json;
+using Core.Contract.Features.Caches;
 
-public sealed class RedisCacheService<T> : ICacheService<T>
+public sealed class RedisCacheService<T> : ICacheService<T> where T : RecentBaseEntity
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly string _keyPrefix; // e.g., "recent:museums:user" or "recent:objects:user"
@@ -33,34 +32,57 @@ public sealed class RedisCacheService<T> : ICacheService<T>
 
     public async Task AddToRecentAsync(string userId, T item)
     {
-        if (string.IsNullOrEmpty(userId))
-        {
-            _logger.LogError("UserId is null or empty.");
-            throw new ArgumentNullException(nameof(userId));
-        }
-
-        if (item == null)
-        {
-            _logger.LogError("Item is null.");
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNull(item);
 
         var stopwatch = Stopwatch.StartNew();
+        var db = _redis.GetDatabase();
+        var key = $"{_keyPrefix}:{userId}";
+        var serializedItem = JsonSerializer.Serialize(item, _jsonOptions);
+
         try
         {
-            var db = _redis.GetDatabase();
-            var key = $"{_keyPrefix}:{userId}";
-            var serializedItem = JsonSerializer.Serialize(item, _jsonOptions);
+            _logger.LogDebug(
+                "Attempting to add item with Id {ItemId} for user {UserId} with key {Key}: {SerializedItem}",
+                item.Id, userId, key, serializedItem);
 
-            _logger.LogDebug("Serializing item for user {UserId} with key {Key}: {SerializedItem}", userId, key,
-                serializedItem);
+            // Check for duplicate by scanning the list
+            var items = await db.ListRangeAsync(key, 0, _maxItems - 1);
+            bool isDuplicate = false;
 
+            foreach (var existingItem in items)
+            {
+                if (!existingItem.IsNullOrEmpty)
+                {
+                    try
+                    {
+                        var existing = JsonSerializer.Deserialize<T>(existingItem, _jsonOptions);
+                        if (existing != null && existing.Id == item.Id)
+                        {
+                            isDuplicate = true;
+                            _logger.LogDebug(
+                                "Duplicate item found with Id {ItemId} for user {UserId}. Removing existing item.",
+                                item.Id, userId);
+                            await db.ListRemoveAsync(key, existingItem, 1); // Remove the duplicate
+                            break;
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogWarning(ex,
+                            "Failed to deserialize existing item for duplicate check for user {UserId}: {Item}",
+                            userId, existingItem);
+                    }
+                }
+            }
+
+            // Add the new item to the front of the list
             await db.ListLeftPushAsync(key, serializedItem);
             await db.ListTrimAsync(key, 0, _maxItems - 1);
 
             _logger.LogInformation(
-                "Successfully added item to recent list for user {UserId} with key {Key}. Time taken: {ElapsedMs}ms",
-                userId, key, stopwatch.ElapsedMilliseconds);
+                "Successfully added item with Id {ItemId} for user {UserId} with key {Key}. Duplicate: {IsDuplicate}. Time taken: {ElapsedMs}ms",
+                item.Id, userId, key, isDuplicate, stopwatch.ElapsedMilliseconds);
         }
         catch (RedisException ex)
         {
@@ -75,19 +97,15 @@ public sealed class RedisCacheService<T> : ICacheService<T>
 
     public async Task<List<T>> GetRecentAsync(string userId, int maxItems)
     {
-        if (string.IsNullOrEmpty(userId))
-        {
-            _logger.LogError("UserId is null or empty.");
-            throw new ArgumentNullException(nameof(userId));
-        }
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
 
         var stopwatch = Stopwatch.StartNew();
         try
         {
             var db = _redis.GetDatabase();
             var key = $"{_keyPrefix}:{userId}";
-            _logger.LogDebug("Fetching recent items for user {UserId} with key {Key}, maxItems: {MaxItems}", userId,
-                key, maxItems);
+            _logger.LogDebug("Fetching recent items for user {UserId} with key {Key}, maxItems: {MaxItems}",
+                userId, key, maxItems);
 
             var items = await db.ListRangeAsync(key, 0, maxItems - 1);
 
@@ -97,7 +115,7 @@ public sealed class RedisCacheService<T> : ICacheService<T>
                     JsonSerializer.Serialize(items, _jsonOptions));
             }
 
-            var result = new List<T>(items.Length); // Pre-allocate capacity
+            var result = new List<T>(items.Length);
             int invalidItems = 0;
 
             foreach (var item in items)
@@ -151,11 +169,7 @@ public sealed class RedisCacheService<T> : ICacheService<T>
 
     public async Task ClearRecentAsync(string userId)
     {
-        if (string.IsNullOrEmpty(userId))
-        {
-            _logger.LogError("UserId is null or empty.");
-            throw new ArgumentNullException(nameof(userId));
-        }
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
 
         var stopwatch = Stopwatch.StartNew();
         try
@@ -167,8 +181,8 @@ public sealed class RedisCacheService<T> : ICacheService<T>
             await db.KeyDeleteAsync(key);
 
             _logger.LogInformation(
-                "Successfully cleared recent items for user {UserId} with key {Key}. Time taken: {ElapsedMs}ms", userId,
-                key, stopwatch.ElapsedMilliseconds);
+                "Successfully cleared recent items for user {UserId} with key {Key}. Time taken: {ElapsedMs}ms",
+                userId, key, stopwatch.ElapsedMilliseconds);
         }
         catch (RedisException ex)
         {

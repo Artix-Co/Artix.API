@@ -2,12 +2,9 @@
 
 using System.Text.Json.Serialization;
 
-public class RecentMuseumDto
+public class RecentMuseumDto : RecentBaseEntity
 {
-    public long Id { get; private set; }
-    public string Name { get; private set; }
-
-    public static RecentMuseumDto Create(long id,string name)
+    public static RecentMuseumDto Create(long id, string name)
     {
         return new RecentMuseumDto(id, name);
     }
