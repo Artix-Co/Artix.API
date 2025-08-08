@@ -6,6 +6,7 @@ using Core.ApplicationService;
 using Core.Contract;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
+using Core.Contract.Configs.FileSettings;
 using Core.Domain.Entities.User;
 using Core.DomainService;
 using Endpoints;
@@ -56,6 +57,19 @@ public static class HostingExtension
         var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
         ValidateElasticsearchSettings(elasticSettings);
 
+        
+        
+        var section = configuration.GetSection("FileSettings");
+        var options = section.Get<FileSettings>();
+
+        if (options == null || string.IsNullOrWhiteSpace(options.StoragePath))
+        {
+            throw new ArgumentException("FileSettings:StoragePath configuration is missing or empty.", nameof(configuration));
+        }
+
+        services.Configure<FileSettings>(section);
+
+        
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
@@ -183,7 +197,7 @@ public static class HostingExtension
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
-        services.AddFileService(configuration);
+        services.AddFileService();
         services.AddDomainServiceServices();
         
         services.AddControllers();

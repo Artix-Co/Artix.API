@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Threading.Tasks;
-using Core.Contract.Configs.FileStorage;
+using Core.Contract.Configs.FileSettings;
 using Interfaces;
 using Microsoft.Extensions.Options;
 using File = Core.Domain.Entities.File.File;
@@ -12,12 +12,9 @@ public class FileService : IFileService
 {
     private readonly string _fileStoragePath;
 
-    public FileService(IOptions<FileStorageOptions> options)
+    public FileService(IOptions<FileSettings> options)
     {
-        var fileStoragePath = options.Value.Path;
-        if (string.IsNullOrWhiteSpace(fileStoragePath))
-            throw new ArgumentException("FileStorage:Path is not configured.");
-        _fileStoragePath = fileStoragePath;
+        _fileStoragePath =  options.Value.StoragePath;
         Directory.CreateDirectory(_fileStoragePath);
     }
 

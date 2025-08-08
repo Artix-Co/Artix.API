@@ -12,8 +12,8 @@ public class Object : BaseEntity
     public string? SpecialInformation { get; private set; }
     public int? Version { get; private set; }
     public int? Tier { get; private set; }
-    public bool IsSpecial { get; private set; }
-    public bool IsHidden { get; private set; }
+    public bool IsSpecial { get; private set; } = false;
+    public bool IsHidden { get; private set; } = false;
 
 
     private readonly List<ObjectFile> _objectFiles = new();
@@ -363,12 +363,11 @@ public class Object : BaseEntity
             _objectHistoricalPeriods.Remove(link);
     }
 
-    public void Assign3DModel(File file)
+    public void Assign3DModel(File file, string[] allowedMimeTypes)
     {
         if (file is null)
             throw DomainException.InvalidValue(nameof(file));
 
-        var allowedMimeTypes = new[] { "model/obj", "model/gltf-binary" };
 
         if (!allowedMimeTypes.Contains(file.MimeType))
             throw DomainException.InvalidValue(nameof(file.MimeType));

@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Upgrade;
 
 using System.Security.Claims;
+using Contract.Configs.FileSettings;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Upgrade;
 using Contract.Features.Objects.Queries;
@@ -10,32 +11,33 @@ using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Primitives;
 
 internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
-
     private readonly IFileService _fileService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
+    private readonly string[] _allowedFileExtensions;
 
     public UpgradeObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         IObjectCommandRepository objectCommandRepository,
-        IFileService fileService, UserManager<AppUser> userManager)
+        IFileService fileService, UserManager<AppUser> userManager,
+        IOptions<FileSettings> options)
         : base(httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
         _objectCommandRepository = objectCommandRepository;
-
+        _allowedFileExtensions = options.Value.Allowed3DMimeTypes;
         _fileService = fileService;
         _userManager = userManager;
     }
 
     public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
     {
-        // Authenticate user
         var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
         {
@@ -48,14 +50,12 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         if (user == null)
             throw new UnauthorizedAccessException("User not found");
 
-        // Retrieve object
         var @object = await this._objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
         if (@object == null)
         {
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.Id);
         }
 
-        // Update properties if provided
         if (!string.IsNullOrWhiteSpace(command.Name))
         {
             @object.Rename(command.Name);
@@ -98,21 +98,14 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             }
 
 
-            var allowedMimeTypes = new[]
-            {
-                // 3D model formats
-                "model/gltf-binary", // .glb
-                "model/obj", // .obj
-                "model/gltf+json", // .gltf
-            };
             var file = await _fileService.UploadFileFromBytesAsync(
                 model3DFileData,
                 command.Model3DFileName,
                 command.Model3DFileMimeType,
                 user.Id,
-                allowedMimeTypes);
+                _allowedFileExtensions);
 
-            @object.Assign3DModel(file);
+            @object.Assign3DModel(file, this._allowedFileExtensions);
         }
 
         // TODO: Handle HistoricalPeriod if provided
