@@ -10,8 +10,8 @@ public interface IUnitOfWork : IDisposable
     #endregion
 
     #region Async Methods
-    Task BeginTransactionAsync();
-    Task CommitAsync();
-    Task RollbackAsync();
+    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
+    Task CommitAsync(CancellationToken cancellationToken = default);
+    Task RollbackAsync(CancellationToken cancellationToken = default);
     #endregion
 }

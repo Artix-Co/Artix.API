@@ -47,30 +47,30 @@ public class UnitOfWork : IUnitOfWork
 
     #region Async Methods
 
-    public async Task BeginTransactionAsync()
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        this._transaction = await this._commandDbContext.Database.BeginTransactionAsync();
+        this._transaction = await this._commandDbContext.Database.BeginTransactionAsync(cancellationToken);
     }
 
-    public async Task CommitAsync()
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            await this._commandDbContext.SaveChangesAsync();
-            await this._transaction.CommitAsync();
+            await this._commandDbContext.SaveChangesAsync(cancellationToken);
+            await this._transaction.CommitAsync(cancellationToken);
         }
         catch
         {
-            await this._transaction.RollbackAsync();
+            await this._transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
 
-    public async Task RollbackAsync()
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
     {
         if (this._transaction != null)
         {
-            await this._transaction.RollbackAsync();
+            await this._transaction.RollbackAsync(cancellationToken);
         }
     }
 

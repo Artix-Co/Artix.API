@@ -93,14 +93,7 @@ public class AppUser : IdentityUser<long>
     }
 
 
-    public void AddToCollection(long collectionId, MuseumObject museumObject)
-    {
-        var collection = _collections.FirstOrDefault(c => c.Id == collectionId) ??
-                         throw DomainException.NotFound("Collection", collectionId);
-
-        collection.AddMuseumObject(museumObject);
-    }
-
+ 
 
     internal void AddFriendship(Friendship friendship)
     {

@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
+using Collection;
 using Common;
 using Exceptions;
 using File;
@@ -362,6 +363,21 @@ public class Object : BaseEntity
         if (link != null)
             _objectHistoricalPeriods.Remove(link);
     }
+
+    public void AddToCollection(Collection collection)
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        if (!collection.Items.Any(ci => ci.ObjectId == this.Id))
+        {
+            var collectionItem = CollectionItem.Create(collection, this);
+
+            // فرض می‌کنیم Collection کلاس خودش متدی برای افزودن CollectionItem داره:
+            collection.AddItem(collectionItem);
+        }
+    }
+
 
     public void Assign3DModel(File file, string[] allowedMimeTypes)
     {

@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Endpoints.Controllers;
 
 using Common;
+using Core.Contract.Features.Objects.Commands.AddToUserCollection;
 using Core.Contract.Features.Objects.Commands.Scan;
 using Core.Contract.Features.Objects.Commands.Upgrade;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
@@ -38,6 +39,14 @@ public sealed class ObjectController : BaseController
     [Authorize]
     [HttpPatch("upgrade")]
     public async Task<IActionResult> UpgradeObject([FromBody] UpgradeObjectCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpPost("add-to-collection")]
+    public async Task<IActionResult> AddObjectToUserCollection([FromBody] AddObjectToUserCollectionCommand command)
     {
         var result = await _mediator.Send(command);
         return Ok(result);

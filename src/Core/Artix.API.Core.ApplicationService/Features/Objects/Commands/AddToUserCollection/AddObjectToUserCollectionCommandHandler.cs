@@ -1,0 +1,60 @@
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.AddToUserCollection;
+
+using Contract.Features.Collections.Commands;
+using Contract.Features.Objects.Commands;
+using Contract.Features.Objects.Commands.AddToUserCollection;
+using Contract.Primitives.Repositories;
+using Domain.Entities.User;
+using Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Primitives;
+
+// TODO: develop validation for this handler
+internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBase<AddObjectToUserCollectionCommand>
+{
+    private readonly IObjectCommandRepository _objectCommandRepository;
+    private readonly ICollectionCommandRepository _collectionCommandRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public AddObjectToUserCollectionCommandHandler(IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository,
+        ICollectionCommandRepository collectionCommandRepository, IUnitOfWork unitOfWork) : base(httpContextAccessor,
+        userManager)
+    {
+        this._objectCommandRepository = objectCommandRepository;
+        this._collectionCommandRepository = collectionCommandRepository;
+        this._unitOfWork = unitOfWork;
+    }
+    public override async Task<long> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
+    {
+        var user = await GetCurrentUserAsync(cancellationToken);
+
+        var collection = await _collectionCommandRepository.GetByIdAsync(command.CollectionId, cancellationToken);
+        if (collection == null || collection.UserId != user.Id)
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(collection), command.CollectionId);
+
+        var @object = await _objectCommandRepository.GetByIdAsync(command.ObjectId, cancellationToken);
+        if (@object == null)
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
+
+        @object.AddToCollection(collection);
+
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
+
+            await _unitOfWork.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            throw;
+        }
+
+        return command.ObjectId;
+    }
+
+}
