@@ -2,7 +2,7 @@
 
 using Common;
 using Core.Contract.Features.Museums.Queries.GetAll;
-using Core.Contract.Features.Museums.Queries.GetById;
+using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
@@ -68,7 +68,7 @@ public sealed class MuseumController : BaseController
     
     [Authorize]
     [HttpGet("recent")]
-    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetUserRecentMuseumsVisitQuery query)
+    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentMuseumsVisitQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);

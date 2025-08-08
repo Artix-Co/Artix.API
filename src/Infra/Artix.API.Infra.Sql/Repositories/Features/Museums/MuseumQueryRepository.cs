@@ -5,7 +5,6 @@ namespace Artix.API.Infra.Sql.Repositories.Features.Museums;
 
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetAll;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetById;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumObjects;
@@ -20,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Data.DbContexts;
 using Primitives;
 

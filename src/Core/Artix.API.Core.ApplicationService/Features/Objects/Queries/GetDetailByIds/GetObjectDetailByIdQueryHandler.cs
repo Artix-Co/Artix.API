@@ -1,8 +1,11 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetDetailByIds;
 
-using Contract.Features.Objects.Commands;
+using Contract.Features.Caches.Objects;
+using Contract.Features.Objects.Queries;
 using Contract.Features.Objects.Queries.GetDetailByIds;
 using Domain.Entities.User;
+using Exceptions;
+using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -11,32 +14,31 @@ using Primitives;
 // TODO: develop validator for this handler
 internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObjectDetailByIdQuery, ObjectDetailByIdDto>
 {
-    private readonly IObjectCommandRepository _objectCommandRepository;
-    
-    public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository) : base(cache, httpContextAccessor, userManager)
+    private readonly IObjectQueryRepository _objectQueryRepository;
+    private readonly ICacheService<RecentObjectDto> _objectCache;
+
+    public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository,
+        ICacheService<RecentObjectDto> objectCache) : base(cache, httpContextAccessor, userManager)
     {
-        this._objectCommandRepository = objectCommandRepository;
+        this._objectQueryRepository = objectQueryRepository;
+        this._objectCache = objectCache;
     }
 
     public override async Task<ObjectDetailByIdDto> Handle(GetObjectDetailByIdQuery query,
         CancellationToken cancellationToken)
     {
-        var result = new ObjectDetailByIdDto();
+        var user = await this.GetCurrentUserAsync(cancellationToken);
 
-        var museumObject = await this._objectCommandRepository.GetByIdAsync(query.Id, cancellationToken);
+        var result = await this._objectQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
 
-        if (museumObject == null)
+        if (result == null)
         {
-            // TODO: convert it to ApplicationServiceNotFoundException.ForEntity
-            throw new KeyNotFoundException("The given object could not be found.");
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        result.Name = museumObject.Name;
-        result.GeneralInformation = museumObject.GeneralInformation;
-        result.SpecializedInformation = museumObject.SpecialInformation;
-        result.HistoricalPeriod = "دوره آرتیکسیان";
-        result.Model3DBase64 = "base64-string-model";
-
+        await this._objectCache.AddToRecentAsync(user.Id.ToString(), RecentObjectDto.Create(result.Id, result.Name));
+        // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return result;
     }
 }

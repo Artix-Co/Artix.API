@@ -6,6 +6,7 @@ using Core.Contract.Features.Objects.Commands.AddToUserCollection;
 using Core.Contract.Features.Objects.Commands.Scan;
 using Core.Contract.Features.Objects.Commands.Upgrade;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
+using Core.Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,10 +37,10 @@ public sealed class ObjectController : BaseController
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetObject(long id)
+    [Authorize]
+    [HttpGet("by-id")]
+    public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailByIdQuery query)
     {
-        var query = new GetObjectDetailByIdQuery { Id = id };
         var result = await _mediator.Send(query);
         return Ok(result);
     }
@@ -57,6 +58,16 @@ public sealed class ObjectController : BaseController
     public async Task<IActionResult> AddObjectToUserCollection([FromBody] AddObjectToUserCollectionCommand command)
     {
         var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+    
+    
+       
+    [Authorize]
+    [HttpGet("recent")]
+    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentObjectsVisitQuery query)
+    {
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 }

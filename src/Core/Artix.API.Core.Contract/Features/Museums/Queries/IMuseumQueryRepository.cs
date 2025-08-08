@@ -2,7 +2,7 @@
 
 using Domain.Entities.Museum;
 using GetAll;
-using GetById;
+using GetDetailByIds;
 using GetMuseumJournalEntries;
 using GetMuseumKeyStatus;
 using GetMuseumObjects;

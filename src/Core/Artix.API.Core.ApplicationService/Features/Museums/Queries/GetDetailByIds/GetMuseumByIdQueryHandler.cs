@@ -1,54 +1,44 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetById;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetDetailByIds;
 
-using Contract.Features.Caches.Museums;
-using Contract.Features.Museums.Commands;
-using Contract.Features.Museums.Queries;
-using Contract.Features.Museums.Queries.GetById;
-using Domain.Entities.Museum;
-using Domain.Entities.User;
 using Exceptions;
+using Primitives;
+using Artix.API.Core.Contract.Features.Caches.Museums;
+using Artix.API.Core.Contract.Features.Museums.Commands;
+using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
+using Domain.Entities.User;
 using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
-using Primitives;
 
 // TODO: develop validator for this handler
 internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumByIdQuery, MuseumByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
-    private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly ICacheService<RecentMuseumDto> _museumCache;
 
     public GetMuseumByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository,
-        ICacheService<RecentMuseumDto> museumCache, IMuseumCommandRepository museumCommandRepository) : base(cache,
+        ICacheService<RecentMuseumDto> museumCache) : base(cache,
         httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
         this._museumCache = museumCache;
-        this._museumCommandRepository = museumCommandRepository;
     }
 
     public override async Task<MuseumByIdDto> Handle(GetMuseumByIdQuery query, CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
 
-        var result = await _museumQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
+        var result = await this._museumQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
 
         if (result == null)
         {
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-
-        var museum = await this._museumCommandRepository.GetByIdAsync(result.Id, cancellationToken);
-        if (museum == null)
-        {
-            throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), result.Id);
-        }
-
-        await _museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(museum.Id, museum.Name));
+        await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.Id, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return result;
     }

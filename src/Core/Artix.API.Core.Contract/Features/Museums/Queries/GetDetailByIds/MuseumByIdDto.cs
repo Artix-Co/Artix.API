@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetById;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
 
 public sealed class MuseumByIdDto
 {
