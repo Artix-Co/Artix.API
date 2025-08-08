@@ -4,9 +4,7 @@ namespace Artix.API.Endpoints.Controllers;
 
 using Common;
 using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
-using Core.Contract.Features.Users.Commands.Modify;
-using Core.Contract.Features.Users.Commands.RegisterAdmins;
-using Core.Contract.Features.Users.Queries.GetUserProfile;
+using Core.Contract.Features.Users.Commands.RegisterAdmins; 
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
 using Core.Contract.Features.Users.Queries.VerifyOTPAuth;
@@ -63,22 +61,5 @@ public sealed class AuthenticationController : BaseController
         var result = await this._mediator.Send(query);
         return Ok(result);
     }
-
-
-    [Authorize]
-    [HttpGet("profile")]
-    public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
-    {
-        var result = await this._mediator.Send(query);
-        return Ok(result);
-    }
-
-
-    [Authorize]
-    [HttpPatch("modify-profile")]
-    public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)
-    {
-        var result = await this._mediator.Send(command);
-        return Ok(result);
-    }
+    
 }

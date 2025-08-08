@@ -4,7 +4,6 @@ using Core.Contract.Features.Collections.Queries;
 using Core.Contract.Features.Collections.Queries.GetUserCollection;
 using Core.Domain.Entities.Collection;
 using Data.DbContexts;
-using Microsoft.EntityFrameworkCore;
 using Primitives;
 
 public sealed class CollectionQueryRepository : QueryRepository<Collection>, ICollectionQueryRepository
@@ -16,21 +15,14 @@ public sealed class CollectionQueryRepository : QueryRepository<Collection>, ICo
         this._queryDbContext = queryDbContext;
     }
 
-    public async Task<UserCollectionDto?> GetUserCollectionAsync(GetUserCollectionQuery dto,
-        CancellationToken cancellationToken)
+    public IEnumerable<UserCollectionDto> GetCollectionsByUserId(GetUserCollectionsQuery dto)
     {
-        var query = await this._queryDbContext.Collections
-            .FirstOrDefaultAsync(c => c.UserId == dto.UserId && c.Id == dto.CollectionId, cancellationToken);
-
-        if (query is null)
-        {
-            return null;
-        }
-        
-        var result = new UserCollectionDto
-        {
-            Id = query.Id,
-        };
-        return result;
+        return _queryDbContext.Collections
+            .Where(c => c.UserId == dto.UserId)
+            .Select(c => new UserCollectionDto
+            {
+                Id = c.Id, Name = c.Name, Description = c.Description, IsPublic = c.IsPublic
+            })
+            .AsEnumerable();
     }
 }

@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Core.Contract.Features.Collections.Queries.GetUserCollection;
 
 using Primitives.Handlers;
+using Primitives.Models;
 
-public class GetUserCollectionQuery : IQuery<UserCollectionDto>
+public sealed class GetUserCollectionsQuery : IQuery<IEnumerable<UserCollectionDto>>
 {
     public long UserId { get; set; }
-    public long CollectionId { get; set; }
 }

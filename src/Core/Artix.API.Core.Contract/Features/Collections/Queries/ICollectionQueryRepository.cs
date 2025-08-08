@@ -2,9 +2,10 @@
 
 using Domain.Entities.Collection;
 using GetUserCollection;
+using Primitives.Models;
 using Primitives.Repositories;
 
 public interface ICollectionQueryRepository : IQueryRepository<Collection>
 {
-    Task<UserCollectionDto?> GetUserCollectionAsync(GetUserCollectionQuery query, CancellationToken cancellationToken);
+    IEnumerable<UserCollectionDto> GetCollectionsByUserId(GetUserCollectionsQuery query);
 }
