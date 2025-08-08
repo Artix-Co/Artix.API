@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Users;
 using Users.LoginHistory;
+using Users.Token;
 
 public static class DependencyInjection
 {
@@ -10,5 +11,6 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserLoginHistoryService, UserLoginHistoryService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<ITokenService, TokenService>();
     }
 }

@@ -49,6 +49,12 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
         entity.HasMany(e => e.UserXps)
             .WithOne(e => e.User);
 
+        
+        entity
+            .HasMany<AppUserToken>()
+            .WithOne()
+            .HasForeignKey(t => t.UserId)
+            .IsRequired();
 
         entity.HasIndex(e => e.DisplayName)
             .HasDatabaseName("IX_AppUsers_DisplayName");

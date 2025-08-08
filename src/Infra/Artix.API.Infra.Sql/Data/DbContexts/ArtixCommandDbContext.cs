@@ -19,7 +19,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     IdentityUserRole<long>,
     IdentityUserLogin<long>,
     IdentityRoleClaim<long>,
-    IdentityUserToken<long>>
+    AppUserToken>
 
 {
   

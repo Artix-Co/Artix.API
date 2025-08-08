@@ -9,6 +9,7 @@ using Infra.Sql.Data.DbContexts;
 using Contract.Features.Users.Queries.VerifyOTPAuth;
 using DomainService.Users;
 using DomainService.Users.LoginHistory;
+using DomainService.Users.Token;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -104,13 +105,21 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
             );
-            var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(newUser);
+            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(newUser, cancellationToken);
 
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
 
 
-            return new VerifyOTPAuthDto { IsNewUser = true, UserId = newUser.Id, Token = tokenString };
+            return new VerifyOTPAuthDto
+            {
+                IsNewUser = true,
+                UserId = newUser.Id,
+                AccessToken = tokenResult.AccessToken,
+                RefreshToken = tokenResult.RefreshToken,
+                AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
+                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
+            };
         }
         else if (otp.Purpose == "Login" && user != null)
         {
@@ -128,13 +137,21 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             );
 
 
-            var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
+            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
 
             var smsMessage = $"Welcome {user.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
 
 
-            return new VerifyOTPAuthDto { IsNewUser = false, UserId = user.Id, Token = tokenString };
+            return new VerifyOTPAuthDto
+            {
+                IsNewUser = false,
+                UserId = user.Id,
+                AccessToken = tokenResult.AccessToken,
+                RefreshToken = tokenResult.RefreshToken,
+                AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
+                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
+            };
         }
         else
         {

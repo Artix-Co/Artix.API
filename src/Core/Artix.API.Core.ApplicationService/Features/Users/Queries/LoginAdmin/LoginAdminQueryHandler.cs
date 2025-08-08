@@ -9,6 +9,7 @@ using Artix.API.Core.Contract.Features.Users.Queries.Login;
 using Domain.Entities.User;
 using DomainService.Users;
 using DomainService.Users.LoginHistory;
+using DomainService.Users.Token;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -52,12 +53,15 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         );
 
         var userRoles = await this._userManager.GetRolesAsync(user);
-        var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
+        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user,cancellationToken);
 
 
         return new LoginDto
         {
-            Token = tokenString,
+            AccessToken = tokenResult.AccessToken,
+            RefreshToken = tokenResult.RefreshToken,
+            AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
+            RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
             Username = user.UserName!,
             DisplayName = user.DisplayName,
             Roles = userRoles.ToList()

@@ -5,53 +5,91 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Contract.Configs.Authentication;
+using Contract.Features.Tokens;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Token;
 
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly JwtSecurityTokenHandler _tokenHandler;
+    private readonly ILogger<JwtTokenGenerator> _logger;
     private readonly string _signingKey;
     private readonly string _issuer;
     private readonly string _audience;
-    private readonly int _expireTimeInSeconds;
+    private readonly int _accessTokenExpireTimeInSeconds;
+    private readonly int _refreshTokenExpireTimeInDays;
 
     public JwtTokenGenerator(
         UserManager<AppUser> userManager,
-        IOptions<AuthenticationSettings> authenticationSettings)
+        IOptions<AuthenticationSettings> authenticationSettings,
+        ILogger<JwtTokenGenerator> logger)
     {
         _userManager = userManager;
+        _logger = logger;
         _tokenHandler = new JwtSecurityTokenHandler();
+
         _signingKey = authenticationSettings.Value.IssuerSigningKey;
         _issuer = authenticationSettings.Value.Issuer;
         _audience = authenticationSettings.Value.Audience;
-        _expireTimeInSeconds = authenticationSettings.Value.ExpireTime;
+        _accessTokenExpireTimeInSeconds = authenticationSettings.Value.AccessTokenExpireSeconds;
+        _refreshTokenExpireTimeInDays = authenticationSettings.Value.RefreshTokenExpireDays;
     }
 
-    public async Task<string> GenerateTokenAsync(AppUser user)
+    public async Task<JwtTokenResult> GenerateTokensAsync(AppUser user, CancellationToken cancellationToken = default)
     {
-        var userRoles = await _userManager.GetRolesAsync(user);
+        _logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
+
+        var roles = await _userManager.GetRolesAsync(user);
+        _logger.LogDebug("Fetched {RoleCount} roles for user {UserId}", roles.Count, user.Id);
 
         var authClaims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.UserName!),
+            new(ClaimTypes.Name, user.UserName ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
         };
 
-        foreach (var role in userRoles)
+        foreach (var role in roles)
         {
             authClaims.Add(new Claim(ClaimTypes.Role, role));
         }
 
+        var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(_accessTokenExpireTimeInSeconds);
+        var accessToken = CreateJwtToken(authClaims, accessTokenExpiresAt);
+
+        _logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
+            accessTokenExpiresAt);
+
+        var refreshToken = GenerateSecureRefreshToken();
+        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpireTimeInDays);
+
+        _logger.LogDebug("Refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
+            refreshTokenExpiresAt);
+
+        await StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
+
+        return new JwtTokenResult
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAt = accessTokenExpiresAt,
+            RefreshTokenExpiresAt = refreshTokenExpiresAt
+        };
+    }
+
+    private string CreateJwtToken(IEnumerable<Claim> claims, DateTime expiresAt)
+    {
         var key = Encoding.UTF8.GetBytes(_signingKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(authClaims),
-            Expires = DateTime.UtcNow.AddSeconds(_expireTimeInSeconds),
+            Subject = new ClaimsIdentity(claims),
+            Expires = expiresAt,
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = _issuer,
@@ -59,31 +97,32 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         };
 
         var token = _tokenHandler.CreateToken(tokenDescriptor);
-        var tokenString = _tokenHandler.WriteToken(token);
+        return _tokenHandler.WriteToken(token);
+    }
 
-        
-        
-        // Remove any existing token to avoid conflicts
-        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+    private static string GenerateSecureRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
 
-        
-        // Store the new token
-        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", tokenString);
+    private async Task StoreRefreshTokenAsync(AppUser user, string refreshToken, DateTime expiresAt,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Storing refresh token for user {UserId}", user.Id);
+
+        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
+        var result = await _userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token", refreshToken);
+
         if (!result.Succeeded)
         {
-            throw new Exception("Failed to store authentication token: " +
-                                string.Join(", ", result.Errors.Select(e => e.Description)));
+            _logger.LogError("Failed to store refresh token for user {UserId}: {Errors}", user.Id,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new InvalidOperationException("Failed to store refresh token.");
         }
 
-        // Verify stored token
-        var storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-        
-        
-        if (storedToken != tokenString)
-        {
-            throw new Exception("Token storage verification failed.");
-        }
-
-        return tokenString;
+        _logger.LogInformation("Refresh token successfully stored for user {UserId}", user.Id);
     }
 }

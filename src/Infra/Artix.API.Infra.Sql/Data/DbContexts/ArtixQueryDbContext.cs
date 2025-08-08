@@ -17,7 +17,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     IdentityUserRole<long>,
     IdentityUserLogin<long>,
     IdentityRoleClaim<long>,
-    IdentityUserToken<long>>
+    AppUserToken>
 {
 
 

@@ -2,7 +2,10 @@
 
 public class LoginDto
 {
-    public string Token { get; set; }
+    public string AccessToken { get; init; }
+    public string RefreshToken { get; init; }
+    public DateTime AccessTokenExpiresAt { get; init; }
+    public DateTime RefreshTokenExpiresAt { get; init; }
     public string Username { get; set; }
     public string? DisplayName { get; set; }
     public List<string> Roles { get; set; }

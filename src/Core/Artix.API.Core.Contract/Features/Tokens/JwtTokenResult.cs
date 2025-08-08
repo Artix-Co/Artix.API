@@ -1,9 +1,7 @@
-﻿namespace Artix.API.Core.Contract.Features.Users.Queries.VerifyOTPAuth;
+﻿namespace Artix.API.Core.Contract.Features.Tokens;
 
-public sealed class VerifyOTPAuthDto
+public sealed class JwtTokenResult
 {
-    public bool IsNewUser { get; set; }
-    public long UserId { get; set; }
     public string AccessToken { get; init; }
     public string RefreshToken { get; init; }
     public DateTime AccessTokenExpiresAt { get; init; }

@@ -38,6 +38,7 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
     
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
+    public virtual ICollection<AppUserToken> Tokens { get; set; }
 
     public sealed class AppUserBuilder
     {
