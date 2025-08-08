@@ -7,11 +7,15 @@ using Core.Contract;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
+using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
 using Core.DomainService;
 using Endpoints;
 using Filters;
 using Infra.File;
+using Infra.Redis;
+using Infra.Redis.Interfaces;
+using Infra.Redis.Services;
 using Infra.Sql;
 using Infra.Sql.Data;
 using Infra.Sql.Data.DbContexts;
@@ -23,6 +27,8 @@ using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
+using StackExchange.Redis;
+using Object = System.Object;
 
 public static class HostingExtension
 {
@@ -193,6 +199,9 @@ public static class HostingExtension
         // Configure Authorization and Other Services
         services.AddAuthorization();
         services.AddFileService();
+
+        services.AddRedis();
+        
         services.AddApplicationServices();
         services.AddContractServices();
         services.AddElasticsearch(configuration);

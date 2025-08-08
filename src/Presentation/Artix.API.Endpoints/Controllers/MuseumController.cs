@@ -7,6 +7,7 @@ using Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
+using Core.Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,31 +32,31 @@ public sealed class MuseumController : BaseController
     }
 
     [Authorize]
-    [HttpGet("{museumId:long}")]
-    public async Task<IActionResult> GetMuseumByIdAsync([FromRoute] long museumId)
+    [HttpGet("by-id")]
+    public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumByIdQuery query)
     {
-        var result = await _mediator.Send(new GetMuseumByIdQuery { Id = museumId });
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     [Authorize]
-    [HttpGet("{museumId:long}/objects")]
-    public async Task<IActionResult> GetMuseumObjectsAsync([FromRoute] long museumId)
+    [HttpGet("objects")]
+    public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetMuseumObjectsQuery query)
     {
-        var result = await _mediator.Send(new GetMuseumObjectsQuery { MuseumId = museumId });
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     [Authorize]
-    [HttpGet("{museumId:long}/journal-entries")]
-    public async Task<IActionResult> GetMuseumJournalEntriesAsync([FromRoute] long museumId)
+    [HttpGet("journal-entries")]
+    public async Task<IActionResult> GetMuseumJournalEntriesAsync([FromQuery] GetMuseumJournalEntriesQuery query)
     {
-        var result = await _mediator.Send(new GetMuseumJournalEntriesQuery { MuseumId = museumId });
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     [Authorize]
-    [HttpGet("{museumId:long}/key/status")]
+    [HttpGet("/key/status")]
     public async Task<IActionResult> GetMuseumKeyStatusAsync([FromRoute] long museumId)
     {
         var result = await _mediator.Send(new GetMuseumKeyStatusQuery { MuseumId = museumId });
@@ -63,8 +64,11 @@ public sealed class MuseumController : BaseController
     }
 
 
-    [HttpGet("objects")]
-    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
+
+    
+    [Authorize]
+    [HttpGet("recent")]
+    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetUserRecentMuseumsVisitQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
