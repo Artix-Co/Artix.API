@@ -32,7 +32,7 @@ public sealed class AuthenticationController : BaseController
         return Ok(result);
     }
 
-    [HttpGet("verify-otp")]
+    [HttpPost("verify-otp")]
     public async Task<IActionResult> RegisterMobileAsync([FromQuery] GetVerifyOTPAuthQuery query)
     {
         var result = await this._mediator.Send(query);

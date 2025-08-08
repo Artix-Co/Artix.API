@@ -10,12 +10,18 @@ public sealed class UserLoginHistoryService : IUserLoginHistoryService
 
     public async Task RecordLoginAsync(AppUser user, string ipAddress, string userAgent)
     {
-        _dbContext.UserLoginHistories.Add(new UserLoginHistory
+        try
         {
-            UserId = user.Id,
-            IpAddress = ipAddress,
-            UserAgent = userAgent
-        });
-        await _dbContext.SaveChangesAsync();
+            _dbContext.UserLoginHistories.Add(new UserLoginHistory
+            {
+                UserId = user.Id, IpAddress = ipAddress, UserAgent = userAgent
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

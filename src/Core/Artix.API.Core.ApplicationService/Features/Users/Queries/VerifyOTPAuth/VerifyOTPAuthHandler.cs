@@ -97,7 +97,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
           
             
             await _userLoginHistoryService.RecordLoginAsync(
-                user,
+                newUser,
                 _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
             );
@@ -117,6 +117,16 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
            
             // Sign in and generate JWT token
             await _signInManager.SignInAsync(user, isPersistent: false);
+            
+            
+            
+            await _userLoginHistoryService.RecordLoginAsync(
+                user,
+                _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
+            );
+            
+            
             var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
             
             var smsMessage = $"Welcome {user.DisplayName}! You are now registered.";
