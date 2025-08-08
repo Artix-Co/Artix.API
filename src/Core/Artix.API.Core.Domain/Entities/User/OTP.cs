@@ -2,7 +2,7 @@
 
 using Common;
 
-public sealed class OTP : BaseEntity
+public class OTP : BaseEntity
 {
     public string PhoneNumber { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty; // 6-digit OTP

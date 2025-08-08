@@ -21,11 +21,11 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
     private readonly string[] _allowedFileExtensions;
 
 
-    public UpgradeObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository, IFileService fileService, string[] allowedFileExtensions) : base(httpContextAccessor, userManager)
+    public UpgradeObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository, IFileService fileService, IOptions<FileSettings> options) : base(httpContextAccessor, userManager)
     {
         this._objectCommandRepository = objectCommandRepository;
         this._fileService = fileService;
-        this._allowedFileExtensions = allowedFileExtensions;
+        this._allowedFileExtensions = options.Value.Allowed3DMimeTypes;
     }
 
     public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)

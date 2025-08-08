@@ -192,12 +192,13 @@ public static class HostingExtension
 
         // Configure Authorization and Other Services
         services.AddAuthorization();
+        services.AddFileService();
         services.AddApplicationServices();
         services.AddContractServices();
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
-        services.AddFileService();
+        
         services.AddDomainServiceServices();
         
         services.AddControllers();
