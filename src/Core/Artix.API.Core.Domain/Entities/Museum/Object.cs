@@ -15,24 +15,24 @@ public class Object : BaseEntity
     public bool IsSpecial { get; private set; }
     public bool IsHidden { get; private set; }
 
-  
-  
-    
+
     private readonly List<ObjectFile> _objectFiles = new();
     public virtual IReadOnlyCollection<ObjectFile> ObjectFiles => _objectFiles.AsReadOnly();
-    
-    
+
 
     private readonly List<ObjectType> _objectTypes = new();
     public virtual IReadOnlyCollection<ObjectType> ObjectTypes => _objectTypes.AsReadOnly();
-    
-    
+
 
     private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
-    public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods => _objectHistoricalPeriods.AsReadOnly();
+
+    public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods =>
+        _objectHistoricalPeriods.AsReadOnly();
 
     // Protected constructor for EF Core
-    protected Object() { }
+    protected Object()
+    {
+    }
 
     private Object(
         string name,
@@ -167,12 +167,14 @@ public class Object : BaseEntity
                         _objectTypes.Add(objectType);
                 }
             }
+
             return this;
         }
 
         public ObjectBuilder WithHistoricalPeriod(ObjectHistoricalPeriod historicalPeriod)
         {
-            if (historicalPeriod != null && !_objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == historicalPeriod.HistoricalPeriodId))
+            if (historicalPeriod != null &&
+                !_objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == historicalPeriod.HistoricalPeriodId))
                 _objectHistoricalPeriods.Add(historicalPeriod);
             return this;
         }
@@ -187,6 +189,7 @@ public class Object : BaseEntity
                         _objectHistoricalPeriods.Add(period);
                 }
             }
+
             return this;
         }
 
@@ -379,11 +382,9 @@ public class Object : BaseEntity
         _objectFiles.Add(ObjectFile.Create(this, file));
     }
 
-
     public void Remove3DModel()
     {
-        var existingModel = _objectFiles
-            .FirstOrDefault(of => Is3DModel(of.File));
+        var existingModel = _objectFiles.FirstOrDefault(of => Is3DModel(of.File));
 
         if (existingModel is not null)
             _objectFiles.Remove(existingModel);
@@ -398,14 +399,13 @@ public class Object : BaseEntity
 
     public bool Has3DModel()
     {
-        return _objectFiles
-            .Any(of => Is3DModel(of.File));
+        return _objectFiles.Exists(of => Is3DModel(of.File));
     }
 
     private static bool Is3DModel(File file)
     {
-        return file is not null &&
-               (file.MimeType == "model/obj" || file.MimeType == "model/gltf-binary");
-    }
+        var allowedMimeTypes = new[] { "model/gltf-binary", "model/obj", "model/gltf+json" };
 
+        return file is not null && allowedMimeTypes.Contains(file.MimeType);
+    }
 }

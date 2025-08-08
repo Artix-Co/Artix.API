@@ -50,6 +50,11 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
         this._commandDbContext.SaveChanges();
     }
 
+    public T? GetById(long id)
+    {
+        return _commandDbContext.Set<T>().Find(id);
+    }
+
     #endregion
 
     #region Async Methods
@@ -71,6 +76,13 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
         await _commandDbContext.SaveChangesAsync(cancellationToken);
     }
 
+  
+    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        return await _commandDbContext.Set<T>().FindAsync(new object[] { id }, cancellationToken);
+    }
+
+    
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         var dbSet = this._commandDbContext.Set<T>();

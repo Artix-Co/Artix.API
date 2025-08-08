@@ -9,54 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 public class QueryRepository<T> : IQueryRepository<T> where T : BaseEntity
 {
-    private readonly DbContext _context;
+    private readonly ArtixQueryDbContext _queryDbContext;
 
-    public QueryRepository(DbContext context)
+    public QueryRepository(ArtixQueryDbContext queryDbContext)
     {
-        _context = context;
+        _queryDbContext = queryDbContext;
     }
-
-    public T? GetById(long id)
-    {
-        return _context.Set<T>().Find(id);
-    }
-
-    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<T>().FindAsync(new object[] { id }, cancellationToken);
-    }
-
-    public T? GetGraphById(long id)
-    {
-        var query = IncludeRequiredNavigations(_context.Set<T>());
-        return query.FirstOrDefault(e => EF.Property<long>(e, "Id") == id);
-    }
-
-    public async Task<T?> GetGraphByIdAsync(long id, CancellationToken cancellationToken = default)
-    {
-        var query = IncludeRequiredNavigations(_context.Set<T>());
-        var entity = await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id, cancellationToken);
-
-     
-
-        return entity;
-    }
-
-    private IQueryable<T?> IncludeRequiredNavigations(IQueryable<T> query)
-    {
-        var entityType = _context.Model.FindEntityType(typeof(T));
-
-        var requiredNavigations = entityType?
-            .GetNavigations()
-            .Where(n => !n.IsOnDependent && !n.IsCollection &&
-                        !n.ForeignKey.IsRequiredDependent) // exclude optional/collection
-            .ToList();
-
-        foreach (var navigation in requiredNavigations)
-        {
-            query = query.Include(navigation.Name);
-        }
-
-        return query;
-    }
+    
 }

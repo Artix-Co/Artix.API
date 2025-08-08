@@ -16,20 +16,20 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMuseumCommandRepository _museumCommandRepository;
-    private readonly IMuseumQueryRepository _museumQueryRepository;
+ 
     private readonly UserManager<AppUser> _userManager;
     private readonly IUserObjectCommandRepository _userObjectCommandRepository;
 
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         IMuseumCommandRepository museumCommandRepository,
-        IMuseumQueryRepository museumQueryRepository,
+   
         UserManager<AppUser> userManager, IUserObjectCommandRepository userObjectCommandRepository)
         : base(httpContextAccessor)
     {
         this._httpContextAccessor = httpContextAccessor;
         this._museumCommandRepository = museumCommandRepository;
-        this._museumQueryRepository = museumQueryRepository;
+ 
         this._userManager = userManager;
         this._userObjectCommandRepository = userObjectCommandRepository;
     }
@@ -49,7 +49,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         if (user == null)
             throw new UnauthorizedAccessException("User not found");
 
-        var museum = await this._museumQueryRepository.GetByIdAsync(command.MuseumId, cancellationToken);
+        var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 

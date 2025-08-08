@@ -8,7 +8,9 @@ public interface ICommandRepository<T> where T : BaseEntity
     void Insert(T entity);
     void Update(T entity);
     void Delete(long id);
+    T? GetById(long id);
 
+    Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
     Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
     Task InsertAsync(T entity, CancellationToken cancellationToken = default);

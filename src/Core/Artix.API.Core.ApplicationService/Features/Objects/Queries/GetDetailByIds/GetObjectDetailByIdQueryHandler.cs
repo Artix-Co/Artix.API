@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetDetailByIds;
 
-using Contract.Features.Objects.Queries;
+using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Queries.GetDetailByIds;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -9,12 +9,13 @@ using Primitives;
 // TODO: develop validator for this handler
 internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObjectDetailByIdQuery, ObjectDetailByIdDto>
 {
-    private readonly IObjectQueryRepository _objectQueryRepository;
+    private readonly IObjectCommandRepository _objectCommandRepository;
+
 
     public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        IObjectQueryRepository objectQueryRepository) : base(cache, httpContextAccessor)
+        IObjectCommandRepository objectCommandRepository) : base(cache, httpContextAccessor)
     {
-        this._objectQueryRepository = objectQueryRepository;
+        this._objectCommandRepository = objectCommandRepository;
     }
 
     public override async Task<ObjectDetailByIdDto> Handle(GetObjectDetailByIdQuery query,
@@ -22,7 +23,7 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
     {
         var result = new ObjectDetailByIdDto();
 
-        var museumObject = await this._objectQueryRepository.GetByIdAsync(query.Id, cancellationToken);
+        var museumObject = await this._objectCommandRepository.GetByIdAsync(query.Id, cancellationToken);
 
         if (museumObject == null)
         {

@@ -15,7 +15,7 @@ using Primitives;
 internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
-    private readonly IObjectQueryRepository _objectQueryRepository;
+
     private readonly IFileService _fileService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
@@ -23,13 +23,12 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
     public UpgradeObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         IObjectCommandRepository objectCommandRepository,
-        IObjectQueryRepository objectQueryRepository,
         IFileService fileService, UserManager<AppUser> userManager)
         : base(httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
         _objectCommandRepository = objectCommandRepository;
-        _objectQueryRepository = objectQueryRepository;
+
         _fileService = fileService;
         _userManager = userManager;
     }
@@ -50,7 +49,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             throw new UnauthorizedAccessException("User not found");
 
         // Retrieve object
-        var @object = await _objectQueryRepository.GetByIdAsync(command.Id, cancellationToken);
+        var @object = await this._objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
         if (@object == null)
         {
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.Id);
@@ -74,8 +73,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         }
 
         byte[]? model3DFileData = null;
-      
-        
+
+
         // Handle 3D model file upload
         if (command.Model3DFileDataBase64 != null &&
             !string.IsNullOrWhiteSpace(command.Model3DFileDataBase64) &&
@@ -90,20 +89,21 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 {
                     base64String = base64String.Substring(base64String.IndexOf(',') + 1);
                 }
+
                 model3DFileData = Convert.FromBase64String(base64String);
             }
             catch (FormatException ex)
             {
                 throw new Exception($"Invalid Base64 string for Model3DFileData: {ex.Message}");
             }
-            
-            
+
+
             var allowedMimeTypes = new[]
             {
                 // 3D model formats
                 "model/gltf-binary", // .glb
-                "model/obj",         // .obj
-                "model/gltf+json",   // .gltf
+                "model/obj", // .obj
+                "model/gltf+json", // .gltf
             };
             var file = await _fileService.UploadFileFromBytesAsync(
                 model3DFileData,
