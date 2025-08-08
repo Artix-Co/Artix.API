@@ -18,37 +18,19 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly IFileService _fileService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<AppUser> _userManager;
     private readonly string[] _allowedFileExtensions;
 
-    public UpgradeObjectCommandHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IObjectCommandRepository objectCommandRepository,
-        IFileService fileService, UserManager<AppUser> userManager,
-        IOptions<FileSettings> options)
-        : base(httpContextAccessor)
+
+    public UpgradeObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository, IFileService fileService, string[] allowedFileExtensions) : base(httpContextAccessor, userManager)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _objectCommandRepository = objectCommandRepository;
-        _allowedFileExtensions = options.Value.Allowed3DMimeTypes;
-        _fileService = fileService;
-        _userManager = userManager;
+        this._objectCommandRepository = objectCommandRepository;
+        this._fileService = fileService;
+        this._allowedFileExtensions = allowedFileExtensions;
     }
 
     public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-        {
-            throw new Exception("User is not authenticated or user ID is invalid.");
-        }
-
-        var user = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        if (user == null)
-            throw new UnauthorizedAccessException("User not found");
+        var user = await GetCurrentUserAsync(cancellationToken);
 
         var @object = await this._objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
         if (@object == null)

@@ -2,7 +2,9 @@
 
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Queries.GetDetailByIds;
+using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
@@ -10,10 +12,8 @@ using Primitives;
 internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObjectDetailByIdQuery, ObjectDetailByIdDto>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
-
-
-    public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        IObjectCommandRepository objectCommandRepository) : base(cache, httpContextAccessor)
+    
+    public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository) : base(cache, httpContextAccessor, userManager)
     {
         this._objectCommandRepository = objectCommandRepository;
     }

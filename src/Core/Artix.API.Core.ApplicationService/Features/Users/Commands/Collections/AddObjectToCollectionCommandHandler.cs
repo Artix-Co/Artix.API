@@ -1,14 +1,15 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.Collections;
 
 using Contract.Features.Users.Commands.Collections;
+using Domain.Entities.User;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Primitives;
 
 internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<AddObjectToCollectionCommand>
 {
-    
-    public AddObjectToCollectionCommandHandler(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
+    public AddObjectToCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
     }
 

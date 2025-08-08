@@ -23,25 +23,16 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public VerifyOTPAuthHandler(
-        IMemoryCache cache, 
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager,
-        RoleManager<AppRole> roleManager,
-        SignInManager<AppUser> signInManager,
-        ArtixCommandDbContext context,
-        // ISmsSender smsSender,
-        IJwtTokenGenerator jwtTokenGenerator,
-        IUserLoginHistoryService userLoginHistoryService)
-        : base(cache, httpContextAccessor)
+
+    public VerifyOTPAuthHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, SignInManager<AppUser> signInManager, ArtixCommandDbContext context, IUserLoginHistoryService userLoginHistoryService, IJwtTokenGenerator jwtTokenGenerator) : base(cache, httpContextAccessor, userManager)
     {
-        this._httpContextAccessor = httpContextAccessor;
         this._userManager = userManager;
         this._roleManager = roleManager;
         this._signInManager = signInManager;
         this._context = context;
-        this._jwtTokenGenerator = jwtTokenGenerator;
         this._userLoginHistoryService = userLoginHistoryService;
+        this._jwtTokenGenerator = jwtTokenGenerator;
+        this._httpContextAccessor = httpContextAccessor;
     }
 
     public override async Task<VerifyOTPAuthDto> Handle(GetVerifyOTPAuthQuery query,

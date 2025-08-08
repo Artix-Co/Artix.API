@@ -23,10 +23,8 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
     private readonly IUserLoginHistoryService _userLoginHistoryService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
-        IUserLoginHistoryService userLoginHistoryService) : base(cache,
-        httpContextAccessor)
+
+    public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator, IUserLoginHistoryService userLoginHistoryService) : base(cache, httpContextAccessor, userManager)
     {
         this._userManager = userManager;
         this._jwtTokenGenerator = jwtTokenGenerator;

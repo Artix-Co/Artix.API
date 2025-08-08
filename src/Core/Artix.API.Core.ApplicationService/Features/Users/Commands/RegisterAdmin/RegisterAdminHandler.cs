@@ -11,8 +11,10 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
-    
-    public RegisterAdminHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager) : base(httpContextAccessor)
+
+
+    public RegisterAdminHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager) : base(httpContextAccessor, userManager)
     {
         this._userManager = userManager;
         this._roleManager = roleManager;
@@ -39,9 +41,7 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
 
         var newUser = new AppUser
         {
-            UserName = command.Username,
-            Email = command.Email,
-            DisplayName = command.DisplayName
+            UserName = command.Username, Email = command.Email, DisplayName = command.DisplayName
         };
 
         var createResult = await _userManager.CreateAsync(newUser, command.Password);

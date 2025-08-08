@@ -16,9 +16,9 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
 
+
     public LogoutQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager) : base(cache,
-        httpContextAccessor)
+        UserManager<AppUser> userManager) : base(cache, httpContextAccessor, userManager)
     {
         this._httpContextAccessor = httpContextAccessor;
         this._userManager = userManager;
@@ -27,16 +27,7 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
     public override async Task<LogoutDto> Handle(GetLogoutQuery query, CancellationToken cancellationToken)
     {
         var result = new LogoutDto();
-        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-        {
-            throw new Exception("User is not authenticated or user ID is invalid.");
-        }
-
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-            throw new UnauthorizedAccessException("User not found");
+        var user = await GetCurrentUserAsync(cancellationToken);
 
         await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
 

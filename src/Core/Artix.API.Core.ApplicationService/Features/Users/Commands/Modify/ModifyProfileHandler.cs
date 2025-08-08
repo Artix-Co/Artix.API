@@ -1,6 +1,5 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.Modify;
 
-using System.Security.Claims;
 using Contract.Features.Users.Commands.Modify;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -10,28 +9,16 @@ using Primitives;
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
 
     public ModifyProfileHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(
-        httpContextAccessor)
+        httpContextAccessor, userManager)
     {
-        this._httpContextAccessor = httpContextAccessor;
         this._userManager = userManager;
     }
 
     public override async Task<long> Handle(ModifyProfileCommand command, CancellationToken cancellationToken)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-        {
-            throw new Exception("User is not authenticated or user ID is invalid.");
-        }
-
-
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-            throw new UnauthorizedAccessException("User not found");
+        var user = await GetCurrentUserAsync(cancellationToken);
 
 
         var updatedUser = new AppUser.AppUserBuilder(user)
@@ -52,7 +39,6 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
 
         await _userManager.UpdateAsync(updatedUser);
 
-
-         return user.Id;
+        return user.Id;
     }
 }

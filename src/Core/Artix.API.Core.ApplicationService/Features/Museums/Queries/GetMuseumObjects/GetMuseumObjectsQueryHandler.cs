@@ -2,7 +2,9 @@
 
 using Contract.Features.Museums.Queries;
 using Contract.Features.Museums.Queries.GetMuseumObjects;
+using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
@@ -12,9 +14,8 @@ internal sealed class
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
-    public GetMuseumObjectsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        IMuseumQueryRepository museumQueryRepository) : base(cache,
-        httpContextAccessor)
+
+    public GetMuseumObjectsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache, httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
     }

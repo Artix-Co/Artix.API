@@ -14,40 +14,21 @@ using Microsoft.EntityFrameworkCore;
 
 internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMuseumCommandRepository _museumCommandRepository;
- 
-    private readonly UserManager<AppUser> _userManager;
     private readonly IUserObjectCommandRepository _userObjectCommandRepository;
 
-    public ScanObjectCommandHandler(
-        IHttpContextAccessor httpContextAccessor,
+
+    public ScanObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-   
-        UserManager<AppUser> userManager, IUserObjectCommandRepository userObjectCommandRepository)
-        : base(httpContextAccessor)
+        IUserObjectCommandRepository userObjectCommandRepository) : base(httpContextAccessor, userManager)
     {
-        this._httpContextAccessor = httpContextAccessor;
         this._museumCommandRepository = museumCommandRepository;
- 
-        this._userManager = userManager;
         this._userObjectCommandRepository = userObjectCommandRepository;
     }
 
-
     public override async Task<long> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
-        var userIdClaim = this._httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-        {
-            throw new Exception("User is not authenticated or user ID is invalid.");
-        }
-        
-        var user = await this._userManager.Users
-            .Include(u => u.UserObjects)
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-        if (user == null)
-            throw new UnauthorizedAccessException("User not found");
+        var user = await GetCurrentUserAsync(cancellationToken);
 
         var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
@@ -57,7 +38,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         if (museumObject == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museumObject), command.ObjectId);
 
-        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == command.ObjectId);
+        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == command.ObjectId);
 
         if (userObject == null)
         {

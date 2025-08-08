@@ -12,20 +12,12 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly ArtixCommandDbContext _context;
-    // private readonly ISmsSender _smsSender;
 
-    public InitiateOTPAuthHandler(
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager,
-        ArtixCommandDbContext context
-        // ISmsSender smsSender
-        
-        )
-        : base(httpContextAccessor)
+
+    public InitiateOTPAuthHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ArtixCommandDbContext context) : base(httpContextAccessor, userManager)
     {
-        _userManager = userManager;
-        _context = context;
-        // _smsSender = smsSender;
+        this._userManager = userManager;
+        this._context = context;
     }
 
     public override async Task<long> Handle(InitiateOTPAuthCommand command, CancellationToken cancellationToken)
