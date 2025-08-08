@@ -8,6 +8,7 @@ using Contract.Configs.Authentication;
 using Artix.API.Core.Contract.Features.Users.Queries.Login;
 using Domain.Entities.User;
 using DomainService.Users;
+using DomainService.Users.LoginHistory;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,14 +19,19 @@ using Microsoft.IdentityModel.Tokens;
 internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
 {
     private readonly UserManager<AppUser> _userManager;
- private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IUserLoginHistoryService _userLoginHistoryService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator) : base(cache,
+        UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
+        IUserLoginHistoryService userLoginHistoryService) : base(cache,
         httpContextAccessor)
     {
         this._userManager = userManager;
         this._jwtTokenGenerator = jwtTokenGenerator;
+        this._userLoginHistoryService = userLoginHistoryService;
+        this._httpContextAccessor = httpContextAccessor;
     }
 
     public override async Task<LoginDto> Handle(GetLoginQuery query, CancellationToken cancellationToken)
@@ -40,10 +46,16 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         {
             throw new UnauthorizedAccessException("Invalid credentials");
         }
+
+        await _userLoginHistoryService.RecordLoginAsync(
+            user,
+            _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
+        );
+
         var userRoles = await this._userManager.GetRolesAsync(user);
         var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
 
-        
 
         return new LoginDto
         {
