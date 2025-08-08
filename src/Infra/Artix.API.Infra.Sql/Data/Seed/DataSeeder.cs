@@ -1,9 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Seed;
+
 using Type = Core.Domain.Entities.Museum.Type;
 using Object = Core.Domain.Entities.Museum.Object;
-
- 
- 
 using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
@@ -34,14 +32,25 @@ public static class DataSeeder
 
         #region Seed Users and Friendship
 
-        const string clientRole = "Client";
-        var roleExists = await roleManager.RoleExistsAsync(clientRole);
-        if (!roleExists)
+        List<string> roles = new List<string>()
         {
-            var roleCreateResult = await roleManager.CreateAsync(new AppRole(clientRole));
-            if (!roleCreateResult.Succeeded)
-                throw new ApplicationException("Failed to create Client role: " +
-                                               string.Join(", ", roleCreateResult.Errors.Select(e => e.Description)));
+            "Zomorrod_Client",
+            "Yaqut_Client",
+            "Firoozeh_Client",
+            "Pro_Client",
+            "Super_Admin",
+        };
+        foreach (var role in roles)
+        {
+            var roleExists = await roleManager.RoleExistsAsync(role);
+            if (!roleExists)
+            {
+                var roleCreateResult = await roleManager.CreateAsync(new AppRole(role));
+                if (!roleCreateResult.Succeeded)
+                    throw new ApplicationException("Failed to create Client role: " +
+                                                   string.Join(", ",
+                                                       roleCreateResult.Errors.Select(e => e.Description)));
+            }
         }
 
         var users = new List<AppUser>();
@@ -56,7 +65,7 @@ public static class DataSeeder
             };
 
             var createResult = await userManager.CreateAsync(newUser, "Heli@ghar771379");
-            var roleResult = await userManager.AddToRoleAsync(newUser, clientRole);
+            var roleResult = await userManager.AddToRoleAsync(newUser, roles[4]);
 
             if (!createResult.Succeeded)
                 throw new ApplicationException("User creation failed: " +
@@ -110,9 +119,12 @@ public static class DataSeeder
 
         var historicalPeriods = new List<HistoricalPeriod>
         {
-            HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire (100–400 AD)", new HistoricalDate(100, 1, 1), new HistoricalDate(400, 12, 31)),
-            HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period (1300–1600 AD)", new HistoricalDate(1300, 1, 1), new HistoricalDate(1600, 12, 31)),
-            HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)", new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
+            HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire (100–400 AD)",
+                new HistoricalDate(100, 1, 1), new HistoricalDate(400, 12, 31)),
+            HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period (1300–1600 AD)",
+                new HistoricalDate(1300, 1, 1), new HistoricalDate(1600, 12, 31)),
+            HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)",
+                new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
         };
 
         context.HistoricalPeriods.AddRange(historicalPeriods);
@@ -194,7 +206,8 @@ public static class DataSeeder
         var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
         for (int i = 0; i < objects.Count; i++)
         {
-            var objectHistoricalPeriod = ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]);
+            var objectHistoricalPeriod =
+                ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]);
             objectHistoricalPeriods.Add(objectHistoricalPeriod);
         }
 

@@ -49,9 +49,7 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
         {
             // Existing user: check for Client role and send login OTP
             var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains("Client"))
-                throw new InvalidOperationException("OTP login is only available for Client users");
-
+       
             var otp = OTP.Create(command.PhoneNumber, "Login");
             _context.OTPs.Add(otp);
             await _context.SaveChangesAsync(cancellationToken);

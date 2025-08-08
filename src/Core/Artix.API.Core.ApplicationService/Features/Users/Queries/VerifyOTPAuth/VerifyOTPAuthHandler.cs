@@ -5,6 +5,7 @@ using Domain.Entities.User;
 using Infra.Sql.Data.DbContexts;
 using Contract.Features.Users.Queries.VerifyOTPAuth;
 using DomainService.Users;
+using DomainService.Users.LoginHistory;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,10 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
     private readonly RoleManager<AppRole> _roleManager;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ArtixCommandDbContext _context;
+    private readonly IUserLoginHistoryService _userLoginHistoryService;
     // private readonly ISmsSender _smsSender;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public VerifyOTPAuthHandler(
         IMemoryCache cache, 
@@ -28,17 +31,17 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
         SignInManager<AppUser> signInManager,
         ArtixCommandDbContext context,
         // ISmsSender smsSender,
-        IJwtTokenGenerator jwtTokenGenerator
-    )
-        : base(cache,
-            httpContextAccessor)
+        IJwtTokenGenerator jwtTokenGenerator,
+        IUserLoginHistoryService userLoginHistoryService)
+        : base(cache, httpContextAccessor)
     {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _signInManager = signInManager;
-        _context = context;
-        // _smsSender = smsSender;
-        _jwtTokenGenerator = jwtTokenGenerator;
+        this._httpContextAccessor = httpContextAccessor;
+        this._userManager = userManager;
+        this._roleManager = roleManager;
+        this._signInManager = signInManager;
+        this._context = context;
+        this._jwtTokenGenerator = jwtTokenGenerator;
+        this._userLoginHistoryService = userLoginHistoryService;
     }
 
     public override async Task<VerifyOTPAuthDto> Handle(GetVerifyOTPAuthQuery query,
@@ -62,7 +65,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
         if (otp.Purpose == "Registration" && user == null)
         {
             // Ensure Client role exists
-            const string clientRole = "Client";
+            const string clientRole = "Zomorrod_Client";
             var roleExists = await _roleManager.RoleExistsAsync(clientRole);
             if (!roleExists)
             {
@@ -91,6 +94,13 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             if (!roleResult.Succeeded)
                 throw new ApplicationException("Role assignment failed: " +
                                                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+          
+            
+            await _userLoginHistoryService.RecordLoginAsync(
+                user,
+                _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
+            );
             var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(newUser);
             
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
@@ -104,9 +114,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
         {
             // Verify Client role
             var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains("Client"))
-                throw new InvalidOperationException("OTP login is only available for Client users");
-
+           
             // Sign in and generate JWT token
             await _signInManager.SignInAsync(user, isPersistent: false);
             var tokenString = await _jwtTokenGenerator.GenerateTokenAsync(user);
