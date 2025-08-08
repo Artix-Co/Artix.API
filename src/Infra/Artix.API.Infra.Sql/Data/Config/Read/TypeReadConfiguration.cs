@@ -24,7 +24,7 @@ internal sealed class TypeReadConfiguration : BaseEntityConfiguration<Type>
         // Relationships
         entity.HasMany(t => t.ObjectTypes)
             .WithOne(ot => ot.Type)
-            .HasForeignKey(ot => ot.CategoryId)
+            .HasForeignKey(ot => ot.TypeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes

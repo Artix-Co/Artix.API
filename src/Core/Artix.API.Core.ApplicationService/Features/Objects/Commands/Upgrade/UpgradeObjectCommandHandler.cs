@@ -105,16 +105,14 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 "model/obj",         // .obj
                 "model/gltf+json",   // .gltf
             };
-            var fileEntity = await _fileService.UploadFileFromBytesAsync(
+            var file = await _fileService.UploadFileFromBytesAsync(
                 model3DFileData,
                 command.Model3DFileName,
                 command.Model3DFileMimeType,
-                "Object",
-                @object.Id,
                 user.Id,
                 allowedMimeTypes);
 
-            @object.Assign3DModel(fileEntity);
+            @object.Assign3DModel(file);
         }
 
         // TODO: Handle HistoricalPeriod if provided

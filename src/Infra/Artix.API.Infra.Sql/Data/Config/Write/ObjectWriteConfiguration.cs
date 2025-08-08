@@ -53,15 +53,11 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .WithOne(ohp => ohp.Object)
             .HasForeignKey(ohp => ohp.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Configure relationship with Files
-        entity.HasMany(o => o.Files)
-            .WithOne()
-            .HasForeignKey(f => f.EntityId)
-            .HasConstraintName("FK_Files_Object")
-            .OnDelete(DeleteBehavior.Cascade)
-            .HasPrincipalKey(o => o.Id);
         
+        entity.HasMany(o => o.ObjectFiles)
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
 
 
         // Indexes

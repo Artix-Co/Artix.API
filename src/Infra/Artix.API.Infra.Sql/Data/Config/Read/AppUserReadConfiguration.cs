@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
 
-using Core.Domain.Entities.User;
+using Artix.API.Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -44,10 +44,7 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
 
         entity.HasMany(e => e.UserStrikes)
             .WithOne(e => e.User);
-
-
-        entity.HasMany(e => e.UserTracks)
-            .WithOne(e => e.User);
+        
 
         entity.HasMany(e => e.UserXps)
             .WithOne(e => e.User);

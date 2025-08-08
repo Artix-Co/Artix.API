@@ -264,7 +264,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             if (dto.CategoryIds.Any())
             {
                 objectsQuery = objectsQuery.Where(x => _queryDbContext.ObjectTypes
-                    .Any(moc => moc.ObjectId == x.Object.Id && dto.CategoryIds.Contains(moc.CategoryId)));
+                    .Any(moc => moc.ObjectId == x.Object.Id && dto.CategoryIds.Contains(moc.TypeId)));
             }
 
             if (dto.IsSpecial.HasValue)
@@ -319,7 +319,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     x => x.MuseumObjectCategories.DefaultIfEmpty(),
                     (x, moc) => new { x.Object, MuseumObjectCategory = moc })
                 .GroupJoin(_queryDbContext.Types.Where(c => !c.IsDeleted),
-                    x => x.MuseumObjectCategory != null ? x.MuseumObjectCategory.CategoryId : 0,
+                    x => x.MuseumObjectCategory != null ? x.MuseumObjectCategory.TypeId : 0,
                     c => c.Id,
                     (x, cGroup) => new { x.Object, CategoryNames = cGroup.Select(c => c.Name).ToList() })
                 .GroupBy(x => x.Object)

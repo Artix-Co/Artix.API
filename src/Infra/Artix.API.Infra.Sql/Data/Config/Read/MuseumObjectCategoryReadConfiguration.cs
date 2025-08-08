@@ -11,7 +11,7 @@ internal sealed class MuseumObjectCategoryReadConfiguration : IEntityTypeConfigu
         entity.ToTable("ObjectTypes");
 
         // Composite primary key for the relationship
-        entity.HasKey(ot => new { ot.ObjectId, ot.CategoryId });
+        entity.HasKey(ot => new { ot.ObjectId, CategoryId = ot.TypeId });
 
         // Relationship with Object
         entity
@@ -24,14 +24,14 @@ internal sealed class MuseumObjectCategoryReadConfiguration : IEntityTypeConfigu
         entity
             .HasOne(ot => ot.Type)
             .WithMany(t => t.ObjectTypes)
-            .HasForeignKey(ot => ot.CategoryId)
+            .HasForeignKey(ot => ot.TypeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes for performance
         entity.HasIndex(ot => ot.ObjectId)
             .HasDatabaseName("IX_MuseumObjectCategories_ObjectId");
 
-        entity.HasIndex(ot => ot.CategoryId)
+        entity.HasIndex(ot => ot.TypeId)
             .HasDatabaseName("IX_MuseumObjectCategories_CategoryId");
     }
 }

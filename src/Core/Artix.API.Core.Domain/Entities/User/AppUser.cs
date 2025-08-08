@@ -10,7 +10,8 @@ public class AppUser : IdentityUser<long>
 {
     public string? DisplayName { get; set; }
     public string? AvatarUrl { get; private set; }
-    public bool IsPro { get; set; }
+    public bool IsPro { get; set; } = false;
+    public bool IsVerified { get; set; } = false;
 
 
     private readonly List<Collection> _collections = [];
@@ -21,7 +22,7 @@ public class AppUser : IdentityUser<long>
     private readonly List<UserObject> _userObjects = [];
     private readonly List<UserSeasonProgress> _userSeasonProgresses = [];
     private readonly List<UserStrike> _userStrikes = [];
-    private readonly List<UserTrack> _userTracks = [];
+    
     private readonly List<UserXp> _userXps = [];
 
     // Public read-only collections
@@ -35,7 +36,7 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
     public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
     public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
-    public virtual IReadOnlyCollection<UserTrack> UserTracks => _userTracks.AsReadOnly();
+    
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
 
     public sealed class AppUserBuilder

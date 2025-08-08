@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
 
-using Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,7 +22,7 @@ internal sealed class CategoryReadConfiguration : BaseEntityConfiguration<Type>
 
         entity.HasMany(e => e.ObjectTypes)
             .WithOne(moc => moc.Type)
-            .HasForeignKey(moc => moc.CategoryId)
+            .HasForeignKey(moc => moc.TypeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.Name)

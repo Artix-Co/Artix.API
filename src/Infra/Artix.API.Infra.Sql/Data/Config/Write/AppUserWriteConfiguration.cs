@@ -44,10 +44,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 
         entity.HasMany(e => e.UserStrikes)
             .WithOne(e => e.User);
-
-
-        entity.HasMany(e => e.UserTracks)
-            .WithOne(e => e.User);
+        
 
         entity.HasMany(e => e.UserXps)
             .WithOne(e => e.User);

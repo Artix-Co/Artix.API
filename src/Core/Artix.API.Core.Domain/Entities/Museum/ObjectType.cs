@@ -7,7 +7,7 @@ public class ObjectType
     public long ObjectId { get; private set; }
     public virtual Object Object { get; private set; }
 
-    public long CategoryId { get; private set; }
+    public long TypeId { get; private set; }
     public virtual Type Type { get; private set; }
 
     protected ObjectType() { }
@@ -22,7 +22,7 @@ public class ObjectType
         Object = obj;
         ObjectId = obj.Id;
         Type = type;
-        CategoryId = type.Id;
+        TypeId = type.Id;
     }
 
     public static ObjectType Create(Object obj, Type type)

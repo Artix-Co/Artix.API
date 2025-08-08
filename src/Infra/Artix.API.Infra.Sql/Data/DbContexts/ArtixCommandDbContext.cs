@@ -8,6 +8,7 @@ using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
+using Core.Domain.Entities.Voice;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<JournalEntry> JournalEntries { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
 
-    public DbSet<MusicTrack> MusicTracks { get; set; }
+    public DbSet<VoiceTrack> MusicTracks { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<SeasonTask> SeasonTasks { get; set; }
 
@@ -48,7 +49,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserObject> UserObjects { get; set; }
     public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
     public DbSet<UserStrike> UserStrikes { get; set; }
-    public DbSet<UserTrack> UserTracks { get; set; }
+    
     public DbSet<UserXp> UserXps { get; set; }
     public DbSet<OTP> OTPs { get; set; }
 
@@ -56,12 +57,14 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
     public DbSet<Type> Types { get; set; }
-    
+    public DbSet<File> Files { get; set; }
     public DbSet<Object> Objects { get; set; }
+    public DbSet<ObjectFile> ObjectFiles { get; set; }
     public DbSet<ObjectType> ObjectTypes { get; set; }
     public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
     public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
-    public DbSet<FileEntity> Files { get; set; }
+    public DbSet<VoiceTrack> VoiceTracks { get; set; }
+    public DbSet<VoiceTrackFile> VoiceTrackFiles { get; set; }
 
     #endregion
 

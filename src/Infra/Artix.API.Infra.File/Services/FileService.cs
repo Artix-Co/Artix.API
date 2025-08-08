@@ -9,6 +9,7 @@ using Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Sql.Data.DbContexts;
+using File = Core.Domain.Entities.File.File;
 
 public class FileService : IFileService
 {
@@ -25,14 +26,12 @@ public class FileService : IFileService
         Directory.CreateDirectory(_fileStoragePath);
     }
 
-    public async Task<FileEntity> UploadFileAsync(IFormFile file, string entityType, long entityId, long? uploadedBy,
+    public async Task<File> UploadFileAsync(IFormFile file, long? uploadedBy,
         string[] allowedMimeTypes = null)
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("No file provided.");
 
-        if (!IsValidEntityType(entityType))
-            throw new ArgumentException($"Invalid entity type: {entityType}");
 
         if (allowedMimeTypes?.Length > 0 && !allowedMimeTypes.Contains(file.ContentType))
             throw new ArgumentException(
@@ -46,15 +45,13 @@ public class FileService : IFileService
             await file.CopyToAsync(stream);
         }
 
-        var fileEntity = new FileEntity
+        var fileEntity = new File
         {
-            EntityType = entityType,
-            EntityId = entityId,
             FileName = file.FileName,
             FilePath = filePath,
             FileSize = file.Length,
             MimeType = file.ContentType,
-            UploadedAt = DateTime.UtcNow,
+            ModifiedAt = DateTime.UtcNow,
             UploadedBy = uploadedBy
         };
 
@@ -64,8 +61,8 @@ public class FileService : IFileService
         return fileEntity;
     }
 
-    public async Task<FileEntity> UploadFileFromBytesAsync(byte[] fileData, string fileName, string mimeType,
-        string entityType, long entityId, long? uploadedBy, string[] allowedMimeTypes = null)
+    public async Task<File> UploadFileFromBytesAsync(byte[] fileData, string fileName, string mimeType,
+        long? uploadedBy, string[] allowedMimeTypes = null)
     {
         // TODO: use layer exception
         if (fileData == null || fileData.Length == 0)
@@ -77,8 +74,6 @@ public class FileService : IFileService
         if (string.IsNullOrWhiteSpace(mimeType))
             throw new ArgumentException("MIME type is required.");
 
-        if (!IsValidEntityType(entityType))
-            throw new ArgumentException($"Invalid entity type: {entityType}");
 
         if (allowedMimeTypes?.Length > 0 && !allowedMimeTypes.Contains(mimeType))
             throw new ArgumentException(
@@ -87,17 +82,15 @@ public class FileService : IFileService
         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(fileName)}";
         var filePath = Path.Combine(_fileStoragePath, uniqueFileName);
 
-        await File.WriteAllBytesAsync(filePath, fileData);
+        await System.IO.File.WriteAllBytesAsync(filePath, fileData);
 
-        var fileEntity = new FileEntity
+        var fileEntity = new File
         {
-            EntityType = entityType,
-            EntityId = entityId,
             FileName = fileName,
             FilePath = filePath,
             FileSize = fileData.Length,
             MimeType = mimeType,
-            UploadedAt = DateTime.UtcNow,
+            ModifiedAt = DateTime.UtcNow,
             UploadedBy = uploadedBy
         };
 
@@ -110,13 +103,13 @@ public class FileService : IFileService
     public async Task<Stream> GetFileStreamAsync(long fileId)
     {
         var fileEntity = await _context.Files.FindAsync(fileId);
-        if (fileEntity == null || !File.Exists(fileEntity.FilePath))
+        if (fileEntity == null || !System.IO.File.Exists(fileEntity.FilePath))
             throw new FileNotFoundException($"File with ID {fileId} not found.");
 
         return new FileStream(fileEntity.FilePath, FileMode.Open, FileAccess.Read);
     }
 
-    public async Task<FileEntity?> GetFileMetadataAsync(long fileId)
+    public async Task<File?> GetFileMetadataAsync(long fileId)
     {
         return await _context.Files.FindAsync(fileId);
     }
@@ -127,8 +120,8 @@ public class FileService : IFileService
         if (fileEntity == null)
             return;
 
-        if (File.Exists(fileEntity.FilePath))
-            File.Delete(fileEntity.FilePath);
+        if (System.IO.File.Exists(fileEntity.FilePath))
+            System.IO.File.Delete(fileEntity.FilePath);
 
         _context.Files.Remove(fileEntity);
         await _context.SaveChangesAsync();

@@ -1,16 +1,19 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
 
 using Core.Domain.Entities.User;
+using Core.Domain.Entities.Voice;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MusicTrackWriteConfiguration : BaseEntityConfiguration<MusicTrack>
+
+
+internal sealed class VoiceTrackWriteConfiguration : BaseEntityConfiguration<VoiceTrack>
 {
-    public override void Configure(EntityTypeBuilder<MusicTrack> entity)
+    public override void Configure(EntityTypeBuilder<VoiceTrack> entity)
     {
         base.Configure(entity);
 
-        entity.ToTable("MusicTracks");
+        entity.ToTable("VoiceTracks");
 
         entity.Property(e => e.Title)
             .HasMaxLength(100)
@@ -32,22 +35,17 @@ internal sealed class MusicTrackWriteConfiguration : BaseEntityConfiguration<Mus
             .HasForeignKey(e => e.SeasonId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(e => e.MuseumObject)
+        entity.HasOne(e => e.Object)
             .WithMany()
-            .HasForeignKey(e => e.MuseumObjectId)
+            .HasForeignKey(e => e.ObjectId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasMany(e => e.Tracks)
-            .WithOne()
-            .HasForeignKey("MusicTrackId")
+
+        entity.HasMany(o => o.VoiceTrackFiles)
+            .WithOne(ot => ot.VoiceTrack)
+            .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        
-        entity.HasMany(e => e.Tracks)
-            .WithOne()
-            .HasForeignKey("MusicTrackId")
-            .HasConstraintName("FK_UserTracks_MusicTracks_TrackId")
-            .OnDelete(DeleteBehavior.NoAction);
         
 
         entity.HasIndex(e => e.SeasonId)

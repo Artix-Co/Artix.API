@@ -15,11 +15,18 @@ public class Object : BaseEntity
     public bool IsSpecial { get; private set; }
     public bool IsHidden { get; private set; }
 
-    private readonly List<FileEntity> _files = new();
-    public virtual IReadOnlyCollection<FileEntity> Files => _files.AsReadOnly();
+  
+  
+    
+    private readonly List<ObjectFile> _objectFiles = new();
+    public virtual IReadOnlyCollection<ObjectFile> ObjectFiles => _objectFiles.AsReadOnly();
+    
+    
 
     private readonly List<ObjectType> _objectTypes = new();
     public virtual IReadOnlyCollection<ObjectType> ObjectTypes => _objectTypes.AsReadOnly();
+    
+    
 
     private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
     public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods => _objectHistoricalPeriods.AsReadOnly();
@@ -145,7 +152,7 @@ public class Object : BaseEntity
 
         public ObjectBuilder WithObjectType(ObjectType objectType)
         {
-            if (objectType != null && !_objectTypes.Any(ot => ot.CategoryId == objectType.CategoryId))
+            if (objectType != null && !_objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
                 _objectTypes.Add(objectType);
             return this;
         }
@@ -156,7 +163,7 @@ public class Object : BaseEntity
             {
                 foreach (var objectType in objectTypes)
                 {
-                    if (!_objectTypes.Any(ot => ot.CategoryId == objectType.CategoryId))
+                    if (!_objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
                         _objectTypes.Add(objectType);
                 }
             }
@@ -307,7 +314,7 @@ public class Object : BaseEntity
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
 
-        if (_objectTypes.Any(c => c.CategoryId == category.Id))
+        if (_objectTypes.Any(c => c.TypeId == category.Id))
             return;
 
         var link = ObjectType.Create(this, category);
@@ -319,7 +326,7 @@ public class Object : BaseEntity
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
 
-        var link = _objectTypes.FirstOrDefault(c => c.CategoryId == category.Id);
+        var link = _objectTypes.FirstOrDefault(c => c.TypeId == category.Id);
         if (link != null)
             _objectTypes.Remove(link);
     }
@@ -329,7 +336,7 @@ public class Object : BaseEntity
         _objectTypes.Clear();
     }
 
-    public bool HasCategory(long categoryId) => _objectTypes.Any(c => c.CategoryId == categoryId);
+    public bool HasCategory(long categoryId) => _objectTypes.Any(c => c.TypeId == categoryId);
 
     public void AssignHistoricalPeriod(HistoricalPeriod period)
     {
@@ -353,37 +360,52 @@ public class Object : BaseEntity
             _objectHistoricalPeriods.Remove(link);
     }
 
-    // New methods for 3D model file management
-    public void Assign3DModel(FileEntity fileEntity)
+    public void Assign3DModel(File file)
     {
-        if (fileEntity == null)
-            throw DomainException.InvalidValue(nameof(fileEntity));
+        if (file is null)
+            throw DomainException.InvalidValue(nameof(file));
 
-        if (fileEntity.EntityType != "Object" || fileEntity.EntityId != Id)
-            throw DomainException.InvalidValue("FileEntity must be associated with this Object.");
+        var allowedMimeTypes = new[] { "model/obj", "model/gltf-binary" };
 
-        // Optional: Enforce single 3D model by removing existing model
-        var existingModel = _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
-        if (existingModel != null)
-            _files.Remove(existingModel);
+        if (!allowedMimeTypes.Contains(file.MimeType))
+            throw DomainException.InvalidValue(nameof(file.MimeType));
 
-        _files.Add(fileEntity);
+        var existingModel = _objectFiles
+            .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
+
+        if (existingModel is not null)
+            _objectFiles.Remove(existingModel);
+
+        _objectFiles.Add(ObjectFile.Create(this, file));
     }
+
 
     public void Remove3DModel()
     {
-        var model = _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
-        if (model != null)
-            _files.Remove(model);
+        var existingModel = _objectFiles
+            .FirstOrDefault(of => Is3DModel(of.File));
+
+        if (existingModel is not null)
+            _objectFiles.Remove(existingModel);
     }
 
-    public FileEntity? Get3DModel()
+    public File? Get3DModel()
     {
-        return _files.FirstOrDefault(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+        return _objectFiles
+            .FirstOrDefault(of => Is3DModel(of.File))
+            ?.File;
     }
 
     public bool Has3DModel()
     {
-        return _files.Any(f => f.MimeType == "model/obj" || f.MimeType == "model/gltf-binary");
+        return _objectFiles
+            .Any(of => Is3DModel(of.File));
     }
+
+    private static bool Is3DModel(File file)
+    {
+        return file is not null &&
+               (file.MimeType == "model/obj" || file.MimeType == "model/gltf-binary");
+    }
+
 }

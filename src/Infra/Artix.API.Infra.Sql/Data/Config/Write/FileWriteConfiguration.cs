@@ -1,0 +1,48 @@
+﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
+
+using Core.Domain.Entities.File;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+internal sealed partial class FileWriteConfiguration : BaseEntityConfiguration<File>
+{
+    public override void Configure(EntityTypeBuilder<File> entity)
+    {
+        base.Configure(entity);
+
+        entity.ToTable("Files");
+
+
+        entity.Property(f => f.FileName)
+            .HasMaxLength(255)
+            .IsRequired();
+
+        entity.Property(f => f.FilePath)
+            .HasMaxLength(500)
+            .IsRequired();
+
+        entity.Property(f => f.FileSize)
+            .IsRequired();
+
+        entity.Property(f => f.MimeType)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        entity.Property(f => f.UploadedBy)
+            .HasMaxLength(100)
+            .IsRequired(false);
+        
+        
+        entity.HasMany(f => f.ObjectFiles)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        
+              
+        entity.HasMany(f => f.VoiceTrackFiles)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.VoiceTrackId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

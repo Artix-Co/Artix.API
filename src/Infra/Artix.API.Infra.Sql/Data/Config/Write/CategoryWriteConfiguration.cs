@@ -22,7 +22,7 @@ internal sealed class CategoryWriteConfiguration : BaseEntityConfiguration<Type>
 
         entity.HasMany(e => e.ObjectTypes)
             .WithOne(moc => moc.Type)
-            .HasForeignKey(moc => moc.CategoryId)
+            .HasForeignKey(moc => moc.TypeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.Name)

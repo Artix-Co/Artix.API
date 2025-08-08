@@ -4,22 +4,14 @@ using Artix.API.Core.Domain.Entities.File;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class FileEntityReadConfiguration : BaseEntityConfiguration<FileEntity>
+internal sealed class FileReadConfiguration : BaseEntityConfiguration<File>
 {
-
-    public override void Configure(EntityTypeBuilder<FileEntity> entity)
+    public override void Configure(EntityTypeBuilder<File> entity)
     {
         base.Configure(entity);
 
         entity.ToTable("Files");
 
-        // Properties
-        entity.Property(f => f.EntityType)
-            .HasMaxLength(50)
-            .IsRequired();
-
-        entity.Property(f => f.EntityId)
-            .IsRequired();
 
         entity.Property(f => f.FileName)
             .HasMaxLength(255)
@@ -36,22 +28,21 @@ internal sealed class FileEntityReadConfiguration : BaseEntityConfiguration<File
             .HasMaxLength(100)
             .IsRequired(false);
 
-        entity.Property(f => f.UploadedAt)
-            .IsRequired()
-            .HasDefaultValueSql("GETDATE()");
-
         entity.Property(f => f.UploadedBy)
             .HasMaxLength(100)
             .IsRequired(false);
-
- 
         
         
-        // Check Constraint
-        entity.ToTable(t => t.HasCheckConstraint("CHK_EntityType", "[EntityType] IN ('Object', 'MusicTrack')"));
-
-        // Indexes
-        entity.HasIndex(f => new { f.EntityType, f.EntityId })
-            .HasDatabaseName("IX_Files_EntityType_EntityId");
+        entity.HasMany(f => f.ObjectFiles)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        
+              
+        entity.HasMany(f => f.VoiceTrackFiles)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.VoiceTrackId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
