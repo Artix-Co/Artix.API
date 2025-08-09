@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Artix.API.Infra.Identity</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
+      <ProjectReference Include="..\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj" />
+    </ItemGroup>
+
+</Project>

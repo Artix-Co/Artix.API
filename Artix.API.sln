@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.File", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Redis", "src\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj", "{0AA5B346-664C-482C-8DAD-CB99B826E688}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Identity", "src\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj", "{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,7 @@ Global
 		{AE0FBD20-4151-4AEB-9648-F9BAD71314FC} = {882E216E-2060-4283-8D24-B892BE6688F6}
 		{1C13849C-C529-4887-94A7-51CFF25B0906} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 		{0AA5B346-664C-482C-8DAD-CB99B826E688} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
+		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6796302F-F731-4823-A529-E25355C88DB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -95,5 +98,9 @@ Global
 		{0AA5B346-664C-482C-8DAD-CB99B826E688}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AA5B346-664C-482C-8DAD-CB99B826E688}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AA5B346-664C-482C-8DAD-CB99B826E688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

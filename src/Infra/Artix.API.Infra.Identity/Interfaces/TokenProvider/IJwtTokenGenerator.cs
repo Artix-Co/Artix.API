@@ -1,7 +1,7 @@
-﻿namespace Artix.API.Core.DomainService.Users.Token;
+﻿namespace Artix.API.Infra.Identity.Interfaces.TokenProvider;
 
-using Domain.Entities.User;
-using Contract.Features.Tokens;
+using Core.Contract.Features.Tokens;
+using Core.Domain.Entities.User;
 
 public interface IJwtTokenGenerator
 {

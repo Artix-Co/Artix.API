@@ -1,20 +1,13 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.LoginAdmin;
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Primitives;
-using Contract.Configs.Authentication;
 using Artix.API.Core.Contract.Features.Users.Queries.Login;
 using Domain.Entities.User;
-using DomainService.Users;
-using DomainService.Users.LoginHistory;
-using DomainService.Users.Token;
+using Infra.Identity.Interfaces.LoginHistory;
+using Infra.Identity.Interfaces.TokenProvider;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 // TODO: develop validator for this handler
 internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
@@ -25,7 +18,9 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
     private readonly IHttpContextAccessor _httpContextAccessor;
 
 
-    public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator, IUserLoginHistoryService userLoginHistoryService) : base(cache, httpContextAccessor, userManager)
+    public LoginAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator,
+        IUserLoginHistoryService userLoginHistoryService) : base(cache, httpContextAccessor, userManager)
     {
         this._userManager = userManager;
         this._jwtTokenGenerator = jwtTokenGenerator;
@@ -53,7 +48,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         );
 
         var userRoles = await this._userManager.GetRolesAsync(user);
-        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user,cancellationToken);
+        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
 
 
         return new LoginDto

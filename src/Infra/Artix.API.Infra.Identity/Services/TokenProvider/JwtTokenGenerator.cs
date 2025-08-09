@@ -1,17 +1,17 @@
-﻿namespace Artix.API.Core.DomainService.Users;
+﻿namespace Artix.API.Infra.Identity.Services.TokenProvider;
 
-using Domain.Entities.User;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Contract.Configs.Authentication;
-using Contract.Features.Tokens;
+using Core.Contract.Configs.Authentication;
+using Core.Contract.Features.Tokens;
+using Core.Domain.Entities.User;
+using Artix.API.Infra.Identity.Interfaces.TokenProvider;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Token;
 
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
@@ -29,23 +29,23 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         IOptions<AuthenticationSettings> authenticationSettings,
         ILogger<JwtTokenGenerator> logger)
     {
-        _userManager = userManager;
-        _logger = logger;
-        _tokenHandler = new JwtSecurityTokenHandler();
+        this._userManager = userManager;
+        this._logger = logger;
+        this._tokenHandler = new JwtSecurityTokenHandler();
 
-        _signingKey = authenticationSettings.Value.IssuerSigningKey;
-        _issuer = authenticationSettings.Value.Issuer;
-        _audience = authenticationSettings.Value.Audience;
-        _accessTokenExpireTimeInSeconds = authenticationSettings.Value.AccessTokenExpireSeconds;
-        _refreshTokenExpireTimeInDays = authenticationSettings.Value.RefreshTokenExpireDays;
+        this._signingKey = authenticationSettings.Value.IssuerSigningKey;
+        this._issuer = authenticationSettings.Value.Issuer;
+        this._audience = authenticationSettings.Value.Audience;
+        this._accessTokenExpireTimeInSeconds = authenticationSettings.Value.AccessTokenExpireSeconds;
+        this._refreshTokenExpireTimeInDays = authenticationSettings.Value.RefreshTokenExpireDays;
     }
 
     public async Task<JwtTokenResult> GenerateTokensAsync(AppUser user, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
+        this._logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
 
-        var roles = await _userManager.GetRolesAsync(user);
-        _logger.LogDebug("Fetched {RoleCount} roles for user {UserId}", roles.Count, user.Id);
+        var roles = await this._userManager.GetRolesAsync(user);
+        this._logger.LogDebug("Fetched {RoleCount} roles for user {UserId}", roles.Count, user.Id);
 
         var authClaims = new List<Claim>
         {
@@ -60,19 +60,19 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             authClaims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(_accessTokenExpireTimeInSeconds);
-        var accessToken = CreateJwtToken(authClaims, accessTokenExpiresAt);
+        var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(this._accessTokenExpireTimeInSeconds);
+        var accessToken = this.CreateJwtToken(authClaims, accessTokenExpiresAt);
 
-        _logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
+        this._logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
             accessTokenExpiresAt);
 
         var refreshToken = GenerateSecureRefreshToken();
-        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpireTimeInDays);
+        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(this._refreshTokenExpireTimeInDays);
 
-        _logger.LogDebug("Refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
+        this._logger.LogDebug("Refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
             refreshTokenExpiresAt);
 
-        await StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
+        await this.StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
 
         return new JwtTokenResult
         {
@@ -85,19 +85,19 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     private string CreateJwtToken(IEnumerable<Claim> claims, DateTime expiresAt)
     {
-        var key = Encoding.UTF8.GetBytes(_signingKey);
+        var key = Encoding.UTF8.GetBytes(this._signingKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
             Expires = expiresAt,
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = _issuer,
-            Audience = _audience
+            Issuer = this._issuer,
+            Audience = this._audience
         };
 
-        var token = _tokenHandler.CreateToken(tokenDescriptor);
-        return _tokenHandler.WriteToken(token);
+        var token = this._tokenHandler.CreateToken(tokenDescriptor);
+        return this._tokenHandler.WriteToken(token);
     }
 
     private static string GenerateSecureRefreshToken()
@@ -111,18 +111,18 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
     private async Task StoreRefreshTokenAsync(AppUser user, string refreshToken, DateTime expiresAt,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Storing refresh token for user {UserId}", user.Id);
+        this._logger.LogInformation("Storing refresh token for user {UserId}", user.Id);
 
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
-        var result = await _userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token", refreshToken);
+        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
+        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token", refreshToken);
 
         if (!result.Succeeded)
         {
-            _logger.LogError("Failed to store refresh token for user {UserId}: {Errors}", user.Id,
+            this._logger.LogError("Failed to store refresh token for user {UserId}: {Errors}", user.Id,
                 string.Join(", ", result.Errors.Select(e => e.Description)));
             throw new InvalidOperationException("Failed to store refresh token.");
         }
 
-        _logger.LogInformation("Refresh token successfully stored for user {UserId}", user.Id);
+        this._logger.LogInformation("Refresh token successfully stored for user {UserId}", user.Id);
     }
 }

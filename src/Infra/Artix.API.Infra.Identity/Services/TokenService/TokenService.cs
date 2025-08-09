@@ -1,7 +1,9 @@
-﻿namespace Artix.API.Core.DomainService.Users.Token;
+﻿namespace Artix.API.Infra.Identity.Services.TokenService;
 
-using Contract.Features.Tokens;
-using Domain.Entities.User;
+using Core.Contract.Features.Tokens;
+using Core.Domain.Entities.User;
+using Artix.API.Infra.Identity.Interfaces.TokenProvider;
+using Artix.API.Infra.Identity.Interfaces.TokenService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,13 +14,13 @@ public sealed class TokenService : ITokenService
 
     public TokenService(UserManager<AppUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
     {
-        _userManager = userManager;
-        _jwtTokenGenerator = jwtTokenGenerator;
+        this._userManager = userManager;
+        this._jwtTokenGenerator = jwtTokenGenerator;
     }
 
     public async Task<JwtTokenResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var user = await _userManager.Users
+        var user = await this._userManager.Users
             .FirstOrDefaultAsync(u =>
                 u.Tokens.Any(t => t.LoginProvider == "ArtixApp" &&
                                   t.Name == "refresh_token" &&
@@ -27,6 +29,6 @@ public sealed class TokenService : ITokenService
         if (user is null)
             throw new UnauthorizedAccessException("Invalid refresh token");
 
-        return await _jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
+        return await this._jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
     }
 }

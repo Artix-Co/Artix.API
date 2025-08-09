@@ -1,6 +1,6 @@
-﻿namespace Artix.API.Core.DomainService.Users.Token;
+﻿namespace Artix.API.Infra.Identity.Interfaces.TokenService;
 
-using Contract.Features.Tokens;
+using Core.Contract.Features.Tokens;
 
 public interface ITokenService
 {
