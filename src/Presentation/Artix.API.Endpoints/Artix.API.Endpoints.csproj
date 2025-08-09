@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
-      <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
     </ItemGroup>
 
 </Project>
