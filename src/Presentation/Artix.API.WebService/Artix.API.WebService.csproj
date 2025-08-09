@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
     <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj" />
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj"/>
     <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj"/>

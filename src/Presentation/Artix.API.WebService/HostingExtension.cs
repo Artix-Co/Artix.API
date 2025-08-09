@@ -5,11 +5,13 @@ using Core.Contract;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
+using Core.Contract.Configs.RabbitMQ;
 using Core.DomainService;
 using Endpoints;
 using Filters;
 using Infra.File;
 using Infra.Identity;
+using Infra.RabbitMQ;
 using Infra.Redis;
 using Infra.Sql;
 using Microsoft.OpenApi.Models;
@@ -50,19 +52,24 @@ public static class HostingExtension
         var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
         ValidateElasticsearchSettings(elasticSettings);
 
-        
-        
+
         var section = configuration.GetSection("FileSettings");
         var options = section.Get<FileSettings>();
 
         if (options == null || string.IsNullOrWhiteSpace(options.StoragePath))
         {
-            throw new ArgumentException("FileSettings:StoragePath configuration is missing or empty.", nameof(configuration));
+            throw new ArgumentException("FileSettings:StoragePath configuration is missing or empty.",
+                nameof(configuration));
         }
+        
+        
+      
+     
+        
 
         services.Configure<FileSettings>(section);
 
-        
+
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
@@ -88,26 +95,25 @@ public static class HostingExtension
         // Configure Cache
         services.AddMemoryCache();
 
+        services.AddRabbitMqService();
         services.AddIdentityService(configuration);
 
         services.AddFileService();
 
         services.AddRedis();
-        
+
         services.AddApplicationServices();
         services.AddContractServices();
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
-        
+
         services.AddDomainServiceServices();
-        
+
         services.AddControllers();
 
         services.AddSwaggerGen(options =>
         {
-        
-
             // Define the Bearer authentication scheme in Swagger
             options.AddSecurityDefinition("Bearer",
                 new OpenApiSecurityScheme
@@ -137,8 +143,4 @@ public static class HostingExtension
             throw new InvalidOperationException("Elasticsearch configuration is missing or invalid.");
         }
     }
-
-  
 }
-
-

@@ -29,7 +29,7 @@ public sealed class ObjectController : BaseController
         return Ok(result);
     }
     
-    [Authorize]
+    // [Authorize]
     [HttpPost("scan")]
     public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
     {
