@@ -5,6 +5,7 @@ namespace Artix.API.Endpoints.Controllers;
 using Common;
 using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
 using Core.Contract.Features.Users.Commands.RegisterAdmins;
+using Core.Contract.Features.Users.Queries.GetAccessToken;
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
 using Core.Contract.Features.Users.Queries.VerifyOTPAuth;
@@ -53,6 +54,13 @@ public sealed class AuthenticationController : BaseController
         return Ok(result);
     }
 
+    
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> LoginAsync([FromBody] GetAccessTokenQuery query)
+    {
+        var result = await this._mediator.Send(query);
+        return Ok(result);
+    }
 
     [Authorize]
     [HttpPost("logout")]

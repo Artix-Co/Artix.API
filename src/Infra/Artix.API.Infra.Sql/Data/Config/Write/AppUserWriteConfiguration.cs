@@ -8,8 +8,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 {
     public void Configure(EntityTypeBuilder<AppUser> entity)
     {
-        entity.ToTable("AppUsers");
-
+        
         entity.Property(e => e.DisplayName)
             .HasMaxLength(100)
             .IsRequired(false);
@@ -49,11 +48,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.UserXps)
             .WithOne(e => e.User);
 
-        entity
-            .HasMany<AppUserToken>()
-            .WithOne()
-            .HasForeignKey(t => t.UserId)
-            .IsRequired();
+       
 
 
         entity.HasIndex(e => e.DisplayName)
