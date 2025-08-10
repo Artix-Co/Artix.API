@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Nest;
@@ -21,6 +23,28 @@ builder.Services.AddDataProtection()
     .SetApplicationName("Artix")
     .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
 builder.Services.AddHealthChecks();
+
+// فعال‌سازی فشرده‌سازی پاسخ‌ها (Gzip)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true; // فعال‌سازی برای HTTPS
+    options.Providers.Add<GzipCompressionProvider>(); // استفاده از Gzip
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/json", // فشرده‌سازی پاسخ‌های JSON
+        "text/plain",
+        "text/html",
+        "application/xml"
+    });
+});
+
+
+// تنظیم سطح فشرده‌سازی Gzip
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal; // تعادل بین سرعت و میزان فشرده‌سازی
+});
+
 builder.Services.AddArtixServices(builder.Configuration);
 builder.Host.UseSerilog();
 
@@ -104,6 +128,20 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     }
 });
 
+app.UseResponseCompression();
+app.UseResponseCaching();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "GET")
+    {
+        context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+        {
+            Public = true,
+            MaxAge = TimeSpan.FromSeconds(60) // کش 60 ثانیه‌ای برای پاسخ‌ها
+        };
+    }
+    await next();
+});
 
 app.UseRouting();
 app.UseAuthentication();

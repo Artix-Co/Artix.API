@@ -53,12 +53,8 @@ public static class HostingExtension
         services.Configure<AuthenticationApiSettings>(configuration.GetSection("AuthenticationApi"));
 
 
-        
         // Configure Elasticsearch
         var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-       
-        
-         
 
 
         // Configure Serilog
@@ -85,7 +81,9 @@ public static class HostingExtension
 
         // Configure Cache
         services.AddMemoryCache();
-
+        services.AddResponseCaching();
+        
+        
         services.AddRabbitMqService();
         services.AddIdentityService(configuration);
 
