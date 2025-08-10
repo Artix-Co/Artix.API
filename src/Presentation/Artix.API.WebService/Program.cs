@@ -19,7 +19,7 @@ using Nest;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDataProtection()
     .SetApplicationName("Artix")
-    .PersistKeysToFileSystem(new DirectoryInfo(""));
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
 builder.Services.AddHealthChecks();
 builder.Services.AddArtixServices(builder.Configuration);
 builder.Host.UseSerilog();

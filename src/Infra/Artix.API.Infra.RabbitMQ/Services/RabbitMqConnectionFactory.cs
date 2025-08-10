@@ -12,7 +12,7 @@ public class RabbitMqConnectionFactory
     {
         _factory = new ConnectionFactory
         {
-            HostName = "localhost",
+            HostName = "rabbitmq",
             Port = 5672,
             UserName = "admin",
             Password = "admin",

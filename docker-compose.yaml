@@ -4,6 +4,16 @@ networks:
   internal_net:
     driver: bridge
 
+volumes:
+  esdata:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  postgres_data:
+    driver: local
+  dataprotection_keys:
+    driver: local
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -16,18 +26,34 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-  
+    networks:
+      - internal_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
     environment:
       SA_PASSWORD: "Hello&Run1234"
       ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
     ports:
       - "1434:1433"
+    volumes:
+      - ./mssql-data:/var/opt/mssql
     networks:
       - internal_net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Hello&Run1234' -Q 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     container_name: redis
@@ -38,17 +64,14 @@ services:
     ports:
       - "6379:6379"
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass "Heli@ghar771379"
-  
+    networks:
+      - internal_net
     healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "Heli@ghar771379", "ping" ]
+      test: ["CMD", "redis-cli", "-a", "Heli@ghar771379", "ping"]
       interval: 30s
       retries: 3
       timeout: 10s
-  
-  
-  
-  
-  
+
   app1:
     build:
       context: .
@@ -56,17 +79,21 @@ services:
     container_name: app1
     depends_on:
       - redis
+      - sqlserver
+      - rabbitmq
     environment:
       - ASPNETCORE_URLS=http://+:80
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0 # غیرفعال کردن Globalization Invariant Mode
     expose:
       - "80"
+    volumes:
+      - dataprotection_keys:/app/dataprotection-keys
     restart: unless-stopped
     networks:
       - internal_net
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/ || exit 1" ]
+      test: ["CMD", "curl", "-f", "http://localhost:80/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -78,17 +105,21 @@ services:
     container_name: app2
     depends_on:
       - redis
+      - sqlserver
+      - rabbitmq
     environment:
       - ASPNETCORE_URLS=http://+:80
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
     expose:
       - "80"
+    volumes:
+      - dataprotection_keys:/app/dataprotection-keys
     restart: unless-stopped
     networks:
       - internal_net
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/ || exit 1" ]
+      test: ["CMD", "curl", "-f", "http://localhost:80/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -100,17 +131,21 @@ services:
     container_name: app3
     depends_on:
       - redis
+      - sqlserver
+      - rabbitmq
     environment:
       - ASPNETCORE_URLS=http://+:80
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
     expose:
       - "80"
+    volumes:
+      - dataprotection_keys:/app/dataprotection-keys
     restart: unless-stopped
     networks:
       - internal_net
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/ || exit 1" ]
+      test: ["CMD", "curl", "-f", "http://localhost:80/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -129,11 +164,3 @@ services:
     restart: unless-stopped
     networks:
       - internal_net
-
-
-volumes:
-  esdata:
-    driver: local
-  rabbitmq_data:
-  postgres_data:
-    driver: local
