@@ -56,7 +56,7 @@ public sealed class MuseumController : BaseController
     }
 
     [Authorize]
-    [HttpGet("/key/status")]
+    [HttpGet("key-status")]
     public async Task<IActionResult> GetMuseumKeyStatusAsync([FromRoute] long museumId)
     {
         var result = await _mediator.Send(new GetMuseumKeyStatusQuery { MuseumId = museumId });
