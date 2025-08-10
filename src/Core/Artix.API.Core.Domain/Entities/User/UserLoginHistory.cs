@@ -5,7 +5,7 @@ using Common;
 public class UserLoginHistory : BaseEntity
 {
     public long UserId { get; set; }
-    public AppUser User { get; set; }
+    public virtual AppUser User { get; set; }
     public string IpAddress { get; set; }
     public string UserAgent { get; set; }
 }

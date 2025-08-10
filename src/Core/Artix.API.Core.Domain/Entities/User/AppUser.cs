@@ -1,10 +1,7 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
-using Common;
 using Collection;
-using Exceptions;
 using Microsoft.AspNetCore.Identity;
-using Museum;
 
 public class AppUser : IdentityUser<long>
 {
@@ -40,7 +37,7 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
     public virtual ICollection<AppUserToken> Tokens { get; set; }
 
-    public sealed class AppUserBuilder
+    public class AppUserBuilder
     {
         private readonly AppUser _user;
 

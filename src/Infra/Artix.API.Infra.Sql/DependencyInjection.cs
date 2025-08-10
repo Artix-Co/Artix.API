@@ -15,7 +15,6 @@ public static class DependencyInjection
         // Register the query-side DbContext (for read operations) without migrations
         services.AddDbContext<ArtixQueryDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("QueryConnectionString"))
-                .UseLazyLoadingProxies()
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
             );
@@ -24,6 +23,7 @@ public static class DependencyInjection
         services.AddDbContext<ArtixCommandDbContext>(options =>
             options
                 .UseSqlServer(configuration.GetConnectionString("CommandConnectionString"))
+                .UseLazyLoadingProxies()
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
             );

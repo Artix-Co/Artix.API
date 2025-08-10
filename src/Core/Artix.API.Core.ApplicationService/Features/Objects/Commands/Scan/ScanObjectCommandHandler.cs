@@ -16,16 +16,17 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IUserObjectCommandRepository _userObjectCommandRepository;
-    private readonly IMessageSerializer _messageSerializer;
+    private readonly INotificationProducer _notificationProducer;
 
 
     public ScanObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IUserObjectCommandRepository userObjectCommandRepository, IMessageSerializer messageSerializer) : base(httpContextAccessor, userManager)
+        IUserObjectCommandRepository userObjectCommandRepository, INotificationProducer notificationProducer) : base(
+        httpContextAccessor, userManager)
     {
         this._museumCommandRepository = museumCommandRepository;
         this._userObjectCommandRepository = userObjectCommandRepository;
-        this._messageSerializer = messageSerializer;
+        this._notificationProducer = notificationProducer;
     }
 
     public override async Task<long> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
@@ -34,13 +35,13 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
-        
+
         var museumObject = museum.MuseumObjects.FirstOrDefault(o => o.Id == command.ObjectId);
         if (museumObject == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museumObject), command.ObjectId);
-        
+
         var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == command.ObjectId);
-        
+
         if (userObject == null)
         {
             userObject = UserObject.Create(user.Id, museumObject.Id);
@@ -52,14 +53,12 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         else
         {
             userObject.RecordScan();
+            userObject.Upgrade();
             await this._userObjectCommandRepository.UpdateAsync(userObject, cancellationToken);
         }
 
         await this._museumCommandRepository.UpdateAsync(museum, cancellationToken);
-        
-        
-        var factory = new RabbitMqConnectionFactory(); 
-        var producer = new NotificationProducer(factory, this._messageSerializer);
+
 
         var message = new NotificationMessage(
             NotificationId: Guid.NewGuid(),
@@ -70,8 +69,8 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
             CreatedAt: DateTime.UtcNow,
             Metadata: null
         );
+        await _notificationProducer.PublishAsync(message, "inapp.notifications");
 
-        await producer.PublishAsync(message, routingKey: "inapp.notifications");
         return userObject.Id;
     }
 }
