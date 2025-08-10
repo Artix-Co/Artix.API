@@ -3,6 +3,7 @@
 using Core.ApplicationService;
 using Core.Contract;
 using Core.Contract.Configs.Authentication;
+using Core.Contract.Configs.AuthenticationApi;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.RabbitMQ;
@@ -47,39 +48,29 @@ public static class HostingExtension
     {
         // Configure Authentication Settings
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
+        services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
+        services.Configure<FileSettings>(configuration.GetSection("FileSettings"));
+        services.Configure<AuthenticationApiSettings>(configuration.GetSection("AuthenticationApi"));
 
+
+        
         // Configure Elasticsearch
-        var elasticSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-        ValidateElasticsearchSettings(elasticSettings);
-
-
-        var section = configuration.GetSection("FileSettings");
-        var options = section.Get<FileSettings>();
-
-        if (options == null || string.IsNullOrWhiteSpace(options.StoragePath))
-        {
-            throw new ArgumentException("FileSettings:StoragePath configuration is missing or empty.",
-                nameof(configuration));
-        }
+        var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
+       
         
-        
-      
-     
-        
-
-        services.Configure<FileSettings>(section);
+         
 
 
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSettings.Uri))
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSearchSection.Uri))
             {
                 AutoRegisterTemplate = true,
-                IndexFormat = elasticSettings.IndexFormat,
+                IndexFormat = elasticSearchSection.IndexFormat,
                 ModifyConnectionSettings = c => c
-                    .BasicAuthentication(elasticSettings.Username, elasticSettings.Password)
-                    .RequestTimeout(TimeSpan.FromMinutes(elasticSettings.RequestTimeoutInMinutes))
+                    .BasicAuthentication(elasticSearchSection.Username, elasticSearchSection.Password)
+                    .RequestTimeout(TimeSpan.FromMinutes(elasticSearchSection.RequestTimeoutInMinutes))
             })
             .CreateLogger();
 
@@ -129,18 +120,5 @@ public static class HostingExtension
 
             options.OperationFilter<AuthorizeCheckOperationFilter>();
         });
-    }
-
-    private static void ValidateElasticsearchSettings(ElasticsearchSettings settings)
-    {
-        if (settings == null ||
-            string.IsNullOrEmpty(settings.Uri) ||
-            string.IsNullOrEmpty(settings.Username) ||
-            string.IsNullOrEmpty(settings.Password) ||
-            string.IsNullOrEmpty(settings.IndexFormat) ||
-            settings.RequestTimeoutInMinutes <= 0)
-        {
-            throw new InvalidOperationException("Elasticsearch configuration is missing or invalid.");
-        }
     }
 }

@@ -60,7 +60,9 @@ app.UseExceptionHandler(config =>
 app.UseCustomMiddlewares(app.Environment);
 
 Log.Logger.Information("Application started!");
-if (app.Environment.IsDevelopment())
+
+var isDevelopment = app.Environment.IsDevelopment();
+if (true)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
