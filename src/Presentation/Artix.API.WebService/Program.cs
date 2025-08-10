@@ -8,6 +8,7 @@ using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,9 @@ using Serilog;
 using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDataProtection()
+    .SetApplicationName("Artix")
+    .PersistKeysToFileSystem(new DirectoryInfo(""));
 builder.Services.AddHealthChecks();
 builder.Services.AddArtixServices(builder.Configuration);
 builder.Host.UseSerilog();
