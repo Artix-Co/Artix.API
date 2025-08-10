@@ -73,6 +73,7 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             refreshTokenExpiresAt);
 
         await this.StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
+        await this.StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
 
         return new JwtTokenResult
         {
@@ -114,7 +115,8 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         this._logger.LogInformation("Storing refresh token for user {UserId}", user.Id);
 
         await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
-        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token", refreshToken);
+        var result =
+            await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token", refreshToken);
 
         if (!result.Succeeded)
         {
@@ -124,5 +126,25 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         }
 
         this._logger.LogInformation("Refresh token successfully stored for user {UserId}", user.Id);
+    }
+
+
+    private async Task StoreAccessTokenAsync(AppUser user, string accessToken, DateTime expiresAt,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("Storing access token for user {UserId}", user.Id);
+
+
+        await this._userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        var result = await this._userManager.SetAuthenticationTokenAsync(user, "ArtixApp", "access_token", accessToken);
+
+        if (!result.Succeeded)
+        {
+            this._logger.LogError("Failed to store access token for user {UserId}: {Errors}", user.Id,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new InvalidOperationException("Failed to store access token.");
+        }
+
+        this._logger.LogInformation("Access token successfully stored for user {UserId}", user.Id);
     }
 }

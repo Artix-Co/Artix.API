@@ -22,7 +22,6 @@ public static class DependencyInjection
 {
     public static void AddIdentityService(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure Identity
         services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -33,10 +32,8 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
 
-        // Configure Authentication
         var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
         ValidateAuthenticationSettings(authSettings);
-
 
         services.AddAuthentication(options =>
             {
@@ -53,9 +50,9 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = authSettings.Issuer,
                     ValidAudience = authSettings.Audience,
-                    IssuerSigningKey =
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
-                    ClockSkew = TimeSpan.FromMinutes(5)
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
+                    ClockSkew = TimeSpan.Zero // بی‌تاخیر
                 };
 
                 options.Events = new JwtBearerEvents
@@ -66,7 +63,6 @@ public static class DependencyInjection
                             context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
                         var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                                           context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                        Console.WriteLine($"User ID Claim: {userIdClaim}");
 
                         if (string.IsNullOrEmpty(userIdClaim))
                         {
@@ -77,36 +73,12 @@ public static class DependencyInjection
                         var user = await userManager.FindByIdAsync(userIdClaim);
                         if (user == null)
                         {
-                            context.Fail($"Unauthorized: User not found for ID {userIdClaim}.");
+                            context.Fail("Unauthorized: User not found.");
                             return;
                         }
 
-                        // Get the raw token from the Authorization header
-                        if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader) ||
-                            !authHeader.ToString().StartsWith("Bearer "))
-                        {
-                            context.Fail("Unauthorized: Bearer token missing or invalid.");
-                            return;
-                        }
-
-                        var tokenString = authHeader.ToString().Substring("Bearer ".Length).Trim();
-                        Console.WriteLine($"Presented Token: {tokenString}");
-
-                        var storedToken =
-                            await userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-                        Console.WriteLine($"Stored Token: {storedToken}");
-
-                        if (string.IsNullOrEmpty(storedToken))
-                        {
-                            context.Fail($"Unauthorized: No token found for user {userIdClaim}.");
-                            return;
-                        }
-
-                        if (storedToken != tokenString)
-                        {
-                            context.Fail($"Unauthorized: Token has been revoked for user {userIdClaim}.");
-                            return;
-                        }
+                        // در این نسخه چک Access Token ذخیره شده حذف شده
+                        // JWT به تنهایی اعتبارسنجی می‌شود
                     },
                     OnAuthenticationFailed = context =>
                     {
@@ -116,11 +88,8 @@ public static class DependencyInjection
                 };
             });
 
-        // Configure Authorization and Other Services
         services.AddAuthorization();
-        
-        
-        
+
         services.AddScoped<IUserLoginHistoryService, UserLoginHistoryService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ITokenService, TokenService>();

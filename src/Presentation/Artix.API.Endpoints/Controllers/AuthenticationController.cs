@@ -4,7 +4,7 @@ namespace Artix.API.Endpoints.Controllers;
 
 using Common;
 using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
-using Core.Contract.Features.Users.Commands.RegisterAdmins; 
+using Core.Contract.Features.Users.Commands.RegisterAdmins;
 using Core.Contract.Features.Users.Queries.Login;
 using Core.Contract.Features.Users.Queries.Logout;
 using Core.Contract.Features.Users.Queries.VerifyOTPAuth;
@@ -31,7 +31,7 @@ public sealed class AuthenticationController : BaseController
     }
 
     [HttpPost("verify-otp")]
-    public async Task<IActionResult> RegisterMobileAsync([FromQuery] GetVerifyOTPAuthQuery query)
+    public async Task<IActionResult> RegisterMobileAsync([FromBody] GetVerifyOTPAuthQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
@@ -39,7 +39,7 @@ public sealed class AuthenticationController : BaseController
 
 
     [HttpPost("register-admin")]
-    public async Task<IActionResult> RegisterAdminAdmin(RegisterAdminCommand command)
+    public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterAdminCommand command)
     {
         var result = await this._mediator.Send(command);
         return Ok(result);
@@ -47,7 +47,7 @@ public sealed class AuthenticationController : BaseController
 
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync(GetLoginQuery query)
+    public async Task<IActionResult> LoginAsync([FromBody] GetLoginQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
@@ -56,10 +56,9 @@ public sealed class AuthenticationController : BaseController
 
     [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> LogoutAsync(GetLogoutQuery query)
+    public async Task<IActionResult> LogoutAsync([FromBody] GetLogoutQuery query)
     {
         var result = await this._mediator.Send(query);
         return Ok(result);
     }
-    
 }
