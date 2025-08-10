@@ -36,6 +36,13 @@ public class ApiKeyAuthenticationMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Skip middleware for Swagger endpoints
+        if (context.Request.Path.StartsWithSegments("/swagger"))
+        {
+            await _next(context);
+            return;
+        }
+
         try
         {
             // فقط در پروداکشن و وقتی RequireApiKeyInProduction=true باشد، احراز هویت لازم است
@@ -50,24 +57,22 @@ public class ApiKeyAuthenticationMiddleware
             if (!context.Request.Headers.TryGetValue("ApiKey", out var apiKeyHeader) ||
                 string.IsNullOrEmpty(apiKeyHeader))
             {
-                _logger.LogWarning("Authentication ApiKey header missing or empty in request to {Path}", context.Request.Path);
-  
-             
-                
+                _logger.LogWarning("Authentication ApiKey header missing or empty in request to {Path}",
+                    context.Request.Path);
+
+
                 var wrapped = new BaseApiResponse<object>
                 {
-                    IsSuccess = false,
-                    Message = "Missing auth header",
-                    Errors = null
+                    IsSuccess = false, Message = "Missing auth header", Errors = null
                 };
-                
+
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
                 var wrappedJson = JsonSerializer.Serialize(wrapped);
-                
+
                 await context.Response.WriteAsync(wrappedJson);
-                
-                
+
+
                 return;
             }
 
@@ -75,19 +80,17 @@ public class ApiKeyAuthenticationMiddleware
             if (!string.Equals(apiKeyHeader, _authSettings.ApiKey, StringComparison.Ordinal))
             {
                 _logger.LogWarning("Invalid API key provided for request to {Path}", context.Request.Path);
-               
-                
+
+
                 var wrapped = new BaseApiResponse<object>
                 {
-                    IsSuccess = false,
-                    Message = "Invalid API key",
-                    Errors = null
+                    IsSuccess = false, Message = "Invalid API key", Errors = null
                 };
-                
+
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
                 var wrappedJson = JsonSerializer.Serialize(wrapped);
-                
+
                 await context.Response.WriteAsync(wrappedJson);
                 return;
             }
