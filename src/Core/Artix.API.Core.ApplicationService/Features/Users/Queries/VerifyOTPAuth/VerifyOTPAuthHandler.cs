@@ -103,7 +103,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
             );
-            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(newUser, cancellationToken);
+            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(newUser, true, cancellationToken);
 
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
@@ -135,7 +135,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             );
 
 
-            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
+            var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
             var smsMessage = $"Welcome {user.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);

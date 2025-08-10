@@ -4,5 +4,7 @@ using Core.Contract.Features.Tokens;
 
 public interface ITokenService
 {
-    Task<JwtTokenResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+    Task<JwtTokenResult> RefreshAccessTokenAsync(string refreshToken,
+        CancellationToken cancellationToken = default);
+    
 }

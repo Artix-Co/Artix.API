@@ -40,50 +40,66 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         this._refreshTokenExpireTimeInDays = authenticationSettings.Value.RefreshTokenExpireDays;
     }
 
-    public async Task<JwtTokenResult> GenerateTokensAsync(AppUser user, CancellationToken cancellationToken = default)
+ 
+    public async Task<JwtTokenResult> GenerateTokensAsync(AppUser user, bool forceRefreshToken = false, CancellationToken cancellationToken = default)
+{
+    this._logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
+
+    var roles = await this._userManager.GetRolesAsync(user);
+    this._logger.LogDebug("Fetched {RoleCount} roles for user {UserId}", roles.Count, user.Id);
+
+    var authClaims = new List<Claim>
     {
-        this._logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new(ClaimTypes.Name, user.UserName ?? string.Empty),
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
+    };
 
-        var roles = await this._userManager.GetRolesAsync(user);
-        this._logger.LogDebug("Fetched {RoleCount} roles for user {UserId}", roles.Count, user.Id);
-
-        var authClaims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
-        };
-
-        foreach (var role in roles)
-        {
-            authClaims.Add(new Claim(ClaimTypes.Role, role));
-        }
-
-        var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(this._accessTokenExpireTimeInSeconds);
-        var accessToken = this.CreateJwtToken(authClaims, accessTokenExpiresAt);
-
-        this._logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
-            accessTokenExpiresAt);
-
-        var refreshToken = GenerateSecureRefreshToken();
-        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(this._refreshTokenExpireTimeInDays);
-
-        this._logger.LogDebug("Refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
-            refreshTokenExpiresAt);
-
-        await this.StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
-        await this.StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
-
-        return new JwtTokenResult
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            AccessTokenExpiresAt = accessTokenExpiresAt,
-            RefreshTokenExpiresAt = refreshTokenExpiresAt
-        };
+    foreach (var role in roles)
+    {
+        authClaims.Add(new Claim(ClaimTypes.Role, role));
     }
 
+    var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(this._accessTokenExpireTimeInSeconds);
+    var accessToken = this.CreateJwtToken(authClaims, accessTokenExpiresAt);
+
+    this._logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id, accessTokenExpiresAt);
+
+    string refreshToken;
+    DateTime refreshTokenExpiresAt;
+
+    // چک کردن رفرش توکن فعلی
+    var existingRefreshToken = await this._userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
+    var storedToken = user.Tokens.FirstOrDefault(t => t.LoginProvider == "ArtixApp" && t.Name == "refresh_token");
+
+    if (!forceRefreshToken && storedToken != null && !string.IsNullOrEmpty(existingRefreshToken))
+    {
+        // اگر رفرش توکن معتبر است، از همون استفاده کن
+        refreshToken = existingRefreshToken;
+        refreshTokenExpiresAt = DateTime.UtcNow.AddDays(this._refreshTokenExpireTimeInDays); // فرض می‌کنیم همون تایم قبلی معتبره
+        this._logger.LogDebug("Using existing refresh token for user {UserId}, expiry: {Expiry}", user.Id, refreshTokenExpiresAt);
+    }
+    else
+    {
+        // تولید رفرش توکن جدید
+        refreshToken = GenerateSecureRefreshToken();
+        refreshTokenExpiresAt = DateTime.UtcNow.AddDays(this._refreshTokenExpireTimeInDays);
+        this._logger.LogDebug("New refresh token generated for user {UserId} with expiry {Expiry}", user.Id, refreshTokenExpiresAt);
+        await this.StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
+    }
+
+    await this.StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
+
+    return new JwtTokenResult
+    {
+        AccessToken = accessToken,
+        RefreshToken = refreshToken,
+        AccessTokenExpiresAt = accessTokenExpiresAt,
+        RefreshTokenExpiresAt = refreshTokenExpiresAt
+    };
+}
+    
     private string CreateJwtToken(IEnumerable<Claim> claims, DateTime expiresAt)
     {
         var key = Encoding.UTF8.GetBytes(this._signingKey);

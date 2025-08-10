@@ -48,7 +48,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         );
 
         var userRoles = await this._userManager.GetRolesAsync(user);
-        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, cancellationToken);
+        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
 
         return new LoginDto
