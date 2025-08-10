@@ -13,6 +13,8 @@ volumes:
     driver: local
   dataprotection_keys:
     driver: local
+  file_storage: # Volume جدید برای ذخیره‌سازی فایل‌ها
+    driver: local
 
 services:
   rabbitmq:
@@ -84,11 +86,12 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - DOTNET_RUNNING_IN_CONTAINER=true
-      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0 # غیرفعال کردن Globalization Invariant Mode
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
     expose:
       - "80"
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
+      - file_storage:/app/files # مپ کردن Volume برای ذخیره‌سازی فایل‌ها
     restart: unless-stopped
     networks:
       - internal_net
@@ -115,6 +118,7 @@ services:
       - "80"
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
+      - file_storage:/app/files # مپ کردن Volume برای ذخیره‌سازی فایل‌ها
     restart: unless-stopped
     networks:
       - internal_net
@@ -141,6 +145,7 @@ services:
       - "80"
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
+      - file_storage:/app/files # مپ کردن Volume برای ذخیره‌سازی فایل‌ها
     restart: unless-stopped
     networks:
       - internal_net
