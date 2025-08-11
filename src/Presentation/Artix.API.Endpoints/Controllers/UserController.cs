@@ -5,8 +5,10 @@ using Core.Contract.Features.Collections.Queries.GetCollectionByUserId;
 using Core.Contract.Features.Collections.Queries.GetUserCollection;
 using Core.Contract.Features.Users.Commands.Modify;
 using Core.Contract.Features.Users.Queries.GetUserProfile;
+using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -23,6 +25,7 @@ public sealed class UserController : BaseController
     
     [Authorize]
     [HttpGet("profile")]
+    [ProducesResponseType(typeof(BaseApiResponse<UserProfileDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
@@ -32,6 +35,7 @@ public sealed class UserController : BaseController
 
     [Authorize]
     [HttpPatch("modify-profile")]
+    [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)
     {
         var result = await this._mediator.Send(command);
@@ -41,6 +45,7 @@ public sealed class UserController : BaseController
 
     [Authorize]
     [HttpGet("collection")]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<CollectionsByUserIdDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> CollectionsAsync([FromQuery] GetCollectionsByUserIdQuery query)
     {
         var result = await this._mediator.Send(query);

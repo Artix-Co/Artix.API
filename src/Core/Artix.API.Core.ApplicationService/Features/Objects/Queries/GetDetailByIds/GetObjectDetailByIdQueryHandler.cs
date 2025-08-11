@@ -37,7 +37,7 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        await this._objectCache.AddToRecentAsync(user.Id.ToString(), RecentObjectDto.Create(result.Id, result.Name));
+        await this._objectCache.AddToRecentAsync(user.Id.ToString(), RecentObjectDto.Create(result.BusinessId, result.Name));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return result;
     }

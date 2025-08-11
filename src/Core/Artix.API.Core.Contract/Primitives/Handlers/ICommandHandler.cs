@@ -2,6 +2,6 @@
 
 using MediatR;
 
-public interface ICommandHandler<TCommand> : IRequestHandler<TCommand, long> 
-    where TCommand : ICommand<long> { }
+public interface ICommandHandler<TCommand> : IRequestHandler<TCommand, Guid> 
+    where TCommand : ICommand { }
 

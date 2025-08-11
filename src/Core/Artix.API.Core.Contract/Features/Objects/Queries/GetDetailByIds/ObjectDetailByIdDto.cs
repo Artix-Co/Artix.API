@@ -5,6 +5,7 @@ using Domain.Entities.ValueObjects;
 public sealed class ObjectDetailByIdDto
 {
     public long Id { get; set; }
+    public Guid BusinessId { get; set; }
     public string Name { get; set; }
 
     public string? GeneralInformation { get; set; }
@@ -15,7 +16,7 @@ public sealed class ObjectDetailByIdDto
 
 public sealed class HistoricalPeriodDto
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
     public HistoricalDate? StartDate { get; set; }

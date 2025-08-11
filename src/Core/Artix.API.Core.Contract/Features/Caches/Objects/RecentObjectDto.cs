@@ -4,13 +4,13 @@ using System.Text.Json.Serialization;
 
 public class RecentObjectDto : RecentBaseEntity
 {
-    public static RecentObjectDto Create(long id, string name)
+    public static RecentObjectDto Create(Guid id, string name)
     {
         return new RecentObjectDto(id, name);
     }
 
     [JsonConstructor]
-    public RecentObjectDto(long id, string name)
+    public RecentObjectDto(Guid id, string name)
     {
         // TODO: use layer exception
         if (string.IsNullOrWhiteSpace(name))

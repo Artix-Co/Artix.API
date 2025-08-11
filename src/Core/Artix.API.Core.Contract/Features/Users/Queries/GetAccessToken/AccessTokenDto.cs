@@ -2,6 +2,6 @@
 
 public sealed class AccessTokenDto
 {
-    public string AccessToken { get; init; }
-    public DateTime AccessTokenExpiresAt { get; init; }
+    public string AccessToken { get; set; }
+    public DateTime AccessTokenExpiresAt { get; set; }
 }

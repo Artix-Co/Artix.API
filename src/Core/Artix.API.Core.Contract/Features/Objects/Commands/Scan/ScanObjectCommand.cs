@@ -2,8 +2,8 @@
 
 using Primitives.Handlers;
 
-public sealed class ScanObjectCommand : ICommand<long>
+public sealed class ScanObjectCommand: ICommand
 {
-    public long ObjectId { get; set; }
-    public long MuseumId { get; set; }
+    public Guid ObjectId { get; set; }
+    public Guid MuseumId { get; set; }
 }

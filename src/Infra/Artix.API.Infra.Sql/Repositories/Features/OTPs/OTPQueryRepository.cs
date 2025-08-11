@@ -36,6 +36,6 @@ public class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryRepository
         if (!otp.IsValid(dto.OtpCode))
             throw new InvalidOperationException("Invalid or expired OTP");
 
-        return new LatestOTPByPhoneNumberDto { Id = otp.Id, Code = otp.Code };
+        return new LatestOTPByPhoneNumberDto { Id = otp.BusinessId, Code = otp.Code };
     }
 }

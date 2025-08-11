@@ -112,7 +112,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             return new VerifyOTPAuthDto
             {
                 IsNewUser = true,
-                UserId = newUser.Id,
+                UserId = newUser.BusinessId,
                 AccessToken = tokenResult.AccessToken,
                 RefreshToken = tokenResult.RefreshToken,
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
@@ -144,7 +144,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             return new VerifyOTPAuthDto
             {
                 IsNewUser = false,
-                UserId = user.Id,
+                UserId = user.BusinessId,
                 AccessToken = tokenResult.AccessToken,
                 RefreshToken = tokenResult.RefreshToken,
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,

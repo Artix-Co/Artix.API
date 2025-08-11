@@ -28,7 +28,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         this._allowedFileExtensions = options.Value.Allowed3DMimeTypes;
     }
 
-    public override async Task<long> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
 
@@ -108,6 +108,6 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         // Update the object in the repository
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
-        return @object.Id;
+        return @object.BusinessId;
     }
 }

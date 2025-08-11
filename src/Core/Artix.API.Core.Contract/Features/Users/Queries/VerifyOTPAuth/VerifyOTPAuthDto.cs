@@ -3,9 +3,11 @@
 public sealed class VerifyOTPAuthDto
 {
     public bool IsNewUser { get; set; }
-    public long UserId { get; set; }
-    public string AccessToken { get; init; }
-    public string RefreshToken { get; init; }
-    public DateTime AccessTokenExpiresAt { get; init; }
-    public DateTime RefreshTokenExpiresAt { get; init; }
+    public Guid UserId { get; set; }
+    public string AccessToken { get; set; }
+    public string RefreshToken { get; set; }
+    public DateTime AccessTokenExpiresAt { get; set; }
+    public DateTime RefreshTokenExpiresAt { get; set; }
+    
+    // TODO: add user roles(user subscription)
 }

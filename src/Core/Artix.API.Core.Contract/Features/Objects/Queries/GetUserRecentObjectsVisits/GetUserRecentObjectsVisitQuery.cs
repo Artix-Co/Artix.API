@@ -2,7 +2,6 @@
 
 using Primitives.Handlers;
 
-public class GetUserRecentObjectsVisitQuery:IQuery<IEnumerable<UserRecentObjectsVisitDto>>
+public class GetUserRecentObjectsVisitQuery : IQuery<IEnumerable<UserRecentObjectsVisitDto>>
 {
-    
 }

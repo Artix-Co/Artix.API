@@ -16,7 +16,7 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
         this._userManager = userManager;
     }
 
-    public override async Task<long> Handle(ModifyProfileCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(ModifyProfileCommand command, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
 
@@ -39,6 +39,6 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
 
         await _userManager.UpdateAsync(updatedUser);
 
-        return user.Id;
+        return user.BusinessId;
     }
 }

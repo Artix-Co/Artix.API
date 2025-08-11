@@ -3,9 +3,9 @@
 using Microsoft.AspNetCore.Http;
 using Primitives.Handlers;
 
-public sealed class UpgradeObjectCommand : ICommand<long>
+public sealed class UpgradeObjectCommand: ICommand
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? GeneralInformation { get; set; }
     public string? SpecializedInformation { get; set; }

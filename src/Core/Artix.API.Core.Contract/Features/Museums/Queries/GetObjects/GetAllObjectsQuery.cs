@@ -4,14 +4,14 @@ using Primitives.Models;
 
 public sealed class GetAllObjectsQuery : PagedQuery<AllObjectDto>
 {
-    public string? NameFilter { get; init; }
-    public long? MuseumId { get; init; }
-    public IReadOnlyCollection<long> CategoryIds { get; init; } = Array.Empty<long>();
-    public bool? IsSpecial { get; init; }
-    public bool? IsHidden { get; init; }
-    public int? Tier { get; init; }
-    public int? Version { get; init; }
+    public string? NameFilter { get; set; }
+    public Guid? MuseumId { get; set; }
+    public IReadOnlyCollection<long> CategoryIds { get; set; } = Array.Empty<long>();
+    public bool? IsSpecial { get; set; }
+    public bool? IsHidden { get; set; }
+    public int? Tier { get; set; }
+    public int? Version { get; set; }
 
-    public string? SortBy { get; init; } = "Name"; // Default sort by Name
-    public bool SortDescending { get; init; } = false;
+    public string? SortBy { get; set; } = "Name"; // Default sort by Name
+    public bool SortDescending { get; set; } = false;
 }

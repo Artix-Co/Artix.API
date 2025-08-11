@@ -13,7 +13,7 @@ internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<A
     {
     }
 
-    public override async Task<long> Handle(AddObjectToCollectionCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AddObjectToCollectionCommand command, CancellationToken cancellationToken)
     {
       
         // var user = await _unitOfWork.Users
@@ -32,6 +32,6 @@ internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<A
         //
         // await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return 2;
+        return Guid.Empty;
     }
 }

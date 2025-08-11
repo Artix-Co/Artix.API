@@ -2,8 +2,8 @@
 
 using Primitives.Handlers;
 
-public sealed class AddObjectToUserCollectionCommand : ICommand<long>
+public sealed class AddObjectToUserCollectionCommand: ICommand
 {
-    public long ObjectId { get; set; }
-    public long CollectionId { get; set; }
+    public Guid ObjectId { get; set; }
+    public Guid CollectionId { get; set; }
 }

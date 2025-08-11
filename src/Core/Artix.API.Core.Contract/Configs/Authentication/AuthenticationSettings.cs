@@ -2,12 +2,12 @@
 
 public sealed class AuthenticationSettings
 {
-    public string Issuer { get; init; } = default!;
-    public string Audience { get; init; } = default!;
-    public string IssuerSigningKey { get; init; } = default!;
-    public int AccessTokenExpireSeconds { get; init; }
-    public int RefreshTokenExpireDays { get; init; }
-    public int RefreshTokenLength { get; init; } = 64;
-    public string TokenProvider { get; init; } = default!;
+    public string Issuer { get; set; } = default!;
+    public string Audience { get; set; } = default!;
+    public string IssuerSigningKey { get; set; } = default!;
+    public int AccessTokenExpireSeconds { get; set; }
+    public int RefreshTokenExpireDays { get; set; }
+    public int RefreshTokenLength { get; set; } = 64;
+    public string TokenProvider { get; set; } = default!;
 }
 

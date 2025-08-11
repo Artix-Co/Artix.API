@@ -19,9 +19,11 @@ using Serilog;
 using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDataProtection()
-    .SetApplicationName("Artix")
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
+
+// TODO: uncomment on production
+// builder.Services.AddDataProtection()
+//     .SetApplicationName("Artix")
+//     .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
 builder.Services.AddHealthChecks();
 
 // فعال‌سازی فشرده‌سازی پاسخ‌ها (Gzip)

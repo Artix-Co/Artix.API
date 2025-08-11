@@ -4,6 +4,6 @@ using Primitives.Handlers;
 
 public sealed class GetMuseumKeyStatusQuery : IQuery<MuseumKeyStatusDto>
 {
-    public long MuseumId { get; init; }
+    public Guid MuseumId { get; set; }
     public long UserId { get; set; }
 }

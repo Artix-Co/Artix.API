@@ -8,8 +8,10 @@ using Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
+using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -23,8 +25,8 @@ public sealed class MuseumController : BaseController
         _mediator = mediator;
     }
 
-    [Authorize]
     [HttpGet]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAllMuseumsQuery query)
     {
         var result = await _mediator.Send(query);
@@ -33,6 +35,7 @@ public sealed class MuseumController : BaseController
 
     [Authorize]
     [HttpGet("by-id")]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumByIdQuery query)
     {
         var result = await _mediator.Send(query);
@@ -41,6 +44,7 @@ public sealed class MuseumController : BaseController
 
     [Authorize]
     [HttpGet("objects")]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<MuseumObjectDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetMuseumObjectsQuery query)
     {
         var result = await _mediator.Send(query);
@@ -49,6 +53,7 @@ public sealed class MuseumController : BaseController
 
     [Authorize]
     [HttpGet("journal-entries")]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<MuseumJournalEntryDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMuseumJournalEntriesAsync([FromQuery] GetMuseumJournalEntriesQuery query)
     {
         var result = await _mediator.Send(query);
@@ -57,9 +62,10 @@ public sealed class MuseumController : BaseController
 
     [Authorize]
     [HttpGet("key-status")]
-    public async Task<IActionResult> GetMuseumKeyStatusAsync([FromRoute] long museumId)
+    [ProducesResponseType(typeof(BaseApiResponse<MuseumKeyStatusDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMuseumKeyStatusAsync([FromQuery] GetMuseumKeyStatusQuery query)
     {
-        var result = await _mediator.Send(new GetMuseumKeyStatusQuery { MuseumId = museumId });
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 
@@ -68,6 +74,7 @@ public sealed class MuseumController : BaseController
     
     [Authorize]
     [HttpGet("recent")]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<UserRecentMuseumsVisitDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentMuseumsVisitQuery query)
     {
         var result = await _mediator.Send(query);

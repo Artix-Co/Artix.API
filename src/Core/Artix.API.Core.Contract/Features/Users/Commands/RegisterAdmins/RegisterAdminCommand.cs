@@ -2,7 +2,7 @@
 
 using Primitives.Handlers;
 
-public sealed class RegisterAdminCommand : ICommand<long>
+public sealed class RegisterAdminCommand : ICommand
 {
     public string Username { get; set; }
     public string Email { get; set; }

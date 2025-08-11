@@ -21,7 +21,7 @@ public sealed class CollectionQueryRepository : QueryRepository<Collection>, ICo
             .Where(c => c.UserId == dto.UserId)
             .Select(c => new UserCollectionDto
             {
-                Id = c.Id, Name = c.Name, Description = c.Description, IsPublic = c.IsPublic
+                Id = c.BusinessId, Name = c.Name, Description = c.Description, IsPublic = c.IsPublic
             })
             .AsEnumerable();
     }

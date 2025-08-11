@@ -14,13 +14,14 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
     private readonly ArtixCommandDbContext _context;
 
 
-    public InitiateOTPAuthHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ArtixCommandDbContext context) : base(httpContextAccessor, userManager)
+    public InitiateOTPAuthHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        ArtixCommandDbContext context) : base(httpContextAccessor, userManager)
     {
         this._userManager = userManager;
         this._context = context;
     }
 
-    public override async Task<long> Handle(InitiateOTPAuthCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(InitiateOTPAuthCommand command, CancellationToken cancellationToken)
     {
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.PhoneNumber == command.PhoneNumber, cancellationToken);
@@ -35,13 +36,13 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
             var smsMessage = $"Your registration OTP is {otp.Code}. It expires in 5 minutes.";
             // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
-            return otp.Id;
+            return otp.BusinessId;
         }
         else
         {
             // Existing user: check for Client role and send login OTP
             var roles = await _userManager.GetRolesAsync(user);
-       
+
             var otp = OTP.Create(command.PhoneNumber, "Login");
             _context.OTPs.Add(otp);
             await _context.SaveChangesAsync(cancellationToken);
@@ -49,7 +50,7 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
             var smsMessage = $"Your login OTP is {otp.Code}. It expires in 5 minutes.";
             // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
-            return otp.Id;
+            return otp.BusinessId;
         }
     }
 }

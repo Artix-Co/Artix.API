@@ -2,7 +2,7 @@
 
 using Primitives.Handlers;
 
-public sealed class ModifyProfileCommand : ICommand<long>
+public sealed class ModifyProfileCommand: ICommand
 {
     public string? Username { get; set; }
     public string? Password { get; set; }

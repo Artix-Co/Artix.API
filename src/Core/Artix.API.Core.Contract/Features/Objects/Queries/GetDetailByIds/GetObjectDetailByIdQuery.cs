@@ -4,5 +4,5 @@ using Primitives.Handlers;
 
 public sealed class GetObjectDetailByIdQuery : IQuery<ObjectDetailByIdDto>
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; }
 }

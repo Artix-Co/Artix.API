@@ -18,7 +18,7 @@ internal sealed class UserJournalEntryWriteConfiguration : BaseEntityConfigurati
         entity.Property(e => e.UserId)
             .IsRequired();
 
-        entity.Property(e => e.EntryId)
+        entity.Property(e => e.JournalEntryId)
             .IsRequired();
 
         entity.HasOne(e => e.User)
@@ -26,22 +26,22 @@ internal sealed class UserJournalEntryWriteConfiguration : BaseEntityConfigurati
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.HasOne(e => e.Entry)
+        entity.HasOne(e => e.JournalEntry)
             .WithMany(je => je.UserJournalEntries)
-            .HasForeignKey(e => e.EntryId)
+            .HasForeignKey(e => e.JournalEntryId)
             .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasCheckConstraint("CK_UserJournalEntries_UserId_NotEqual_EntryId",
             "[UserId] != [EntryId]"); // Prevent invalid relationships (if applicable)
 
-        entity.HasIndex(e => new { e.UserId, e.EntryId })
+        entity.HasIndex(e => new { e.UserId, EntryId = e.JournalEntryId })
             .HasDatabaseName("IX_UserJournalEntries_UserId_EntryId")
             .IsUnique();
 
         entity.HasIndex(e => e.UserId)
             .HasDatabaseName("IX_UserJournalEntries_UserId");
 
-        entity.HasIndex(e => e.EntryId)
+        entity.HasIndex(e => e.JournalEntryId)
             .HasDatabaseName("IX_UserJournalEntries_EntryId");
 
         entity.HasIndex(e => e.UnlockedAt)

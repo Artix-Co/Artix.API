@@ -2,6 +2,6 @@
 
 using Primitives.Handlers;
 
-public class GetCollectionsByUserIdQuery : IQuery<IEnumerable<CollectionsByUserIdDto>>
+public sealed class GetCollectionsByUserIdQuery : IQuery<IEnumerable<CollectionsByUserIdDto>>
 {
 }

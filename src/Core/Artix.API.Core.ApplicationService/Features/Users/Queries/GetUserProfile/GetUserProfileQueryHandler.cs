@@ -23,7 +23,7 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
 
         return new UserProfileDto
         {
-            Id = user.Id,
+            Id = user.BusinessId,
             Email = user.Email,
             DisplayName = user.DisplayName,
             Username = user.UserName,

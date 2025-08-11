@@ -10,10 +10,10 @@ public interface ICommandRepository<T> where T : BaseEntity
     void Delete(long id);
     T? GetById(long id);
 
-    Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default);
 
     Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
     Task InsertAsync(T entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
-    Task DeleteAsync(long id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid businessId, CancellationToken cancellationToken = default);
 }

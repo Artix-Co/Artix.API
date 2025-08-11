@@ -3,6 +3,7 @@
 public sealed class MuseumByIdDto
 {
     public long Id { get; set; }
+    public Guid BusinessId { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }

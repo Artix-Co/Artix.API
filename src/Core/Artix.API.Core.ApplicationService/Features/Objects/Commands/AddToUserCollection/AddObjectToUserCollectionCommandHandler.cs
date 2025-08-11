@@ -26,7 +26,7 @@ internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBa
         this._collectionCommandRepository = collectionCommandRepository;
         this._unitOfWork = unitOfWork;
     }
-    public override async Task<long> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
 
@@ -54,7 +54,7 @@ internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBa
             throw;
         }
 
-        return command.ObjectId;
+        return @object.BusinessId;
     }
 
 }

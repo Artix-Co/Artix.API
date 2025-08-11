@@ -29,18 +29,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         this._notificationProducer = notificationProducer;
     }
 
-    public override async Task<long> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
         var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
-        var museumObject = museum.MuseumObjects.FirstOrDefault(o => o.Id == command.ObjectId);
+        var museumObject = museum.MuseumObjects.FirstOrDefault(o => o.BusinessId == command.ObjectId);
         if (museumObject == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museumObject), command.ObjectId);
 
-        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == command.ObjectId);
+        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == museumObject.Id);
 
         if (userObject == null)
         {
@@ -71,6 +71,6 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         );
         await _notificationProducer.PublishAsync(message, "inapp.notifications");
 
-        return userObject.Id;
+        return userObject.BusinessId;
     }
 }

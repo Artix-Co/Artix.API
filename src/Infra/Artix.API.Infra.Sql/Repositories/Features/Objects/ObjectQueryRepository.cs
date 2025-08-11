@@ -31,7 +31,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .Include(o => o.ObjectHistoricalPeriods)
             .ThenInclude(ohp => ohp.HistoricalPeriod)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(o => o.Id == dto.Id, cancellationToken);
+            .FirstOrDefaultAsync(o => o.BusinessId == dto.Id, cancellationToken);
 
         if (query is null)
             throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
@@ -43,13 +43,14 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         var result = new ObjectDetailByIdDto
         {
             Id = query.Id,
+            BusinessId = query.BusinessId,
             Name = query.Name,
             GeneralInformation = query.GeneralInformation,
             SpecializedInformation = query.SpecialInformation,
             HistoricalPeriods = query.ObjectHistoricalPeriods
                 .Select(ohp => new HistoricalPeriodDto
                 {
-                    Id = ohp.HistoricalPeriod.Id,
+                    Id = ohp.HistoricalPeriod.BusinessId,
                     Name = ohp.HistoricalPeriod.Name,
                     Description = ohp.HistoricalPeriod.Description,
                     StartDate = ohp.HistoricalPeriod.StartDate,

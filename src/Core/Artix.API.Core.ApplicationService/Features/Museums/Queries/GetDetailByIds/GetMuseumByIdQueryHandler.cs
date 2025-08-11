@@ -38,7 +38,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.Id, result.Name!));
+        await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.BusinessId, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return result;
     }

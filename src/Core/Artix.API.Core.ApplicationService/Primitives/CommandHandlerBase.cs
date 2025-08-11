@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public abstract class CommandHandlerBase<TCommand> : ICommandHandler<TCommand>
-    where TCommand : ICommand<long>
+    where TCommand : ICommand
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
@@ -35,5 +35,5 @@ public abstract class CommandHandlerBase<TCommand> : ICommandHandler<TCommand>
         return user;
     }
 
-    public abstract Task<long> Handle(TCommand command, CancellationToken cancellationToken);
+    public abstract Task<Guid> Handle(TCommand command, CancellationToken cancellationToken);
 }

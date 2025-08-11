@@ -20,7 +20,7 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
         this._roleManager = roleManager;
     }
 
-    public override async Task<long> Handle(RegisterAdminCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(RegisterAdminCommand command, CancellationToken cancellationToken)
     {
         var existingUser = await _userManager.Users
             .FirstOrDefaultAsync(u => u.UserName == command.Username, cancellationToken);
@@ -54,6 +54,6 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
             throw new ApplicationException("Role assignment failed: " +
                                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 
-        return newUser.Id;
+        return newUser.BusinessId;
     }
 }

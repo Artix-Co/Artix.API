@@ -2,8 +2,8 @@
 
 public sealed class MuseumObjectDto
 {
-    public long Id { get; set; }
-    public long MuseumId { get; set; }
+    public Guid Id { get; set; }
+    public Guid MuseumId { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }

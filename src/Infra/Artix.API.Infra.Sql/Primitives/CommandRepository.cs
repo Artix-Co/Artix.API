@@ -77,16 +77,16 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
     }
 
   
-    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<T?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default)
     {
-        return await _commandDbContext.Set<T>().FindAsync(new object[] { id }, cancellationToken);
+        return await _commandDbContext.Set<T>().FindAsync(new object[] { businessId }, cancellationToken);
     }
 
     
-    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid businessId, CancellationToken cancellationToken = default)
     {
         var dbSet = this._commandDbContext.Set<T>();
-        var entity = await dbSet.FindAsync(id);
+        var entity = await dbSet.FindAsync(businessId);
 
         var entityType = typeof(T);
 

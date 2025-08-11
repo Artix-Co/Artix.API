@@ -19,7 +19,7 @@ public class AppUser : IdentityUser<long>
     private readonly List<UserObject> _userObjects = [];
     private readonly List<UserSeasonProgress> _userSeasonProgresses = [];
     private readonly List<UserStrike> _userStrikes = [];
-    
+
     private readonly List<UserXp> _userXps = [];
 
     // Public read-only collections
@@ -33,9 +33,10 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
     public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
     public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
-    
+
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
     public virtual ICollection<AppUserToken> Tokens { get; set; }
+    public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
 
     public class AppUserBuilder
     {
@@ -90,8 +91,6 @@ public class AppUser : IdentityUser<long>
         IsPro = isPro;
     }
 
-
- 
 
     internal void AddFriendship(Friendship friendship)
     {
