@@ -73,19 +73,11 @@ public class Museum : BaseEntity
             _museumObjects.Remove(museumObject);
     }
 
-    public bool HasObject(long objectId) => _museumObjects.Any(o => o.ObjectId == objectId);
+    public bool HasObject(long objectId) => MuseumObjects.Any(o => o.ObjectId == objectId);
 
-    public IReadOnlyCollection<Object> GetVisibleObjects() =>
-        _museumObjects.Where(o => o.Object.IsVisible())
-            .Select(o => o.Object)
-            .ToList()
-            .AsReadOnly();
 
-    public IReadOnlyCollection<Object> GetSpecialObjects() =>
-        _museumObjects.Where(o => o.Object.IsSpecial)
-            .Select(o => o.Object)
-            .ToList()
-            .AsReadOnly();
+    public Object? FindObject(Guid objectBusinessId) => MuseumObjects.Select(mo => mo.Object)
+        .FirstOrDefault(o => o.BusinessId == objectBusinessId);
 
     private void ValidateName(string name)
     {

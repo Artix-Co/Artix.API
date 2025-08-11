@@ -36,15 +36,15 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
-        var museumObject = museum.MuseumObjects.FirstOrDefault(o => o.BusinessId == command.ObjectId);
-        if (museumObject == null)
-            throw ApplicationServiceNotFoundException.ForEntity(nameof(museumObject), command.ObjectId);
+        var @object = museum.FindObject(command.ObjectId);
+        if (@object == null)
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
 
-        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == museumObject.Id);
+        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
 
         if (userObject == null)
         {
-            userObject = UserObject.Create(user.Id, museumObject.Id);
+            userObject = UserObject.Create(user.Id, @object.Id);
             userObject.RecordScan();
             userObject.SetInCollection(true);
             userObject.SetAcquiredAt(DateTime.UtcNow);

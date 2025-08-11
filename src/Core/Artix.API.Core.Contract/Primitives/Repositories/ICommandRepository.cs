@@ -7,8 +7,8 @@ public interface ICommandRepository<T> where T : BaseEntity
     void InsertRange(IEnumerable<T> entities);
     void Insert(T entity);
     void Update(T entity);
-    void Delete(long id);
-    T? GetById(long id);
+    void Delete(Guid businessId);
+    T? GetById(Guid businessId);
 
     Task<T?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default);
 

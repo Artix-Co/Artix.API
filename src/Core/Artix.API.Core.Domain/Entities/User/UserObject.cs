@@ -27,17 +27,17 @@ public class UserObject : BaseEntity
 
  
     
-    public static UserObject Create(long userId, long museumObjectId)
+    public static UserObject Create(long userId, long objectId)
     {
         if (userId <= 0)
             throw new ArgumentException("User ID must be positive.", nameof(userId));
-        if (museumObjectId <= 0)
-            throw new ArgumentException("MuseumObject ID must be positive.", nameof(museumObjectId));
+        if (objectId <= 0)
+            throw new ArgumentException("MuseumObject ID must be positive.", nameof(objectId));
 
         return new UserObject
         {
             UserId = userId,
-            ObjectId = museumObjectId,
+            ObjectId = objectId,
             ScanCount = 0,
             AcquiredAt = null,
             IsUpgraded = false,

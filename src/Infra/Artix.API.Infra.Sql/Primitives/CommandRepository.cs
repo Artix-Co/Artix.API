@@ -5,6 +5,7 @@ using Core.Domain.Entities.Common;
 using Data;
 using Data.DbContexts;
 using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore;
 
 public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
     : ICommandRepository<T> where T : BaseEntity
@@ -30,10 +31,10 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
         _commandDbContext.SaveChanges();
     }
 
-    public void Delete(long id)
+    public void Delete(Guid businessId)
     {
         var dbSet = this._commandDbContext.Set<T>();
-        var entity = dbSet.Find(id);
+        var entity = dbSet.FirstOrDefault(entity => entity.BusinessId == businessId);
 
         var entityType = typeof(T);
 
@@ -50,9 +51,9 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
         this._commandDbContext.SaveChanges();
     }
 
-    public T? GetById(long id)
+    public T? GetById(Guid businessId)
     {
-        return _commandDbContext.Set<T>().Find(id);
+        return _commandDbContext.Set<T>().FirstOrDefault(entity => entity.BusinessId == businessId);
     }
 
     #endregion
@@ -76,17 +77,18 @@ public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
         await _commandDbContext.SaveChangesAsync(cancellationToken);
     }
 
-  
+
     public async Task<T?> GetByIdAsync(Guid businessId, CancellationToken cancellationToken = default)
     {
-        return await _commandDbContext.Set<T>().FindAsync(new object[] { businessId }, cancellationToken);
+        return await _commandDbContext.Set<T>()
+            .FirstOrDefaultAsync(entity => entity.BusinessId == businessId, cancellationToken);
     }
 
-    
+
     public async Task DeleteAsync(Guid businessId, CancellationToken cancellationToken = default)
     {
         var dbSet = this._commandDbContext.Set<T>();
-        var entity = await dbSet.FindAsync(businessId);
+        var entity = await dbSet.FirstOrDefaultAsync(entity => entity.BusinessId == businessId, cancellationToken);
 
         var entityType = typeof(T);
 
