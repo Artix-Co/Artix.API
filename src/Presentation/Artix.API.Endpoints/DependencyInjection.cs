@@ -50,5 +50,6 @@ public static class DependencyInjection
 
         app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
         app.UseMiddleware<ApiResponseWrappingMiddleware>();
+      
     }
 }

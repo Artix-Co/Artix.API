@@ -29,13 +29,9 @@ builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true; // فعال‌سازی برای HTTPS
     options.Providers.Add<GzipCompressionProvider>(); // استفاده از Gzip
-    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
-    {
-        "application/json", // فشرده‌سازی پاسخ‌های JSON
-        "text/plain",
-        "text/html",
-        "application/xml"
-    });
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
+        "application/json"
+    ]);
 });
 
 
@@ -84,13 +80,13 @@ app.UseExceptionHandler(config =>
         await context.Response.WriteAsync(result);
     });
 });
-
+app.UseResponseCompression();
 app.UseCustomMiddlewares(app.Environment);
 
 Log.Logger.Information("Application started!");
 
 var isDevelopment = app.Environment.IsDevelopment();
-if (true)
+if (true) // TODO: fix condition
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -128,7 +124,9 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     }
 });
 
-app.UseResponseCompression();
+
+
+
 app.UseResponseCaching();
 app.Use(async (context, next) =>
 {
@@ -136,10 +134,10 @@ app.Use(async (context, next) =>
     {
         context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
         {
-            Public = true,
-            MaxAge = TimeSpan.FromSeconds(60) // کش 60 ثانیه‌ای برای پاسخ‌ها
+            Public = true, MaxAge = TimeSpan.FromSeconds(60) // کش 60 ثانیه‌ای برای پاسخ‌ها
         };
     }
+
     await next();
 });
 
