@@ -1,7 +1,5 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.Logout;
 
-using System.Security.Claims;
-using Contract.Features.Users.Queries;
 using Contract.Features.Users.Queries.Logout;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Authentication;
@@ -9,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
+ 
 
 // TODO: develop validator for this handler
 internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>

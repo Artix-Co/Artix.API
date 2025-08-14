@@ -8,6 +8,7 @@ using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.RabbitMQ;
 using Core.DomainService;
+using Elastic.Serilog.Sinks;
 using Endpoints;
 using Filters;
 using Infra.File;
@@ -19,6 +20,7 @@ using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
+using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
 
 public static class HostingExtension
 {

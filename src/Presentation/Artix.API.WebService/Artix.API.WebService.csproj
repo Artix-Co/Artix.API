@@ -4,12 +4,26 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
+    
+    
     <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+    <PackageReference Include="RedLock.net"/>
+    <PackageReference Include="Elastic.Serilog.Sinks"/>
+    <PackageReference Include="Elasticsearch.Net"/>
+
+    <PackageReference Include="NEST"/>
+    <PackageReference Include="Serilog"/>
+    <PackageReference Include="Serilog.AspNetCore"/>
+    <PackageReference Include="Serilog.Settings.Configuration"/>
+    <PackageReference Include="Serilog.Sinks.Console"/>
+    <PackageReference Include="Serilog.Sinks.Elasticsearch"/>
+    <PackageReference Include="Swashbuckle.AspNetCore"/>
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations"/>
+
   </ItemGroup>
 
 
@@ -18,9 +32,9 @@
     <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
     <ProjectReference Include="..\..\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
     <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj" />
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj" />
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj"/>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj"/>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj"/>
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj"/>
     <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj"/>
   </ItemGroup>

@@ -4,11 +4,12 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+      <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="EFCore.BulkExtensions" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+    
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
 
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

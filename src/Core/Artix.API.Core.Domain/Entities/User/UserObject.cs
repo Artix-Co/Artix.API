@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
-using Elastic.CommonSchema;
-using Exceptions;
+ 
+ 
 using Museum;
 
 public class UserObject : BaseEntity

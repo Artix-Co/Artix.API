@@ -1,13 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+<!--    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Configuration"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Configuration.Binder"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Configuration.Json"/>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions"/>-->
+<!--    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions"/>-->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
+  </ItemGroup>
+
 
 </Project>

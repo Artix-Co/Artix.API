@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Objects.Commands.Upgrade;
 
-using Microsoft.AspNetCore.Http;
+ 
 using Primitives.Handlers;
 
 public sealed class UpgradeObjectCommand: ICommand

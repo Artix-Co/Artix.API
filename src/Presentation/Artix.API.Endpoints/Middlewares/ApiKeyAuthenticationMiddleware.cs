@@ -3,11 +3,11 @@
 using System.Text.Json;
 using Core.Contract.Configs.AuthenticationApi;
 using Core.Contract.Primitives.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 internal sealed class ApiKeyAuthenticationMiddleware
 {
