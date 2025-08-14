@@ -5,9 +5,11 @@ using Core.Contract.Features.Versions.Queries.GetLast;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Version;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 internal sealed class ApiVersionCheckMiddleware
@@ -15,13 +17,15 @@ internal sealed class ApiVersionCheckMiddleware
     private readonly RequestDelegate _next;
     private readonly IMemoryCache _cache;
     private readonly ILogger<ApiVersionCheckMiddleware> _logger;
+    private readonly IWebHostEnvironment _environment;
 
     public ApiVersionCheckMiddleware(RequestDelegate next, IMemoryCache cache,
-        ILogger<ApiVersionCheckMiddleware> logger)
+        ILogger<ApiVersionCheckMiddleware> logger, IWebHostEnvironment environment)
     {
-        _next = next ?? throw new ArgumentNullException(nameof(next));
-        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _next = next;
+        _cache = cache;
+        _logger = logger;
+        _environment = environment;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -29,6 +33,13 @@ internal sealed class ApiVersionCheckMiddleware
         if (context.Request.Path.StartsWithSegments("/swagger"))
         {
             _logger.LogDebug("Skipping version check for Swagger request to {Path}", context.Request.Path);
+            await _next(context);
+            return;
+        }
+
+        if (!_environment.IsProduction())
+        {
+            _logger.LogDebug("Skipping API version checking in {Environment}", _environment.EnvironmentName);
             await _next(context);
             return;
         }
