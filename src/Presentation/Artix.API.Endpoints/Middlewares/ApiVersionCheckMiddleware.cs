@@ -8,69 +8,110 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 internal sealed class ApiVersionCheckMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IMemoryCache _cache;
+    private readonly ILogger<ApiVersionCheckMiddleware> _logger;
 
-    public ApiVersionCheckMiddleware(RequestDelegate next, IMemoryCache cache)
+    public ApiVersionCheckMiddleware(RequestDelegate next, IMemoryCache cache,
+        ILogger<ApiVersionCheckMiddleware> logger)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         if (context.Request.Path.StartsWithSegments("/swagger"))
         {
+            _logger.LogDebug("Skipping version check for Swagger request to {Path}", context.Request.Path);
             await _next(context);
             return;
         }
 
-        var shouldContinue = await CheckVersionAsync(context);
-        if (!shouldContinue)
-            return; // پاسخ داده شده، جریان رو متوقف کن
+        try
+        {
+            var shouldContinue = await CheckVersionAsync(context);
+            if (!shouldContinue)
+            {
+                _logger.LogWarning("Request to {Path} stopped due to version check failure", context.Request.Path);
+                return;
+            }
 
-        await _next(context);
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error in API version check middleware for request to {Path}",
+                context.Request.Path);
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = "An unexpected error occurred", code = "InternalServerError"
+            });
+        }
     }
 
     private async Task<bool> CheckVersionAsync(HttpContext context)
     {
         if (!context.Request.Headers.TryGetValue("X-App-Version", out var clientVersionString))
         {
+            _logger.LogWarning("Missing X-App-Version header for request to {Path}", context.Request.Path);
             await WriteResponseAsync(context, StatusCodes.Status400BadRequest, "App version header is missing");
             return false;
         }
 
+        _logger.LogDebug("Received client version {Version} for request to {Path}", clientVersionString,
+            context.Request.Path);
+
         if (!TryParseVersion(clientVersionString, out var clientVersion))
         {
+            _logger.LogWarning("Invalid version format '{Version}' for request to {Path}", clientVersionString,
+                context.Request.Path);
             await WriteResponseAsync(context, StatusCodes.Status400BadRequest, "Invalid version format");
             return false;
         }
 
         if (!_cache.TryGetValue("LatestAppVersion", out LastVersionDto latestVersion))
         {
+            _logger.LogInformation("Fetching latest app version from database for request to {Path}",
+                context.Request.Path);
+
             using var scope = context.RequestServices.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             latestVersion = await mediator.Send(new GetLastVersionQuery(), context.RequestAborted);
 
             if (latestVersion != null)
+            {
                 _cache.Set("LatestAppVersion", latestVersion, TimeSpan.FromMinutes(10));
+                _logger.LogDebug("Cached latest app version {LatestVersion}", latestVersion.VersionString);
+            }
+        }
+        else
+        {
+            _logger.LogDebug("Loaded latest app version {LatestVersion} from cache", latestVersion.VersionString);
         }
 
         if (latestVersion == null)
         {
+            _logger.LogError("No active version found in database for request to {Path}", context.Request.Path);
             await WriteResponseAsync(context, StatusCodes.Status500InternalServerError, "No active version found");
             return false;
         }
 
         if (RequiresUpdate(clientVersion, latestVersion))
         {
+            _logger.LogWarning("Client version {ClientVersion} is outdated. Latest version is {LatestVersion}",
+                clientVersionString, latestVersion.VersionString);
             await WriteResponseAsync(context, StatusCodes.Status426UpgradeRequired, "App version is outdated");
             return false;
         }
 
+        _logger.LogInformation("Client version {ClientVersion} is up-to-date", clientVersionString);
         return true;
     }
 
@@ -81,7 +122,6 @@ internal sealed class ApiVersionCheckMiddleware
         var wrapped = new BaseApiResponse<object> { IsSuccess = false, Message = message, Errors = null };
         await context.Response.WriteAsync(JsonSerializer.Serialize(wrapped));
     }
-
 
     private bool TryParseVersion(string versionString, out AppVersion clientVersion)
     {
@@ -104,16 +144,16 @@ internal sealed class ApiVersionCheckMiddleware
             !int.TryParse(latestVersionParts[1], out var latestMinor) ||
             !int.TryParse(latestVersionParts[2], out var latestPatch))
         {
-            return false; // اگر نسخه سرور معتبر نیست، آپدیت اجباری نمی‌کنیم
+            _logger.LogWarning("Latest version string {LatestVersion} is invalid. Skipping update requirement check.",
+                latestVersion.VersionString);
+            return false;
         }
 
-        // مقایسه نسخه‌ها
         bool isNewer = latestMajor > clientVersion.Major ||
                        (latestMajor == clientVersion.Major && latestMinor > clientVersion.Minor) ||
                        (latestMajor == clientVersion.Major && latestMinor == clientVersion.Minor &&
                         latestPatch > clientVersion.Patch);
 
-        // نیاز به آپدیت اگر نسخه اجباری باشد یا نسخه کلاینت پایین‌تر از حداقل پشتیبانی‌شده باشد
         return isNewer && (latestVersion.IsRequired || !latestVersion.MinSupported);
     }
 }
