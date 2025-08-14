@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
+using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
 using Core.Domain.Entities.Museum;

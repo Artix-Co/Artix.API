@@ -4,7 +4,7 @@ using Core.Domain.Entities.File;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed partial class FileWriteConfiguration : BaseEntityConfiguration<File>
+internal sealed class FileWriteConfiguration : BaseEntityConfiguration<File>
 {
     public override void Configure(EntityTypeBuilder<File> entity)
     {

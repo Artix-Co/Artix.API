@@ -2,8 +2,8 @@
 
 using Type = Core.Domain.Entities.Museum.Type;
 using Object = Core.Domain.Entities.Museum.Object;
-using Artix.API.Core.Domain.Entities.Museum;
-using Artix.API.Core.Domain.Entities.User;
+using Core.Domain.Entities.Museum;
+using Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.ValueObjects;
+using Core.Domain.Entities.Version;
 using DbContexts;
 
 public static class DataSeeder
@@ -97,7 +98,7 @@ public static class DataSeeder
             }
         }
 
-        await context.SaveChangesAsync();
+       
 
         #endregion
 
@@ -111,7 +112,7 @@ public static class DataSeeder
         }
 
         context.Types.AddRange(categories);
-        await context.SaveChangesAsync(); // Save to generate Category IDs
+        // Save to generate Category IDs
 
         #endregion
 
@@ -128,7 +129,7 @@ public static class DataSeeder
         };
 
         context.HistoricalPeriods.AddRange(historicalPeriods);
-        await context.SaveChangesAsync(); // Save to generate HistoricalPeriod IDs
+        // Save to generate HistoricalPeriod IDs
 
         #endregion
 
@@ -142,7 +143,7 @@ public static class DataSeeder
         }
 
         context.Museums.AddRange(museums);
-        await context.SaveChangesAsync(); // Save to generate Museum IDs
+        // Save to generate Museum IDs
 
         #endregion
 
@@ -183,7 +184,7 @@ public static class DataSeeder
         };
 
         context.Objects.AddRange(objects);
-        await context.SaveChangesAsync(); // Save to generate Object IDs
+        // Save to generate Object IDs
 
         #endregion
 
@@ -197,7 +198,7 @@ public static class DataSeeder
         }
 
         context.ObjectTypes.AddRange(objectTypes);
-        await context.SaveChangesAsync(); // Save to generate ObjectType relationships
+        // Save to generate ObjectType relationships
 
         #endregion
 
@@ -212,7 +213,7 @@ public static class DataSeeder
         }
 
         context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
-        await context.SaveChangesAsync(); // Save to generate ObjectHistoricalPeriod relationships
+        // Save to generate ObjectHistoricalPeriod relationships
 
         #endregion
 
@@ -234,9 +235,25 @@ public static class DataSeeder
         }
 
         context.MuseumObjects.AddRange(museumObjects);
-        await context.SaveChangesAsync(); // Save MuseumObjects
+        // Save MuseumObjects
 
         #endregion
+
+        #region Seed Version
+
+        var appVersions = new List<AppVersion>
+        {
+            AppVersion.Create(1, 0, 0, true, false, "First Version On Development Environment"),
+            AppVersion.Create(1, 0, 1, true, false, "First Version On Development Environment"),
+            AppVersion.Create(1, 0, 2, true, false, "First Version On Development Environment"),
+            AppVersion.Create(1, 0, 3, true, true,  "First Version On Development Environment") // Only supported version
+        };
+
+        context.AppVersions.AddRange(appVersions);
+        await context.SaveChangesAsync();
+
+        #endregion
+
     }
 
     private static async Task<bool> IsDatabaseSeededAsync(ArtixCommandDbContext context)

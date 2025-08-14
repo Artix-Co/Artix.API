@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-public class ApiKeyAuthenticationMiddleware
+internal sealed class ApiKeyAuthenticationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IWebHostEnvironment _environment;
@@ -36,7 +36,6 @@ public class ApiKeyAuthenticationMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Skip middleware for Swagger endpoints
         if (context.Request.Path.StartsWithSegments("/swagger"))
         {
             await _next(context);
@@ -45,7 +44,6 @@ public class ApiKeyAuthenticationMiddleware
 
         try
         {
-            // فقط در پروداکشن و وقتی RequireApiKeyInProduction=true باشد، احراز هویت لازم است
             if (!_environment.IsProduction() || !_authSettings.RequireApiKeyInProduction)
             {
                 _logger.LogDebug("Skipping API key authentication in {Environment}", _environment.EnvironmentName);
@@ -53,45 +51,18 @@ public class ApiKeyAuthenticationMiddleware
                 return;
             }
 
-            // بررسی وجود هدر ApiKey
             if (!context.Request.Headers.TryGetValue("ApiKey", out var apiKeyHeader) ||
                 string.IsNullOrEmpty(apiKeyHeader))
             {
-                _logger.LogWarning("Authentication ApiKey header missing or empty in request to {Path}",
-                    context.Request.Path);
-
-
-                var wrapped = new BaseApiResponse<object>
-                {
-                    IsSuccess = false, Message = "Missing auth header", Errors = null
-                };
-
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-                var wrappedJson = JsonSerializer.Serialize(wrapped);
-
-                await context.Response.WriteAsync(wrappedJson);
-
-
+                _logger.LogWarning("Authentication ApiKey header missing or empty in request to {Path}", context.Request.Path);
+                await WriteResponseAsync(context, StatusCodes.Status401Unauthorized, "Missing auth header");
                 return;
             }
 
-            // بررسی صحت کلید
             if (!string.Equals(apiKeyHeader, _authSettings.ApiKey, StringComparison.Ordinal))
             {
                 _logger.LogWarning("Invalid API key provided for request to {Path}", context.Request.Path);
-
-
-                var wrapped = new BaseApiResponse<object>
-                {
-                    IsSuccess = false, Message = "Invalid API key", Errors = null
-                };
-
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-                var wrappedJson = JsonSerializer.Serialize(wrapped);
-
-                await context.Response.WriteAsync(wrappedJson);
+                await WriteResponseAsync(context, StatusCodes.Status401Unauthorized, "Invalid API key");
                 return;
             }
 
@@ -100,13 +71,22 @@ public class ApiKeyAuthenticationMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error in API key authentication middleware for request to {Path}",
-                context.Request.Path);
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                error = "An unexpected error occurred", code = "InternalServerError"
-            });
+            _logger.LogError(ex, "Unexpected error in API key authentication middleware for request to {Path}", context.Request.Path);
+            await WriteResponseAsync(context, StatusCodes.Status500InternalServerError, "An unexpected error occurred");
         }
     }
+
+    private static async Task WriteResponseAsync(HttpContext context, int statusCode, string message)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json";
+        var wrapped = new BaseApiResponse<object>
+        {
+            IsSuccess = false,
+            Message = message,
+            Errors = null
+        };
+        await context.Response.WriteAsync(JsonSerializer.Serialize(wrapped));
+    }
 }
+

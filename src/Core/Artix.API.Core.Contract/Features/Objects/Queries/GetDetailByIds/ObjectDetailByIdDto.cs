@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Objects.Queries.GetDetailByIds;
 
-using Domain.Entities.ValueObjects;
+using Museums.Queries.GetObjects;
 
 public sealed class ObjectDetailByIdDto
 {
@@ -14,11 +14,4 @@ public sealed class ObjectDetailByIdDto
     public List<HistoricalPeriodDto> HistoricalPeriods { get; set; }
 }
 
-public sealed class HistoricalPeriodDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public string? Description { get; set; }
-    public HistoricalDate? StartDate { get; set; }
-    public HistoricalDate? EndDate { get; set; }
-}
+ 

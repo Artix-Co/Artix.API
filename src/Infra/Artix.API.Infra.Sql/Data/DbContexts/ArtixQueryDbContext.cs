@@ -7,6 +7,7 @@ using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
+using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -59,6 +60,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<File> Files { get; set; }
     public DbSet<VoiceTrackFile> VoiceTrackFiles { get; set; }
     public DbSet<VoiceTrack> VoiceTracks { get; set; }
+    public DbSet<AppVersion> AppVersions { get; set; }
 
     #endregion
 
