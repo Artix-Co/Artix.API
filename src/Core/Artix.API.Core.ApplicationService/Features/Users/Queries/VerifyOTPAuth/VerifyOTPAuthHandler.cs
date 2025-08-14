@@ -6,6 +6,7 @@ using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
 using Primitives;
 using Domain.Entities.User;
 using Contract.Features.Users.Queries.VerifyOTPAuth;
+using Domain.Entities.User.Enums;
 using Exceptions;
 using Infra.Identity.Interfaces.LoginHistory;
 using Infra.Identity.Interfaces.TokenProvider;
@@ -46,8 +47,8 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
     public override async Task<VerifyOTPAuthDto> Handle(GetVerifyOTPAuthQuery query,
         CancellationToken cancellationToken)
     {
-        const string CLIENT_ROLE = "Client";
-        const string CLIENT_CLAIM = "Emerald";
+        const string ROLE = nameof(Role.Client);
+        const string CLAIM = nameof(ClientType.Emerald);
 
 
         var otpDto = await this._otpQueryRepository.GetLatestByPhoneNumberAsync(
@@ -71,11 +72,10 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
 
         if (otp.Purpose == "Registration" && user == null)
         {
-  
-            var roleExists = await _roleManager.RoleExistsAsync(CLIENT_ROLE);
+            var roleExists = await _roleManager.RoleExistsAsync(ROLE);
             if (!roleExists)
             {
-                var roleCreateResult = await _roleManager.CreateAsync(new AppRole(CLIENT_ROLE));
+                var roleCreateResult = await _roleManager.CreateAsync(new AppRole(ROLE));
                 if (!roleCreateResult.Succeeded)
                     throw new ApplicationException("Failed to create Client role: " +
                                                    string.Join(", ",
@@ -97,14 +97,14 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                                                string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
             // Assign Client role
-            var roleResult = await _userManager.AddToRoleAsync(newUser, CLIENT_ROLE);
+            var roleResult = await _userManager.AddToRoleAsync(newUser, ROLE);
             if (!roleResult.Succeeded)
                 throw new ApplicationException("Role assignment failed: " +
                                                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 
             // Add ClientType claim for Emerald
             var claimResult =
-                await _userManager.AddClaimAsync(newUser, new System.Security.Claims.Claim("ClientType", CLIENT_CLAIM));
+                await _userManager.AddClaimAsync(newUser, new System.Security.Claims.Claim("ClientType", CLAIM));
             if (!claimResult.Succeeded)
                 throw new ApplicationException("Claim assignment failed: " +
                                                string.Join(", ", claimResult.Errors.Select(e => e.Description)));
@@ -141,7 +141,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 throw new ApplicationException("User does not have the required Client role.");
 
             var claims = await _userManager.GetClaimsAsync(user);
-            if (!claims.Any(c => c.Type == "ClientType" && c.Value == CLIENT_CLAIM))
+            if (!claims.Any(c => c.Type == "ClientType" && c.Value == CLAIM))
                 throw new ApplicationException("User does not have the required ClientType claim: Emerald.");
 
             // Sign in user

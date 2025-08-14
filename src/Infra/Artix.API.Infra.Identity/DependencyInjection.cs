@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
 using Core.Domain.Entities.User;
+using Core.Domain.Entities.User.Enums;
 using Interfaces.LoginHistory;
 using Interfaces.TokenProvider;
 using Interfaces.TokenService;
@@ -92,31 +93,31 @@ public static class DependencyInjection
         {
             // Policy for all Clients (regardless of ClientType)
             options.AddPolicy("ClientPolicy", policy =>
-                policy.RequireRole("Client"));
+                policy.RequireRole(nameof(Role.Client)));
 
             // Policy for Admin
             options.AddPolicy("AdminPolicy", policy =>
-                policy.RequireRole("Admin"));
+                policy.RequireRole(nameof(Role.Admin)));
 
             // Policy for Emerald Clients
             options.AddPolicy("EmeraldClientPolicy", policy =>
-                policy.RequireRole("Client").RequireClaim("ClientType", "Emerald"));
+                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Emerald)));
 
             // Policy for Ruby Clients
             options.AddPolicy("RubyClientPolicy", policy =>
-                policy.RequireRole("Client").RequireClaim("ClientType", "Ruby"));
+                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Ruby)));
 
             // Policy for Turquoise Clients
             options.AddPolicy("TurquoiseClientPolicy", policy =>
-                policy.RequireRole("Client").RequireClaim("ClientType", "Turquoise"));
+                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Turquoise)));
 
             // Policy for Pro Clients
             options.AddPolicy("ProClientPolicy", policy =>
-                policy.RequireRole("Client").RequireClaim("ClientType", "Pro"));
+                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Pro)));
 
             // Optional: Policy for any user with a specific ClientType (if needed)
             options.AddPolicy("AnyClientTypePolicy", policy =>
-                policy.RequireClaim("ClientType", "Emerald", "Ruby", "Turquoise", "Pro"));
+                policy.RequireClaim("ClientType", nameof(ClientType.Emerald), nameof(ClientType.Ruby), nameof(ClientType.Turquoise), nameof(ClientType.Pro)));
         });
 
         services.AddScoped<IUserLoginHistoryService, UserLoginHistoryService>();

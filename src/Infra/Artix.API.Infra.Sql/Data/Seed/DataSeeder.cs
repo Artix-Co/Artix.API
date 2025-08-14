@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.ValueObjects;
 using Core.Domain.Entities.Version;
 using DbContexts;
@@ -34,8 +35,8 @@ public static class DataSeeder
 
         #region Seed Users | Roles | Claims and Friendship
 
-// Simplified roles: Use "Client" as base role, and claims for client types
-        List<string> roles = new List<string>() { "Client", "Admin", };
+        
+        var roles = Enum.GetNames(typeof(Role)).ToList();
         foreach (var role in roles)
         {
             var roleExists = await roleManager.RoleExistsAsync(role);
@@ -49,8 +50,8 @@ public static class DataSeeder
             }
         }
 
-// Define client types for claims
-        List<string> clientTypes = new List<string>() { "Emerald", "Ruby", "Turquoise", "Pro" };
+        // Define client types for claims
+        var clientTypes = Enum.GetNames(typeof(ClientType)).ToList();
 
         var users = new List<AppUser>();
         for (int i = 0; i < USER_SEED_COUNT; i++)
