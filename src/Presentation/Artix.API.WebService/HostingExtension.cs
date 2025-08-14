@@ -51,6 +51,7 @@ public static class HostingExtension
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
         services.Configure<FileSettings>(configuration.GetSection("FileSettings"));
         services.Configure<AuthenticationApiSettings>(configuration.GetSection("AuthenticationApi"));
+        services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
 
 
         // Configure Elasticsearch

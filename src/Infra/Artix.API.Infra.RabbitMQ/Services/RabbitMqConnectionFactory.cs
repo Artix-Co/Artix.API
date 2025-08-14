@@ -8,14 +8,14 @@ public class RabbitMqConnectionFactory
 {
     private readonly ConnectionFactory _factory;
 
-    public RabbitMqConnectionFactory()
+    public RabbitMqConnectionFactory(IOptions<RabbitMqOptions> options)
     {
         _factory = new ConnectionFactory
         {
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "admin",
-            Password = "admin",
+            HostName = options.Value.Host,
+            Port = options.Value.Port,
+            UserName = options.Value.Username,
+            Password = options.Value.Password,
             DispatchConsumersAsync = true
         };
     }
