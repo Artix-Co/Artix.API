@@ -1,10 +1,10 @@
-﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
+﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
 
-using Core.Domain.Entities.Version;
+using Artix.API.Core.Domain.Entities.Version;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class AppVersionWriteConfiguration : BaseEntityConfiguration<AppVersion>
+internal sealed class AppVersionReadConfiguration : BaseEntityConfiguration<AppVersion>
 {
     public override void Configure(EntityTypeBuilder<AppVersion> builder)
     {
