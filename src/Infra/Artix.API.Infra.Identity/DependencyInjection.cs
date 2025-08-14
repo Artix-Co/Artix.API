@@ -88,7 +88,36 @@ public static class DependencyInjection
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            // Policy for all Clients (regardless of ClientType)
+            options.AddPolicy("ClientPolicy", policy =>
+                policy.RequireRole("Client"));
+
+            // Policy for Admin
+            options.AddPolicy("AdminPolicy", policy =>
+                policy.RequireRole("Admin"));
+
+            // Policy for Emerald Clients
+            options.AddPolicy("EmeraldClientPolicy", policy =>
+                policy.RequireRole("Client").RequireClaim("ClientType", "Emerald"));
+
+            // Policy for Ruby Clients
+            options.AddPolicy("RubyClientPolicy", policy =>
+                policy.RequireRole("Client").RequireClaim("ClientType", "Ruby"));
+
+            // Policy for Turquoise Clients
+            options.AddPolicy("TurquoiseClientPolicy", policy =>
+                policy.RequireRole("Client").RequireClaim("ClientType", "Turquoise"));
+
+            // Policy for Pro Clients
+            options.AddPolicy("ProClientPolicy", policy =>
+                policy.RequireRole("Client").RequireClaim("ClientType", "Pro"));
+
+            // Optional: Policy for any user with a specific ClientType (if needed)
+            options.AddPolicy("AnyClientTypePolicy", policy =>
+                policy.RequireClaim("ClientType", "Emerald", "Ruby", "Turquoise", "Pro"));
+        });
 
         services.AddScoped<IUserLoginHistoryService, UserLoginHistoryService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

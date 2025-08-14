@@ -31,16 +31,11 @@ public static class DataSeeder
 
         if (context == null) throw new ArgumentNullException(nameof(context));
 
-        #region Seed Users and Friendship
 
-        List<string> roles = new List<string>()
-        {
-            "Zomorrod_Client",
-            "Yaqut_Client",
-            "Firoozeh_Client",
-            "Pro_Client",
-            "Super_Admin",
-        };
+        #region Seed Users | Roles | Claims and Friendship
+
+// Simplified roles: Use "Client" as base role, and claims for client types
+        List<string> roles = new List<string>() { "Client", "Admin", };
         foreach (var role in roles)
         {
             var roleExists = await roleManager.RoleExistsAsync(role);
@@ -48,11 +43,14 @@ public static class DataSeeder
             {
                 var roleCreateResult = await roleManager.CreateAsync(new AppRole(role));
                 if (!roleCreateResult.Succeeded)
-                    throw new ApplicationException("Failed to create Client role: " +
+                    throw new ApplicationException("Failed to create role: " +
                                                    string.Join(", ",
                                                        roleCreateResult.Errors.Select(e => e.Description)));
             }
         }
+
+// Define client types for claims
+        List<string> clientTypes = new List<string>() { "Emerald", "Ruby", "Turquoise", "Pro" };
 
         var users = new List<AppUser>();
         for (int i = 0; i < USER_SEED_COUNT; i++)
@@ -66,15 +64,33 @@ public static class DataSeeder
             };
 
             var createResult = await userManager.CreateAsync(newUser, "Heli@ghar771379");
-            var roleResult = await userManager.AddToRoleAsync(newUser, roles[4]);
-
             if (!createResult.Succeeded)
                 throw new ApplicationException("User creation failed: " +
                                                string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
-            if (!roleResult.Succeeded)
-                throw new ApplicationException("Role assignment failed: " +
-                                               string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+            // Assign roles and claims based on index (for seeding variety)
+            if (i == 0) // Example: First user as Admin
+            {
+                var roleResult = await userManager.AddToRoleAsync(newUser, "Admin");
+                if (!roleResult.Succeeded)
+                    throw new ApplicationException("Role assignment failed: " +
+                                                   string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+            }
+            else // Others as Client with specific ClientType claim
+            {
+                var roleResult = await userManager.AddToRoleAsync(newUser, "Client");
+                if (!roleResult.Succeeded)
+                    throw new ApplicationException("Role assignment failed: " +
+                                                   string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+
+                // Cycle through client types for variety
+                var clientType = clientTypes[i % clientTypes.Count];
+                var claimResult = await userManager.AddClaimAsync(newUser,
+                    new System.Security.Claims.Claim("ClientType", clientType));
+                if (!claimResult.Succeeded)
+                    throw new ApplicationException("Claim assignment failed: " +
+                                                   string.Join(", ", claimResult.Errors.Select(e => e.Description)));
+            }
 
             users.Add(newUser);
         }
@@ -97,8 +113,6 @@ public static class DataSeeder
                 context.Friendships.Add(friendship);
             }
         }
-
-       
 
         #endregion
 
@@ -246,14 +260,13 @@ public static class DataSeeder
             AppVersion.Create(1, 0, 0, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 1, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 2, true, false, "First Version On Development Environment"),
-            AppVersion.Create(1, 0, 3, true, true,  "First Version On Development Environment") // Only supported version
+            AppVersion.Create(1, 0, 3, true, true, "First Version On Development Environment") // Only supported version
         };
 
         context.AppVersions.AddRange(appVersions);
         await context.SaveChangesAsync();
 
         #endregion
-
     }
 
     private static async Task<bool> IsDatabaseSeededAsync(ArtixCommandDbContext context)

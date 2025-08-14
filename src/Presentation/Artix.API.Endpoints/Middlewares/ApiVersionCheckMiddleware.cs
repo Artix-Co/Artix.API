@@ -69,9 +69,9 @@ internal sealed class ApiVersionCheckMiddleware
 
     private async Task<bool> CheckVersionAsync(HttpContext context)
     {
-        if (!context.Request.Headers.TryGetValue("X-App-Version", out var clientVersionString))
+        if (!context.Request.Headers.TryGetValue("x-app-version", out var clientVersionString))
         {
-            _logger.LogWarning("Missing X-App-Version header for request to {Path}", context.Request.Path);
+            _logger.LogWarning("Missing x-app-version header for request to {Path}", context.Request.Path);
             await WriteResponseAsync(context, StatusCodes.Status400BadRequest, "App version header is missing");
             return false;
         }

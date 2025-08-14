@@ -46,6 +46,10 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
     public override async Task<VerifyOTPAuthDto> Handle(GetVerifyOTPAuthQuery query,
         CancellationToken cancellationToken)
     {
+        const string CLIENT_ROLE = "Client";
+        const string CLIENT_CLAIM = "Emerald";
+
+
         var otpDto = await this._otpQueryRepository.GetLatestByPhoneNumberAsync(
             new GetLatestOTPByPhoneNumberQuery { PhoneNumber = query.PhoneNumber, OtpCode = query.OtpCode },
             cancellationToken);
@@ -64,14 +68,14 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.PhoneNumber == query.PhoneNumber, cancellationToken);
 
+
         if (otp.Purpose == "Registration" && user == null)
         {
-            // Ensure Client role exists
-            const string clientRole = "Zomorrod_Client";
-            var roleExists = await _roleManager.RoleExistsAsync(clientRole);
+  
+            var roleExists = await _roleManager.RoleExistsAsync(CLIENT_ROLE);
             if (!roleExists)
             {
-                var roleCreateResult = await _roleManager.CreateAsync(new AppRole(clientRole));
+                var roleCreateResult = await _roleManager.CreateAsync(new AppRole(CLIENT_ROLE));
                 if (!roleCreateResult.Succeeded)
                     throw new ApplicationException("Failed to create Client role: " +
                                                    string.Join(", ",
@@ -92,22 +96,32 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 throw new ApplicationException("User creation failed: " +
                                                string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
-            var roleResult = await _userManager.AddToRoleAsync(newUser, clientRole);
+            // Assign Client role
+            var roleResult = await _userManager.AddToRoleAsync(newUser, CLIENT_ROLE);
             if (!roleResult.Succeeded)
                 throw new ApplicationException("Role assignment failed: " +
                                                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 
+            // Add ClientType claim for Emerald
+            var claimResult =
+                await _userManager.AddClaimAsync(newUser, new System.Security.Claims.Claim("ClientType", CLIENT_CLAIM));
+            if (!claimResult.Succeeded)
+                throw new ApplicationException("Claim assignment failed: " +
+                                               string.Join(", ", claimResult.Errors.Select(e => e.Description)));
 
+            // Record login history
             await _userLoginHistoryService.RecordLoginAsync(
                 newUser,
                 _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
             );
+
+            // Generate JWT tokens
             var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(newUser, true, cancellationToken);
 
+            // Send welcome SMS (uncomment when ready)
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
-
 
             return new VerifyOTPAuthDto
             {
@@ -116,30 +130,36 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 AccessToken = tokenResult.AccessToken,
                 RefreshToken = tokenResult.RefreshToken,
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
-                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
+                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
             };
         }
         else if (otp.Purpose == "Login" && user != null)
         {
-            // Verify Client role
+            // Verify Client role and ClientType claim
             var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains("Client"))
+                throw new ApplicationException("User does not have the required Client role.");
 
-            // Sign in and generate JWT token
+            var claims = await _userManager.GetClaimsAsync(user);
+            if (!claims.Any(c => c.Type == "ClientType" && c.Value == CLIENT_CLAIM))
+                throw new ApplicationException("User does not have the required ClientType claim: Emerald.");
+
+            // Sign in user
             await _signInManager.SignInAsync(user, isPersistent: false);
 
-
+            // Record login history
             await _userLoginHistoryService.RecordLoginAsync(
                 user,
                 _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
             );
 
-
+            // Generate JWT tokens
             var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
-            var smsMessage = $"Welcome {user.DisplayName}! You are now registered.";
-            // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
-
+            // Send welcome SMS (uncomment when ready)
+            var smsMessage = $"Welcome back {user.DisplayName}! You are now logged in.";
+            // await _smsSender.SendAsync(user.PhoneNumber, smsMessage, cancellationToken);
 
             return new VerifyOTPAuthDto
             {
@@ -148,7 +168,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 AccessToken = tokenResult.AccessToken,
                 RefreshToken = tokenResult.RefreshToken,
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
-                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
+                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
             };
         }
         else

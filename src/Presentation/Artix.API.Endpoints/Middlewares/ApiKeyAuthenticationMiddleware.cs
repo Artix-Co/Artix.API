@@ -51,10 +51,10 @@ internal sealed class ApiKeyAuthenticationMiddleware
                 return;
             }
 
-            if (!context.Request.Headers.TryGetValue("ApiKey", out var apiKeyHeader) ||
+            if (!context.Request.Headers.TryGetValue("x-api-key", out var apiKeyHeader) ||
                 string.IsNullOrEmpty(apiKeyHeader))
             {
-                _logger.LogWarning("Authentication ApiKey header missing or empty in request to {Path}", context.Request.Path);
+                _logger.LogWarning("Authentication x-api-key header missing or empty in request to {Path}", context.Request.Path);
                 await WriteResponseAsync(context, StatusCodes.Status401Unauthorized, "Missing auth header");
                 return;
             }
