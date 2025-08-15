@@ -1,5 +1,7 @@
 ﻿namespace Artix.API.WebService;
 
+using System.IO.Compression;
+using System.Net;
 using Core.ApplicationService;
 using Core.Contract;
 using Core.Contract.Configs.Authentication;
@@ -15,39 +17,40 @@ using Infra.File;
 using Infra.Identity;
 using Infra.RabbitMQ;
 using Infra.Redis;
+using Infra.Redis.Services.LeaderElection;
 using Infra.Sql;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Nest;
+using RedLockNet;
+using RedLockNet.SERedis;
+using RedLockNet.SERedis.Configuration;
 using Serilog;
 using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
 
 public static class HostingExtension
 {
-    private static void AddElasticsearch(this IServiceCollection services, IConfiguration configuration)
-    {
-        var elasticsearchSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-
-
-        var resolvedIndexName = string.Format(elasticsearchSettings.IndexFormat, DateTime.UtcNow);
-
-        var settings = new ConnectionSettings(new Uri(elasticsearchSettings.Uri))
-            .DefaultIndex(resolvedIndexName)
-            .BasicAuthentication(elasticsearchSettings.Username, elasticsearchSettings.Password)
-            .RequestTimeout(TimeSpan.FromMinutes(elasticsearchSettings.RequestTimeoutInMinutes))
-            .EnableDebugMode();
-
-
-        var client = new ElasticClient(settings);
-
-        services.AddSingleton<IElasticClient>(client);
-
-        services.AddResponseCompression(options => { options.EnableForHttps = true; });
-    }
-
-
     public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
     {
-     // Configure Settings
+        // فعال‌سازی فشرده‌سازی پاسخ‌ها (Gzip)
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true; // فعال‌سازی برای HTTPS
+            options.Providers.Add<GzipCompressionProvider>(); // استفاده از Gzip
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
+                "application/json"
+            ]);
+        });
+
+
+// تنظیم سطح فشرده‌سازی Gzip
+        services.Configure<GzipCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.Optimal; // تعادل بین سرعت و میزان فشرده‌سازی
+        });
+        
+        // Configure Settings
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
         services.Configure<FileSettings>(configuration.GetSection("FileSettings"));
@@ -78,11 +81,11 @@ public static class HostingExtension
             options.IncludeSubDomains = true;
             options.Preload = true;
         });
-        
+
         // Configure Cache
         services.AddMemoryCache();
         services.AddResponseCaching();
-        
+
         services.AddRabbitMqService();
         services.AddIdentityService(configuration);
 
@@ -117,5 +120,40 @@ public static class HostingExtension
 
             options.OperationFilter<AuthorizeCheckOperationFilter>();
         });
+    }
+
+    public static void AddLoadBalancerOnDistributedLock(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<IDistributedLockFactory>(sp =>
+        {
+            var redisOptions = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+            var redisEndpoints = new[]
+            {
+                new RedLockEndPoint { EndPoint = new DnsEndPoint(redisOptions.Host, redisOptions.Port), Password = redisOptions.Password }
+            };
+            return RedLockFactory.Create(redisEndpoints);
+        });
+
+        services.AddSingleton<LeaderState>();
+    }
+    private static void AddElasticsearch(this IServiceCollection services, IConfiguration configuration)
+    {
+        var elasticsearchSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
+
+
+        var resolvedIndexName = string.Format(elasticsearchSettings.IndexFormat, DateTime.UtcNow);
+
+        var settings = new ConnectionSettings(new Uri(elasticsearchSettings.Uri))
+            .DefaultIndex(resolvedIndexName)
+            .BasicAuthentication(elasticsearchSettings.Username, elasticsearchSettings.Password)
+            .RequestTimeout(TimeSpan.FromMinutes(elasticsearchSettings.RequestTimeoutInMinutes))
+            .EnableDebugMode();
+
+
+        var client = new ElasticClient(settings);
+
+        services.AddSingleton<IElasticClient>(client);
+
+        services.AddResponseCompression(options => { options.EnableForHttps = true; });
     }
 }

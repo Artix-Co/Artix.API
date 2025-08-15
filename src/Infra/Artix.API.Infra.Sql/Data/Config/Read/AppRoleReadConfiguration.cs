@@ -8,7 +8,6 @@ internal sealed class AppRoleReadConfiguration : IEntityTypeConfiguration<AppRol
 {
     public void Configure(EntityTypeBuilder<AppRole> entity)
     {
-        entity.ToTable("AppRoles");
 
         entity.Property(e => e.Id)
             .ValueGeneratedOnAdd();

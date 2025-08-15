@@ -8,7 +8,6 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
 {
     public void Configure(EntityTypeBuilder<AppUser> entity)
     {
-        entity.ToTable("AppUsers");
 
         entity.Property(e => e.DisplayName)
             .HasMaxLength(100)

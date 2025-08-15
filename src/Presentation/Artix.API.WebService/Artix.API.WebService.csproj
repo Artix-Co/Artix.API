@@ -11,7 +11,7 @@
     
     
     <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-    <PackageReference Include="RedLock.net"/>
+  
     <PackageReference Include="Elastic.Serilog.Sinks"/>
     <PackageReference Include="Elasticsearch.Net"/>
 
