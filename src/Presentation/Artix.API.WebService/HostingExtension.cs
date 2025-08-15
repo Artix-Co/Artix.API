@@ -7,8 +7,8 @@ using Core.Contract.Configs.AuthenticationApi;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.RabbitMQ;
+using Core.Contract.Configs.Redis;
 using Core.DomainService;
-using Elastic.Serilog.Sinks;
 using Endpoints;
 using Filters;
 using Infra.File;
@@ -19,7 +19,6 @@ using Infra.Sql;
 using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
-using Serilog.Sinks.Elasticsearch;
 using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
 
 public static class HostingExtension
@@ -48,17 +47,16 @@ public static class HostingExtension
 
     public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure Authentication Settings
+     // Configure Settings
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
         services.Configure<FileSettings>(configuration.GetSection("FileSettings"));
         services.Configure<AuthenticationApiSettings>(configuration.GetSection("AuthenticationApi"));
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
-
+        services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
 
         // Configure Elasticsearch
         var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-
 
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
@@ -80,12 +78,10 @@ public static class HostingExtension
             options.IncludeSubDomains = true;
             options.Preload = true;
         });
-
-
+        
         // Configure Cache
         services.AddMemoryCache();
         services.AddResponseCaching();
-        
         
         services.AddRabbitMqService();
         services.AddIdentityService(configuration);
