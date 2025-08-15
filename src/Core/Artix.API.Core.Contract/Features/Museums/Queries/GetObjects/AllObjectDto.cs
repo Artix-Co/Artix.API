@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
 
-using Domain.Entities.ValueObjects;
+using Domain.ValueObjects;
 
 public sealed class AllObjectDto
 {

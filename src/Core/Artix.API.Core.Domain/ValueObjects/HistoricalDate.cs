@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Domain.Entities.ValueObjects;
+﻿namespace Artix.API.Core.Domain.ValueObjects;
 
 public class HistoricalDate
 {
@@ -8,10 +8,10 @@ public class HistoricalDate
 
     public HistoricalDate(int year, int month, int day)
     {
-        Year = year;
-        Month = month;
-        Day = day;
+        this.Year = year;
+        this.Month = month;
+        this.Day = day;
     }
 
-    public override string ToString() => Year < 0 ? $"{Math.Abs(Year)} BC" : $"{Year} AD";
+    public override string ToString() => this.Year < 0 ? $"{Math.Abs(this.Year)} BC" : $"{this.Year} AD";
 }

@@ -11,8 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.User.Enums;
-using Core.Domain.Entities.ValueObjects;
 using Core.Domain.Entities.Version;
+using Core.Domain.ValueObjects;
 using DbContexts;
 
 public static class DataSeeder
