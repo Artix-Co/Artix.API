@@ -4,5 +4,5 @@ using Primitives.Handlers;
 
 public sealed class GetMuseumObjectsQuery : IQuery<IEnumerable<MuseumObjectDto>>
 {
-    public long MuseumId { get; set; }
+    public Guid MuseumId { get; set; }
 }

@@ -88,8 +88,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     })
                 .Select(x => new MuseumByIdDto
                 {
-                    Id = x.Museum.Id,
                     Name = x.Museum.Name,
+                    BusinessId = x.Museum.BusinessId,
                     Description = x.Museum.Description,
                     CreatedAt = x.Museum.CreatedAt,
                     ModifiedAt = x.Museum.ModifiedAt,
@@ -125,7 +125,6 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             _logger.LogInformation("Fetching objects for museum ID: {MuseumId}", dto.MuseumId);
 
             var objects = await _queryDbContext.MuseumObjects
-                .Where(mo => mo.MuseumId == dto.MuseumId)
                 .Join(
                     _queryDbContext.Objects,
                     mo => mo.ObjectId,
@@ -135,16 +134,19 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     _queryDbContext.Museums,
                     x => x.MuseumObject.MuseumId,
                     m => m.Id,
-                    (x, m) => new MuseumObjectDto
-                    {
-                        Id = x.Object.BusinessId, // Object's BusinessId
-                        MuseumId = m.BusinessId, // Museum's BusinessId (Guid)
-                        Name = x.Object.Name,
-                        Description = x.Object.GeneralInformation,
-                        CreatedAt = x.Object.CreatedAt
-                    })
+                    (x, m) => new { x.Object, x.MuseumObject, Museum = m })
+                .Where(x => x.Museum.BusinessId == dto.MuseumId)
+                .Select(x => new MuseumObjectDto
+                {
+                    Id = x.Object.BusinessId,
+                    MuseumId = x.Museum.BusinessId,
+                    Name = x.Object.Name,
+                    Description = x.Object.GeneralInformation,
+                    CreatedAt = x.Object.CreatedAt
+                })
                 .OrderBy(dto => dto.Name)
                 .ToListAsync(cancellationToken);
+
 
             _logger.LogInformation("Successfully retrieved {Count} objects for museum ID {MuseumId}", objects.Count,
                 dto.MuseumId);
