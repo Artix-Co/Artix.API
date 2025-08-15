@@ -4,7 +4,7 @@ using Common;
 using Museum;
 using Voice;
 
-public class File : BaseEntity
+public class File : AggregateRoot
 {
     public string FileName { get; set; }
     public string FilePath { get; set; }

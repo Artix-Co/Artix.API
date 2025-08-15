@@ -1,9 +1,10 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
 using Common;
+using Events;
 using Exceptions;
 
-public class Museum : BaseEntity
+public class Museum : AggregateRoot
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -22,6 +23,8 @@ public class Museum : BaseEntity
         Name = name;
         Description = description;
         IsActive = isActive;
+        // تولید Domain Event در Constructor
+        RaiseDomainEvent(new MuseumCreatedEvent(BusinessId, name, description, isActive));
     }
 
     public static Museum Create(string name, string? description = null, bool isActive = true)
@@ -34,6 +37,8 @@ public class Museum : BaseEntity
         ValidateName(name);
         Name = name;
         Description = description;
+        
+        // RaiseDomainEvent(new MuseumUpdatedEvent(BusinessId, name, description));
     }
 
     public void Activate()

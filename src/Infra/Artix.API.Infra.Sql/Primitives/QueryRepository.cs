@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class QueryRepository<T> : IQueryRepository<T> where T : BaseEntity
 {
-    private readonly ArtixQueryDbContext _queryDbContext;
+    protected readonly ArtixQueryDbContext _queryDbContext;
 
     public QueryRepository(ArtixQueryDbContext queryDbContext)
     {

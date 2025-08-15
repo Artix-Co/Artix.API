@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Core.Domain.Entities.User;
+﻿namespace Artix.API.Core.Domain.Entities.OTP;
 
 using Common;
 
-public class OTP : BaseEntity
+public class OTP : AggregateRoot
 {
     public string PhoneNumber { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty; // 6-digit OTP
@@ -30,6 +30,6 @@ public class OTP : BaseEntity
 
     public bool IsValid(string code)
     {
-        return !IsUsed && DateTime.UtcNow <= ExpiresAt && Code == code;
+        return !this.IsUsed && DateTime.UtcNow <= this.ExpiresAt && this.Code == code;
     }
 }

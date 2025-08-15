@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Data.DbContexts;
 
 using System.Reflection;
+using System.Text.Json;
 using Artix.API.Core.Domain.Entities.Collection;
 using Artix.API.Core.Domain.Entities.Common;
 using Artix.API.Core.Domain.Entities.JournalEntry;
@@ -8,8 +9,10 @@ using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
+using Core.Domain.Entities.OTP;
 using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;
+using Core.Domain.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +26,6 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     AppUserToken>
 
 {
-  
-
     public ArtixCommandDbContext(DbContextOptions<ArtixCommandDbContext> options)
         : base(options)
     {
@@ -50,7 +51,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserObject> UserObjects { get; set; }
     public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
     public DbSet<UserStrike> UserStrikes { get; set; }
-    
+
     public DbSet<UserXp> UserXps { get; set; }
     public DbSet<OTP> OTPs { get; set; }
     public DbSet<UserLoginHistory> UserLoginHistories { get; set; }
@@ -68,6 +69,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<VoiceTrack> VoiceTracks { get; set; }
     public DbSet<VoiceTrackFile> VoiceTrackFiles { get; set; }
     public DbSet<AppVersion> AppVersions { get; set; }
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     #endregion
 
@@ -77,45 +79,72 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
         optionsBuilder.UseLazyLoadingProxies();
         base.OnConfiguring(optionsBuilder);
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
             type => type.Name.EndsWith("WriteConfiguration"));
     }
- 
-    #region SaveChanges
+
 
     public override int SaveChanges()
     {
-        this.UpdateTimestamps();
-
-
+        UpdateTimestamps();
+        ProcessDomainEvents();
         return base.SaveChanges();
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        this.UpdateTimestamps();
-
-
-        return base.SaveChangesAsync(cancellationToken);
+        UpdateTimestamps();
+        ProcessDomainEvents();
+        return await base.SaveChangesAsync(cancellationToken);
     }
 
     private void UpdateTimestamps()
     {
-        IEnumerable<EntityEntry>? entries = this.ChangeTracker.Entries()
-            .Where(e => e is { Entity: BaseEntity, State: EntityState.Added or EntityState.Modified });
+        var entries = ChangeTracker.Entries()
+            .Where(e => e.Entity is BaseEntity && (e.State == EntityState.Added || e.State == EntityState.Modified));
 
-        foreach (EntityEntry? entityEntry in entries)
+        foreach (var entityEntry in entries)
         {
             var entity = (BaseEntity)entityEntry.Entity;
-            if (entityEntry.State != EntityState.Modified) continue;
-            entity.ModifiedAt = DateTime.UtcNow;
-            entityEntry.Property(nameof(entity.CreatedAt)).IsModified = false;
+
+            if (entityEntry.State == EntityState.Added)
+            {
+                entityEntry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
+            }
+            else if (entityEntry.State == EntityState.Modified)
+            {
+                entityEntry.Property(nameof(BaseEntity.ModifiedAt)).CurrentValue = DateTime.UtcNow;
+                entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
+            }
         }
     }
 
-    #endregion
+    private void ProcessDomainEvents()
+    {
+        var aggregates = ChangeTracker.Entries<AggregateRoot>()
+            .Where(e => e.Entity.DomainEvents.Any())
+            .Select(e => e.Entity)
+            .ToList();
 
+        foreach (var aggregate in aggregates)
+        {
+            foreach (var @event in aggregate.DomainEvents)
+            {
+                var outboxMessage = new OutboxMessage
+                {
+                    Type = @event.GetType().FullName,
+                    Data = JsonSerializer.Serialize(@event),
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+                OutboxMessages.Add(outboxMessage);
+            }
+
+            aggregate.ClearDomainEvents();
+        }
+    }
 }

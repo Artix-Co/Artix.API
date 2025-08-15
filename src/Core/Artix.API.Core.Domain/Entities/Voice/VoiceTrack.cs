@@ -4,7 +4,7 @@ using Common;
 using Museum;
 using Season;
 
-public class VoiceTrack : BaseEntity
+public class VoiceTrack : AggregateRoot
 {
     public string? Title { get; set; }
     public string? Artist { get; set; }

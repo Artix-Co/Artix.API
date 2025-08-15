@@ -1,9 +1,12 @@
 ﻿namespace Artix.API.Infra.RabbitMQ;
 
 using Interfaces.Notification;
+using Interfaces.Outbox;
 using Microsoft.Extensions.DependencyInjection;
+using Services;
 using Services.Notification;
 using Services.Notification.Handlers;
+using Services.Outbox;
 
 public static class DependencyInjection
 {
@@ -25,6 +28,9 @@ public static class DependencyInjection
         services.AddTransient<INotificationHandler, EmailNotificationHandler>();
         services.AddTransient<INotificationHandler, SmsNotificationHandler>();
 
+        // ثبت IEventPublisher برای OutboxProcessor
+        services.AddScoped<IEventPublisher, RabbitMQEventPublisher>();
+        
         // Register NotificationConsumer as a hosted service
         services.AddHostedService<NotificationConsumer>(sp =>
         {
@@ -36,5 +42,7 @@ public static class DependencyInjection
 
             return new NotificationConsumer(factory, serializer, handler, queueName);
         });
+
+        services.AddHostedService<OutboxProcessor>();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
+﻿namespace Artix.API.Infra.RabbitMQ.Services;
 
 using Artix.API.Core.Contract.Configs.RabbitMQ;
 using global::RabbitMQ.Client;

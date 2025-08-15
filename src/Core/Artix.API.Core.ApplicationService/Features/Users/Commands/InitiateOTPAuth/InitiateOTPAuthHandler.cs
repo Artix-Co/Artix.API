@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.InitiateOTPAuth;
 
 using Contract.Features.Users.Commands.InitiateOTPAuth;
+using Domain.Entities.OTP;
 using Domain.Entities.User;
 using Infra.Sql.Data.DbContexts;
 using Microsoft.AspNetCore.Http;

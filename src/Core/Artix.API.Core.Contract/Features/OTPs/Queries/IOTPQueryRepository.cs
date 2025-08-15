@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.OTPs.Queries;
 
+using Domain.Entities.OTP;
 using Domain.Entities.User;
 using GetLatestByPhoneNumber;
 using Primitives.Repositories;

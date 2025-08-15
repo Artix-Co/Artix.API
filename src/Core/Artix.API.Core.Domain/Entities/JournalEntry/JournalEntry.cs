@@ -5,7 +5,7 @@ using Common;
 using Museum;
 using User;
 
-public class JournalEntry : BaseEntity
+public class JournalEntry : AggregateRoot
 {
     public long ObjectId { get; set; }
     public virtual MuseumObject Object { get; set; }

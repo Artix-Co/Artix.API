@@ -46,17 +46,15 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         if (userObject == null)
         {
-            userObject = UserObject.Create(user.Id, @object.Id);
-            userObject.RecordScan();
-            userObject.SetInCollection(true);
-            userObject.SetAcquiredAt(DateTime.UtcNow);
-            await this._userObjectCommandRepository.InsertAsync(userObject, cancellationToken);
+            // ایجاد UserObject جدید
+            userObject = @object.ProcessUserInteraction(user.Id, DateTime.UtcNow);
+            await _userObjectCommandRepository.InsertAsync(userObject, cancellationToken);
         }
         else
         {
-            userObject.RecordScan();
-            userObject.Upgrade();
-            await this._userObjectCommandRepository.UpdateAsync(userObject, cancellationToken);
+            // آپگرید UserObject موجود
+            @object.UpgradeUserObject(userObject);
+            await _userObjectCommandRepository.UpdateAsync(userObject, cancellationToken);
         }
 
         await this._museumCommandRepository.UpdateAsync(museum, cancellationToken);

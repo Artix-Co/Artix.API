@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.OTPs;
 
 using Core.Contract.Features.OTPs.Commands;
-using Core.Domain.Entities.User;
+using Core.Domain.Entities.OTP;
 using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;

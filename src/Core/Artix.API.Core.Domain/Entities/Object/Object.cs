@@ -2,10 +2,12 @@
 
 using Collection;
 using Common;
+using Entities.Object.Events;
 using Exceptions;
 using File;
+using User;
 
-public class Object : BaseEntity
+public class Object : AggregateRoot
 {
     public string Name { get; private set; }
     public string? QrCode { get; private set; }
@@ -422,5 +424,28 @@ public class Object : BaseEntity
         var allowedMimeTypes = new[] { "model/gltf-binary", "model/obj", "model/gltf+json" };
 
         return file is not null && allowedMimeTypes.Contains(file.MimeType);
+    }
+
+    public UserObject ProcessUserInteraction(long userId, DateTime acquiredAt)
+    {
+        var userObject = UserObject.Create(userId, this.Id);
+
+        userObject.RecordScan();
+        userObject.SetInCollection(true);
+        userObject.SetAcquiredAt(acquiredAt);
+        RaiseDomainEvent(new UserObjectCreatedEvent(BusinessId, userId, this.Id, 1, acquiredAt, true));
+        return userObject;
+    }
+
+    public void UpgradeUserObject(UserObject userObject)
+    {
+        // TODO: user layer exception
+        if (userObject == null)
+            throw new ArgumentNullException(nameof(userObject));
+
+        userObject.RecordScan();
+        userObject.Upgrade();
+        RaiseDomainEvent(new UserObjectUpgradedEvent(BusinessId, userObject.UserId, userObject.ObjectId,
+            userObject.ScanCount, true));
     }
 }

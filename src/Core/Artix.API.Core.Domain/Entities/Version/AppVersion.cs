@@ -5,7 +5,7 @@ using Common;
 using System;
 using System.ComponentModel.DataAnnotations;
 
-public class AppVersion : BaseEntity
+public class AppVersion : AggregateRoot
 {
     // فیلدهای اصلی برای نسخه‌گذاری (Semantic Versioning)
     public int Major { get; private set; }

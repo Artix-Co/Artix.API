@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.OTPs.Commands;
 
+using Domain.Entities.OTP;
 using Domain.Entities.User;
 using Primitives.Repositories;
 

@@ -2,7 +2,7 @@
 
 using Core.Contract.Features.OTPs.Queries;
 using Core.Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
-using Core.Domain.Entities.User;
+using Core.Domain.Entities.OTP;
 using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;

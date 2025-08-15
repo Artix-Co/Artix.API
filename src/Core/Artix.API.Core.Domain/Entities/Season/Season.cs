@@ -4,7 +4,7 @@ using Common;
 using Exceptions;
 using User;
 
-public class Season : BaseEntity
+public class Season : AggregateRoot
 {
     public string? Name { get; private set; }
     public DateOnly? StartDate { get; private set; }
