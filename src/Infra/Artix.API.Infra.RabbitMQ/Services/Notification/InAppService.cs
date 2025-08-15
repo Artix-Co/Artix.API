@@ -1,7 +1,7 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Services;
+﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
-using Interfaces;
-using Models;
+using Artix.API.Infra.RabbitMQ.Interfaces.Notification;
+using Artix.API.Infra.RabbitMQ.Models.Notification;
 
 public class InAppService : IInAppService
 {

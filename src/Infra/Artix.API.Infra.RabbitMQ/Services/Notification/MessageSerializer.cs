@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Services;
+﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
 using System.Text;
 using System.Text.Json;
-using Interfaces;
+using Artix.API.Infra.RabbitMQ.Interfaces.Notification;
 
 public class MessageSerializer : IMessageSerializer
 {
@@ -10,12 +10,12 @@ public class MessageSerializer : IMessageSerializer
 
     public ReadOnlyMemory<byte> Serialize<T>(T obj)
     {
-        var json = JsonSerializer.Serialize(obj, _options);
+        var json = JsonSerializer.Serialize(obj, this._options);
         return Encoding.UTF8.GetBytes(json);
     }
 
     public T Deserialize<T>(ReadOnlyMemory<byte> payload)
     {
-        return JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(payload.Span), _options)!;
+        return JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(payload.Span), this._options)!;
     }
 }

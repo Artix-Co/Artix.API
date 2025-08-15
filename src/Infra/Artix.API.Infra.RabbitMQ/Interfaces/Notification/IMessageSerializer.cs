@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Interfaces;
+﻿namespace Artix.API.Infra.RabbitMQ.Interfaces.Notification;
 
 public interface IMessageSerializer
 {

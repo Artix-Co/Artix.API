@@ -1,6 +1,6 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Services;
+﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
-using Core.Contract.Configs.RabbitMQ;
+using Artix.API.Core.Contract.Configs.RabbitMQ;
 using global::RabbitMQ.Client;
 using Microsoft.Extensions.Options;
 
@@ -10,7 +10,7 @@ public class RabbitMqConnectionFactory
 
     public RabbitMqConnectionFactory(IOptions<RabbitMqOptions> options)
     {
-        _factory = new ConnectionFactory
+        this._factory = new ConnectionFactory
         {
             HostName = options.Value.Host,
             Port = options.Value.Port,
@@ -22,6 +22,6 @@ public class RabbitMqConnectionFactory
 
     public IConnection CreateConnection()
     {
-        return _factory.CreateConnection();
+        return this._factory.CreateConnection();
     }
 }

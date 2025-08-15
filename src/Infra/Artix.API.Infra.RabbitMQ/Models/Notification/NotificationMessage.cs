@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Models;
+﻿namespace Artix.API.Infra.RabbitMQ.Models.Notification;
 
 public record NotificationMessage(
     Guid NotificationId,

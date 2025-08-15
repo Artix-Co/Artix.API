@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Infra.RabbitMQ;
 
-using Interfaces;
+using Interfaces.Notification;
 using Microsoft.Extensions.DependencyInjection;
-using Services;
-using Services.Handlers;
+using Services.Notification;
+using Services.Notification.Handlers;
 
 public static class DependencyInjection
 {
