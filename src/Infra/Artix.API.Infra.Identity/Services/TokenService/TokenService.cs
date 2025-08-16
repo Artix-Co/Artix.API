@@ -22,7 +22,7 @@ public sealed class TokenService : ITokenService
         this._expiresDays = _options.Value.RefreshTokenExpireDays;
     }
 
-    public async Task<JwtTokenResult> RefreshAccessTokenAsync(string refreshToken,
+    public async Task<JwtTokenResult> ReNewAccessTokenAsync(string refreshToken,
         CancellationToken cancellationToken = default)
     {
         var user = await this._userManager.Users
