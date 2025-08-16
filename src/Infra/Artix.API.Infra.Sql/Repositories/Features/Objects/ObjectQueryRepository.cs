@@ -4,6 +4,7 @@ using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
 using Core.Domain.Entities.Museum;
+using Core.Domain.Entities.Object;
 using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;

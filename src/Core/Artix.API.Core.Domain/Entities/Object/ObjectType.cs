@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Domain.Entities.Museum;
+﻿namespace Artix.API.Core.Domain.Entities.Object;
 
 using Exceptions;
 
@@ -19,10 +19,10 @@ public class ObjectType
         if (type == null)
             throw DomainException.InvalidValue(nameof(type));
 
-        Object = obj;
-        ObjectId = obj.Id;
-        Type = type;
-        TypeId = type.Id;
+        this.Object = obj;
+        this.ObjectId = obj.Id;
+        this.Type = type;
+        this.TypeId = type.Id;
     }
 
     public static ObjectType Create(Object obj, Type type)

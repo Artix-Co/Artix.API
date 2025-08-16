@@ -8,7 +8,7 @@ using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 
 public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
-    : ICommandRepository<T> where T : BaseEntity
+    : ICommandRepository<T> where T : AggregateRoot
 {
     protected readonly ArtixCommandDbContext _commandDbContext = commandDbContext;
 

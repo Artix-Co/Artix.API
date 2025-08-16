@@ -2,7 +2,7 @@
 
 using Domain.Entities.Common;
 
-public interface IRepository<T> where T : BaseEntity
+public interface IRepository<T> where T : AggregateRoot
 {
     #region Sync methods
 

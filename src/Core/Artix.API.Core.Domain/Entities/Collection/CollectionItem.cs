@@ -2,6 +2,7 @@
 
 using Common;
 using Museum;
+using Object;
 
 public class CollectionItem
 {

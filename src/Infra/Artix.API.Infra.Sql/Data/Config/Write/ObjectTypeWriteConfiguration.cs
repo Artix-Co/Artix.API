@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
 
 using Core.Domain.Entities.Museum;
+using Core.Domain.Entities.Object;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -7,7 +7,7 @@ using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-public class QueryRepository<T> : IQueryRepository<T> where T : BaseEntity
+public class QueryRepository<T> : IQueryRepository<T> where T : AggregateRoot
 {
     protected readonly ArtixQueryDbContext _queryDbContext;
 

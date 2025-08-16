@@ -2,7 +2,7 @@
 
 using Domain.Entities.Common;
 
-public interface IQueryRepository<T> where T : BaseEntity
+public interface IQueryRepository<T> where T : AggregateRoot
 {
  
 }

@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.Contract.Features.Objects.Queries;
 
 using Domain.Entities.Museum;
+using Domain.Entities.Object;
 using GetDetailByIds;
 using Primitives.Repositories;
 

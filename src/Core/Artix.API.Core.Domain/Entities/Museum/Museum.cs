@@ -3,6 +3,7 @@
 using Common;
 using Events;
 using Exceptions;
+using Object;
 
 public class Museum : AggregateRoot
 {

@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Seed;
 
-using Type = Core.Domain.Entities.Museum.Type;
-using Object = Core.Domain.Entities.Museum.Object;
+using Type = Core.Domain.Entities.Object.Type;
+using Object = Core.Domain.Entities.Object.Object;
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Core.Domain.Entities.Object;
 using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
 using Core.Domain.ValueObjects;

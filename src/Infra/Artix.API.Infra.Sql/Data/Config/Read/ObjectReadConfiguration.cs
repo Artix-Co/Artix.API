@@ -2,7 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Object = Core.Domain.Entities.Museum.Object;
+using Object = Core.Domain.Entities.Object.Object;
 
 internal sealed class ObjectReadConfiguration : BaseEntityConfiguration<Object>
 {

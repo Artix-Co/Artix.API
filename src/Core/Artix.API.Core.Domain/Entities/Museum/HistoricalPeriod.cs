@@ -2,6 +2,7 @@
 
 using Common;
 using Exceptions;
+using Object;
 using ValueObjects;
 
 public class HistoricalPeriod : BaseEntity

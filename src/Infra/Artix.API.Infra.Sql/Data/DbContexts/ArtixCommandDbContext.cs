@@ -9,6 +9,7 @@ using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
+using Core.Domain.Entities.Object;
 using Core.Domain.Entities.OTP;
 using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;

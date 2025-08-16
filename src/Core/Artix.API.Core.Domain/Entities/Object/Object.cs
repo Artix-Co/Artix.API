@@ -1,11 +1,12 @@
-﻿namespace Artix.API.Core.Domain.Entities.Museum;
+﻿namespace Artix.API.Core.Domain.Entities.Object;
 
 using Collection;
 using Common;
-using Entities.Object.Events;
-using Exceptions;
 using File;
+using Events;
 using User;
+using Exceptions;
+using Museum;
 
 public class Object : AggregateRoot
 {
@@ -20,17 +21,21 @@ public class Object : AggregateRoot
 
 
     private readonly List<ObjectFile> _objectFiles = new();
-    public virtual IReadOnlyCollection<ObjectFile> ObjectFiles => _objectFiles.AsReadOnly();
+    public virtual IReadOnlyCollection<ObjectFile> ObjectFiles => this._objectFiles.AsReadOnly();
 
 
     private readonly List<ObjectType> _objectTypes = new();
-    public virtual IReadOnlyCollection<ObjectType> ObjectTypes => _objectTypes.AsReadOnly();
+    public virtual IReadOnlyCollection<ObjectType> ObjectTypes => this._objectTypes.AsReadOnly();
 
 
     private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
 
     public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods =>
-        _objectHistoricalPeriods.AsReadOnly();
+        this._objectHistoricalPeriods.AsReadOnly();
+    
+    
+    private readonly List<UserObject> _userObjects = new();
+    public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
 
     // Protected constructor for EF Core
     protected Object()
@@ -49,22 +54,22 @@ public class Object : AggregateRoot
         List<ObjectType> objectTypes,
         List<ObjectHistoricalPeriod> objectHistoricalPeriods)
     {
-        ValidateName(name);
-        ValidateQrCode(qrCode);
-        ValidateVersion(version);
-        ValidateTier(tier);
+        this.ValidateName(name);
+        this.ValidateQrCode(qrCode);
+        this.ValidateVersion(version);
+        this.ValidateTier(tier);
 
-        Name = name;
-        QrCode = qrCode;
-        GeneralInformation = generalInformation;
-        SpecialInformation = specialInformation;
-        Version = version;
-        Tier = tier;
-        IsSpecial = isSpecial;
-        IsHidden = isHidden;
+        this.Name = name;
+        this.QrCode = qrCode;
+        this.GeneralInformation = generalInformation;
+        this.SpecialInformation = specialInformation;
+        this.Version = version;
+        this.Tier = tier;
+        this.IsSpecial = isSpecial;
+        this.IsHidden = isHidden;
 
-        _objectTypes = objectTypes ?? new List<ObjectType>();
-        _objectHistoricalPeriods = objectHistoricalPeriods ?? new List<ObjectHistoricalPeriod>();
+        this._objectTypes = objectTypes ?? new List<ObjectType>();
+        this._objectHistoricalPeriods = objectHistoricalPeriods ?? new List<ObjectHistoricalPeriod>();
     }
 
     private void ValidateName(string name)
@@ -107,56 +112,56 @@ public class Object : AggregateRoot
 
         public ObjectBuilder WithName(string name)
         {
-            _name = name;
+            this._name = name;
             return this;
         }
 
         public ObjectBuilder WithQrCode(string? qrCode)
         {
-            _qrCode = qrCode;
+            this._qrCode = qrCode;
             return this;
         }
 
         public ObjectBuilder WithGeneralInformation(string? generalInformation)
         {
-            _generalInformation = generalInformation;
+            this._generalInformation = generalInformation;
             return this;
         }
 
         public ObjectBuilder WithSpecialInformation(string? specialInformation)
         {
-            _specialInformation = specialInformation;
+            this._specialInformation = specialInformation;
             return this;
         }
 
         public ObjectBuilder WithVersion(int? version)
         {
-            _version = version;
+            this._version = version;
             return this;
         }
 
         public ObjectBuilder WithTier(int? tier)
         {
-            _tier = tier;
+            this._tier = tier;
             return this;
         }
 
         public ObjectBuilder AsSpecial()
         {
-            _isSpecial = true;
+            this._isSpecial = true;
             return this;
         }
 
         public ObjectBuilder AsHidden()
         {
-            _isHidden = true;
+            this._isHidden = true;
             return this;
         }
 
         public ObjectBuilder WithObjectType(ObjectType objectType)
         {
-            if (objectType != null && !_objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
-                _objectTypes.Add(objectType);
+            if (objectType != null && !this._objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
+                this._objectTypes.Add(objectType);
             return this;
         }
 
@@ -166,8 +171,8 @@ public class Object : AggregateRoot
             {
                 foreach (var objectType in objectTypes)
                 {
-                    if (!_objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
-                        _objectTypes.Add(objectType);
+                    if (!this._objectTypes.Any(ot => ot.TypeId == objectType.TypeId))
+                        this._objectTypes.Add(objectType);
                 }
             }
 
@@ -177,8 +182,9 @@ public class Object : AggregateRoot
         public ObjectBuilder WithHistoricalPeriod(ObjectHistoricalPeriod historicalPeriod)
         {
             if (historicalPeriod != null &&
-                !_objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == historicalPeriod.HistoricalPeriodId))
-                _objectHistoricalPeriods.Add(historicalPeriod);
+                !this._objectHistoricalPeriods.Any(ohp =>
+                    ohp.HistoricalPeriodId == historicalPeriod.HistoricalPeriodId))
+                this._objectHistoricalPeriods.Add(historicalPeriod);
             return this;
         }
 
@@ -188,8 +194,8 @@ public class Object : AggregateRoot
             {
                 foreach (var period in historicalPeriods)
                 {
-                    if (!_objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == period.HistoricalPeriodId))
-                        _objectHistoricalPeriods.Add(period);
+                    if (!this._objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == period.HistoricalPeriodId))
+                        this._objectHistoricalPeriods.Add(period);
                 }
             }
 
@@ -199,16 +205,16 @@ public class Object : AggregateRoot
         public Object Build()
         {
             return new Object(
-                _name!,
-                _qrCode,
-                _generalInformation,
-                _specialInformation,
-                _version,
-                _tier,
-                _isSpecial,
-                _isHidden,
-                _objectTypes,
-                _objectHistoricalPeriods
+                this._name!,
+                this._qrCode,
+                this._generalInformation,
+                this._specialInformation,
+                this._version,
+                this._tier,
+                this._isSpecial,
+                this._isHidden,
+                this._objectTypes,
+                this._objectHistoricalPeriods
             );
         }
     }
@@ -238,14 +244,14 @@ public class Object : AggregateRoot
         if (tier is < 0)
             throw DomainException.InvalidValue("Tier cannot be negative.");
 
-        Name = name;
-        QrCode = qrCode;
-        GeneralInformation = generalInformation;
-        SpecialInformation = specialInformation;
-        Version = version;
-        Tier = tier;
-        IsSpecial = isSpecial;
-        IsHidden = isHidden;
+        this.Name = name;
+        this.QrCode = qrCode;
+        this.GeneralInformation = generalInformation;
+        this.SpecialInformation = specialInformation;
+        this.Version = version;
+        this.Tier = tier;
+        this.IsSpecial = isSpecial;
+        this.IsHidden = isHidden;
     }
 
     public static Object Create(
@@ -268,63 +274,63 @@ public class Object : AggregateRoot
         if (tier is < 0)
             throw DomainException.InvalidValue("Tier cannot be negative.");
 
-        GeneralInformation = generalInformation;
-        SpecialInformation = specialInformation;
-        Version = version;
-        Tier = tier;
+        this.GeneralInformation = generalInformation;
+        this.SpecialInformation = specialInformation;
+        this.Version = version;
+        this.Tier = tier;
     }
 
     public void Rename(string newName)
     {
-        ValidateName(newName);
-        Name = newName;
+        this.ValidateName(newName);
+        this.Name = newName;
     }
 
     public void ChangeQrCode(string? newQrCode)
     {
-        ValidateQrCode(newQrCode);
-        QrCode = newQrCode;
+        this.ValidateQrCode(newQrCode);
+        this.QrCode = newQrCode;
     }
 
     public void MarkAsSpecial()
     {
-        IsSpecial = true;
+        this.IsSpecial = true;
     }
 
     public void UnmarkAsSpecial()
     {
-        IsSpecial = false;
+        this.IsSpecial = false;
     }
 
     public void Hide()
     {
-        IsHidden = true;
+        this.IsHidden = true;
     }
 
     public void Show()
     {
-        IsHidden = false;
+        this.IsHidden = false;
     }
 
-    public bool IsVisible() => !IsHidden;
+    public bool IsVisible() => !this.IsHidden;
 
-    public bool IsEligibleForDisplay() => !IsHidden && IsSpecial;
+    public bool IsEligibleForDisplay() => !this.IsHidden && this.IsSpecial;
 
     public bool IsValidForExhibition() =>
-        !string.IsNullOrWhiteSpace(Name) &&
-        !string.IsNullOrWhiteSpace(QrCode) &&
-        !IsHidden;
+        !string.IsNullOrWhiteSpace(this.Name) &&
+        !string.IsNullOrWhiteSpace(this.QrCode) &&
+        !this.IsHidden;
 
     public void AssignCategory(Type category)
     {
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
 
-        if (_objectTypes.Any(c => c.TypeId == category.Id))
+        if (this._objectTypes.Any(c => c.TypeId == category.Id))
             return;
 
         var link = ObjectType.Create(this, category);
-        _objectTypes.Add(link);
+        this._objectTypes.Add(link);
     }
 
     public void RemoveCategory(Type category)
@@ -332,28 +338,28 @@ public class Object : AggregateRoot
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
 
-        var link = _objectTypes.FirstOrDefault(c => c.TypeId == category.Id);
+        var link = this._objectTypes.FirstOrDefault(c => c.TypeId == category.Id);
         if (link != null)
-            _objectTypes.Remove(link);
+            this._objectTypes.Remove(link);
     }
 
     public void ClearCategories()
     {
-        _objectTypes.Clear();
+        this._objectTypes.Clear();
     }
 
-    public bool HasCategory(long categoryId) => _objectTypes.Any(c => c.TypeId == categoryId);
+    public bool HasCategory(long categoryId) => this._objectTypes.Any(c => c.TypeId == categoryId);
 
     public void AssignHistoricalPeriod(HistoricalPeriod period)
     {
         if (period == null)
             throw DomainException.InvalidValue(nameof(period));
 
-        if (_objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == period.Id))
+        if (this._objectHistoricalPeriods.Any(ohp => ohp.HistoricalPeriodId == period.Id))
             return;
 
         var link = ObjectHistoricalPeriod.Create(this, period);
-        _objectHistoricalPeriods.Add(link);
+        this._objectHistoricalPeriods.Add(link);
     }
 
     public void RemoveHistoricalPeriod(HistoricalPeriod period)
@@ -361,9 +367,9 @@ public class Object : AggregateRoot
         if (period == null)
             throw DomainException.InvalidValue(nameof(period));
 
-        var link = _objectHistoricalPeriods.FirstOrDefault(ohp => ohp.HistoricalPeriodId == period.Id);
+        var link = this._objectHistoricalPeriods.FirstOrDefault(ohp => ohp.HistoricalPeriodId == period.Id);
         if (link != null)
-            _objectHistoricalPeriods.Remove(link);
+            this._objectHistoricalPeriods.Remove(link);
     }
 
     public void AddToCollection(Collection collection)
@@ -390,33 +396,33 @@ public class Object : AggregateRoot
         if (!allowedMimeTypes.Contains(file.MimeType))
             throw DomainException.InvalidValue(nameof(file.MimeType));
 
-        var existingModel = _objectFiles
+        var existingModel = this._objectFiles
             .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
 
         if (existingModel is not null)
-            _objectFiles.Remove(existingModel);
+            this._objectFiles.Remove(existingModel);
 
-        _objectFiles.Add(ObjectFile.Create(this, file));
+        this._objectFiles.Add(ObjectFile.Create(this, file));
     }
 
     public void Remove3DModel()
     {
-        var existingModel = _objectFiles.FirstOrDefault(of => Is3DModel(of.File));
+        var existingModel = this._objectFiles.FirstOrDefault(of => Is3DModel(of.File));
 
         if (existingModel is not null)
-            _objectFiles.Remove(existingModel);
+            this._objectFiles.Remove(existingModel);
     }
 
     public File? Get3DModel()
     {
-        return _objectFiles
+        return this._objectFiles
             .FirstOrDefault(of => Is3DModel(of.File))
             ?.File;
     }
 
     public bool Has3DModel()
     {
-        return _objectFiles.Exists(of => Is3DModel(of.File));
+        return this._objectFiles.Exists(of => Is3DModel(of.File));
     }
 
     private static bool Is3DModel(File file)
@@ -426,15 +432,12 @@ public class Object : AggregateRoot
         return file is not null && allowedMimeTypes.Contains(file.MimeType);
     }
 
-    public UserObject ProcessUserInteraction(long userId, DateTime acquiredAt)
+    public void ProcessUserInteraction(long userId)
     {
-        var userObject = UserObject.Create(userId, this.Id);
-
-        userObject.RecordScan();
-        userObject.SetInCollection(true);
-        userObject.SetAcquiredAt(acquiredAt);
-        RaiseDomainEvent(new UserObjectCreatedEvent(BusinessId, userId, this.Id, 1, acquiredAt, true));
-        return userObject;
+        var userObject = UserObject.Create(userId, Id);
+        userObject.AssignToUser(DateTime.UtcNow);
+        _userObjects.Add(userObject);
+        RaiseDomainEvent(new UserObjectCreatedEvent(BusinessId, userId, this.Id, 1, DateTime.UtcNow, true));
     }
 
     public void UpgradeUserObject(UserObject userObject)
@@ -443,7 +446,9 @@ public class Object : AggregateRoot
         if (userObject == null)
             throw new ArgumentNullException(nameof(userObject));
 
-        userObject.RecordScan();
+        if (!_userObjects.Contains(userObject))
+            _userObjects.Add(userObject); 
+
         userObject.Upgrade();
         RaiseDomainEvent(new UserObjectUpgradedEvent(BusinessId, userObject.UserId, userObject.ObjectId,
             userObject.ScanCount, true));

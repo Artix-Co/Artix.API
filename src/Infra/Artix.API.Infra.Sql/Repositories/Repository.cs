@@ -6,7 +6,7 @@ using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-public class Repository<T> : IRepository<T> where T : BaseEntity
+public class Repository<T> : IRepository<T> where T : AggregateRoot
 {
     protected readonly ArtixCommandDbContext _context;
     protected readonly DbSet<T> _dbSet;

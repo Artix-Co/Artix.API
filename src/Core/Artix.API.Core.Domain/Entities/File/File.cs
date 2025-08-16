@@ -2,6 +2,7 @@
 
 using Common;
 using Museum;
+using Object;
 using Voice;
 
 public class File : AggregateRoot

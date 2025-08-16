@@ -2,6 +2,7 @@
 
 using Core.Contract.Features.Objects.Commands;
 using Core.Domain.Entities.Museum;
+using Core.Domain.Entities.Object;
 using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;

@@ -2,6 +2,7 @@
 
 using Common;
 using Exceptions;
+using Object;
 
 public class MuseumObject : BaseEntity
 {

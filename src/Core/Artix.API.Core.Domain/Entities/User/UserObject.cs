@@ -1,72 +1,68 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
 using Common;
- 
- 
-using Museum;
+using Object;
+using Object.Events;
 
 public class UserObject : BaseEntity
 {
     public long UserId { get; private set; }
     public virtual AppUser User { get; private set; }
 
-
     public long ObjectId { get; private set; }
-    public virtual MuseumObject Object { get; private set; }
-
+    public virtual Object Object { get; private set; }
 
     public int ScanCount { get; private set; }
     public DateTime? AcquiredAt { get; private set; }
     public bool IsUpgraded { get; private set; }
     public bool InCollection { get; private set; }
 
-
     protected UserObject()
     {
     }
 
- 
-    
-    public static UserObject Create(long userId, long objectId)
+    private UserObject(long userId, long objectId)
     {
-        if (userId <= 0)
-            throw new ArgumentException("User ID must be positive.", nameof(userId));
-        if (objectId <= 0)
-            throw new ArgumentException("MuseumObject ID must be positive.", nameof(objectId));
-
-        return new UserObject
-        {
-            UserId = userId,
-            ObjectId = objectId,
-            ScanCount = 0,
-            AcquiredAt = null,
-            IsUpgraded = false,
-            InCollection = false
-        };
+        UserId = userId;
+        ObjectId = objectId;
+        ScanCount = 0;
+        InCollection = false;
+        IsUpgraded = false;
+        AcquiredAt = null;
     }
 
+    public static UserObject Create(long userId, long objectId)
+    {
+        return new UserObject(userId, objectId);
+    }
+
+    public void AssignToUser(DateTime acquiredAt)
+    {
+        if (IsUpgraded)
+            return;
+        RecordScan();
+        SetInCollection(true);
+        SetAcquiredAt(acquiredAt);
+    }
 
     public void RecordScan()
     {
         ScanCount++;
-        
     }
 
-    public void Upgrade()
+    public void SetInCollection(bool inCollection)
     {
-        IsUpgraded = true;
-        
-    }
-
-    public void SetInCollection(bool value)
-    {
-        InCollection = value;
-        
+        InCollection = inCollection;
     }
 
     public void SetAcquiredAt(DateTime acquiredAt)
     {
         AcquiredAt = acquiredAt;
-        
+    }
+
+    public void Upgrade()
+    {
+        IsUpgraded = true;
+        RecordScan();
     }
 }

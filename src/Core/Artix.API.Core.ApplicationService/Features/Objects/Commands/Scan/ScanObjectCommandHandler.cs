@@ -1,15 +1,12 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
 
 using Contract.Features.Museums.Commands;
+using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Scan;
-using Contract.Features.UserObjects.Commands;
 using Domain.Entities.User;
 using Exceptions;
-using Infra.RabbitMQ.Interfaces;
 using Infra.RabbitMQ.Interfaces.Notification;
-using Infra.RabbitMQ.Models;
 using Infra.RabbitMQ.Models.Notification;
-using Infra.RabbitMQ.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
@@ -17,18 +14,20 @@ using Primitives;
 internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
-    private readonly IUserObjectCommandRepository _userObjectCommandRepository;
+    private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly INotificationProducer _notificationProducer;
 
-
-    public ScanObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+    public ScanObjectCommandHandler(
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IUserObjectCommandRepository userObjectCommandRepository, INotificationProducer notificationProducer) : base(
-        httpContextAccessor, userManager)
+        INotificationProducer notificationProducer,
+        IObjectCommandRepository objectCommandRepository)
+        : base(httpContextAccessor, userManager)
     {
-        this._museumCommandRepository = museumCommandRepository;
-        this._userObjectCommandRepository = userObjectCommandRepository;
-        this._notificationProducer = notificationProducer;
+        _museumCommandRepository = museumCommandRepository;
+        _notificationProducer = notificationProducer;
+        _objectCommandRepository = objectCommandRepository;
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
@@ -46,23 +45,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         if (userObject == null)
         {
-            // ایجاد UserObject جدید
-            userObject = @object.ProcessUserInteraction(user.Id, DateTime.UtcNow);
-            await _userObjectCommandRepository.InsertAsync(userObject, cancellationToken);
+            @object.ProcessUserInteraction(user.Id);
         }
         else
         {
-            // آپگرید UserObject موجود
             @object.UpgradeUserObject(userObject);
-            await _userObjectCommandRepository.UpdateAsync(userObject, cancellationToken);
         }
 
-        await this._museumCommandRepository.UpdateAsync(museum, cancellationToken);
-
+        await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
         var message = new NotificationMessage(
             NotificationId: Guid.NewGuid(),
-            UserId: 2,
+            UserId: user.Id,
             Title: "ماموریت جدید",
             Body: "یک ماموریت جدید داری!",
             Type: NotificationType.InApp,
@@ -71,6 +65,6 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         );
         await _notificationProducer.PublishAsync(message, "inapp.notifications");
 
-        return userObject.BusinessId;
+        return @object.BusinessId;
     }
 }

@@ -1,7 +1,7 @@
-﻿namespace Artix.API.Core.Domain.Entities.Museum;
+﻿namespace Artix.API.Core.Domain.Entities.Object;
 
-using Exceptions;
 using File;
+using Exceptions;
 
 public class ObjectFile
 {

@@ -2,7 +2,7 @@
 
 using Domain.Entities.Common;
 
-public interface ICommandRepository<T> where T : BaseEntity
+public interface ICommandRepository<T> where T : AggregateRoot
 {
     void InsertRange(IEnumerable<T> entities);
     void Insert(T entity);

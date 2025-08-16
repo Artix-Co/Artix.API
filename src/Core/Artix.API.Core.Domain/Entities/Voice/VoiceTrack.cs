@@ -2,6 +2,7 @@
 
 using Common;
 using Museum;
+using Object;
 using Season;
 
 public class VoiceTrack : AggregateRoot
