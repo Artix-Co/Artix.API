@@ -4,71 +4,77 @@ using Artix.API.Infra.RabbitMQ.Interfaces.Notification;
 using Artix.API.Infra.RabbitMQ.Models.Notification;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-public class NotificationConsumer : BackgroundService
+public class NotificationConsumer : BackgroundService, INotificationConsumer
 {
-    private readonly RabbitMqConnectionFactory _factory;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMessageSerializer _serializer;
     private readonly INotificationHandler _handler;
-    private readonly string _queueName;
-    private IConnection? _connection;
-    private IModel? _channel;
+    private const string QueueName = "notifications.queue";
+    private IConnection _connection;
+    private IChannel _channel;
 
-    public NotificationConsumer(RabbitMqConnectionFactory factory, IMessageSerializer serializer,
-        INotificationHandler handler, string queueName)
+    public NotificationConsumer(IServiceScopeFactory scopeFactory, IMessageSerializer serializer,
+        INotificationHandler handler)
     {
-        this._factory = factory;
-        this._serializer = serializer;
-        this._handler = handler;
-
-        this._queueName = queueName;
+        _scopeFactory = scopeFactory;
+        _serializer = serializer;
+        _handler = handler;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        this._connection = this._factory.CreateConnection();
-        this._channel = this._connection.CreateModel();
+        await using var scope = this._scopeFactory.CreateAsyncScope();
+        var factory = scope.ServiceProvider.GetRequiredService<RabbitMqConnectionFactory>();
+        this._connection = await factory.CreateConnectionAsync();
+        this._channel = await this._connection.CreateChannelAsync(null, cancellationToken);
 
-        this._channel.ExchangeDeclare("notifications.exchange", ExchangeType.Topic, durable: true);
+        await this._channel.ExchangeDeclareAsync("notifications.exchange", ExchangeType.Topic, durable: true,
+            cancellationToken: cancellationToken);
 
-        this._channel.QueueDeclare(queue: this._queueName,
-                              durable: true,
-                              exclusive: false,
-                              autoDelete: false,
-                              arguments: null);
+        await this._channel.QueueDeclareAsync(queue: QueueName,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null,
+            cancellationToken: cancellationToken
+        );
 
-        this._channel.QueueBind(queue: this._queueName,
-                           exchange: "notifications.exchange",
-                           routingKey: "notifications.#");
+        await this._channel.QueueBindAsync(queue: QueueName,
+            exchange: "notifications.exchange",
+            routingKey: "notifications.#",
+            cancellationToken: cancellationToken
+        );
 
-        this._channel.BasicQos(0, 10, false);
+        await this._channel.BasicQosAsync(0, 10, false, cancellationToken);
+
         var consumer = new AsyncEventingBasicConsumer(this._channel);
-        consumer.Received += async (sender, ea) =>
+        consumer.ReceivedAsync += async (sender, ea) =>
         {
             try
             {
                 var body = ea.Body.ToArray();
                 var message = this._serializer.Deserialize<NotificationMessage>(body);
                 await this._handler.HandleAsync(message);
-                this._channel.BasicAck(ea.DeliveryTag, false);
+                await this._channel.BasicAckAsync(ea.DeliveryTag, false, cancellationToken);
             }
-            catch (Exception)
+            catch
             {
-                this._channel.BasicNack(ea.DeliveryTag, false, false);
+                await this._channel.BasicNackAsync(ea.DeliveryTag, false, false, cancellationToken);
             }
         };
-        this._channel.BasicConsume(this._queueName, false, consumer);
-        return Task.CompletedTask;
+
+        await this._channel.BasicConsumeAsync(QueueName, false, consumer, cancellationToken);
     }
 
     public override void Dispose()
     {
-        this._channel?.Close();
-        this._channel?.Dispose();
-        this._connection?.Close();
-        this._connection?.Dispose();
+        _channel.CloseAsync();
+        _channel.Dispose();
+        _connection.CloseAsync();
+        _connection.Dispose();
         base.Dispose();
     }
 }
- 

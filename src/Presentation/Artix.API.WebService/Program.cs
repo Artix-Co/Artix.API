@@ -1,28 +1,24 @@
-using System.IO.Compression;
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
-using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
+using Artix.API.Infra.Redis.Services.LeaderElection;
 using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
+using Artix.ServiceDefaults;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using Nest;
-using System.Net;
-using Artix.API.Infra.Redis.Services.LeaderElection;
 using Microsoft.AspNetCore.DataProtection;
-using RedLockNet;
-using RedLockNet.SERedis;
-using RedLockNet.SERedis.Configuration;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
+
 var environment = builder.Environment;
 
 
@@ -35,15 +31,16 @@ if (environment.IsProduction())
         .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
 }
 
-builder.Services.AddHealthChecks();
+ 
 
 
 
 builder.Services.AddArtixServices(builder.Configuration);
-// builder.Services.AddLoadBalancerOnDistributedLock(builder.Configuration);
-// builder.Services.AddHostedService<LeaderElectionService>();
+builder.Services.AddLoadBalancerOnDistributedLock(builder.Configuration);
+builder.Services.AddHostedService<LeaderElectionService>();
 builder.Host.UseSerilog();
 
+builder.AddServiceDefaults();
 var app = builder.Build();
 
 Log.Logger.Information("Application built!");
@@ -97,34 +94,26 @@ if (environment.IsDevelopment())
 }
  
 app.MapGet("/", () => Results.Redirect("/swagger"));
-app.MapGet("/elastic-health", async (IElasticClient elasticClient) =>
-{
-    var response = await elasticClient.PingAsync();
+// app.MapGet("/elastic-health", async (IElasticClient elasticClient) =>
+// {
+//     var response = await elasticClient.PingAsync();
+//
+//     BaseApiResponse<string> result = new BaseApiResponse<string>();
+//
+//
+//     if (response.IsValid)
+//     {
+//         result.IsSuccess = true;
+//         result.Data = "connected to elasticsearch";
+//         return result;
+//     }
+//
+//     result.IsSuccess = false;
+//     result.Data = "not connected to elasticsearch";
+//     return result;
+// });
 
-    BaseApiResponse<string> result = new BaseApiResponse<string>();
 
-
-    if (response.IsValid)
-    {
-        result.IsSuccess = true;
-        result.Data = "connected to elasticsearch";
-        return result;
-    }
-
-    result.IsSuccess = false;
-    result.Data = "not connected to elasticsearch";
-    return result;
-});
-
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var json = JsonSerializer.Serialize(new { status = report.Status.ToString(), details = report.Entries });
-        await context.Response.WriteAsync(json);
-    }
-});
 
 
 app.UseResponseCaching();
@@ -144,25 +133,26 @@ app.Use(async (context, next) =>
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 
  
 
 // Define endpoints
-// app.MapGet("/lock", (LeaderState leader) =>
-// {
-//     return leader.IsLeader ? Results.Ok("I'm the leader and I serve this.") : Results.StatusCode(503);
-// });
-//
-// app.MapGet("/process", (LeaderState leader) =>
-// {
-//     if (!leader.IsLeader)
-//         return Results.StatusCode(503);
-//
-//     var id = Guid.NewGuid();
-//     Console.WriteLine($"✔️ Leader handled the request: {id}");
-//     return Results.Ok($"Handled by leader: {id}");
-// });
+app.MapGet("/lock", (LeaderState leader) =>
+{
+    return leader.IsLeader ? Results.Ok("I'm the leader and I serve this.") : Results.StatusCode(503);
+});
+
+app.MapGet("/process", (LeaderState leader) =>
+{
+    if (!leader.IsLeader)
+        return Results.StatusCode(503);
+
+    var id = Guid.NewGuid();
+    Console.WriteLine($"✔️ Leader handled the request: {id}");
+    return Results.Ok($"Handled by leader: {id}");
+});
 
 app.Run();
 

@@ -16,32 +16,20 @@ public static class DependencyInjection
         services.AddSingleton<IMessageSerializer, MessageSerializer>();
         services.AddSingleton<INotificationProducer, NotificationProducer>();
 
-        // Register the missing service interfaces with their implementations
-        services.AddTransient<IInAppService, InAppService>(); // Replace InAppService with your actual implementation
-        services.AddTransient<IPushService, PushService>(); // Replace PushService with your actual implementation
-        services.AddTransient<IEmailService, EmailService>(); // Replace EmailService with your actual implementation
-        services.AddTransient<ISmsService, SmsService>(); // Replace SmsService with your actual implementation
+        services.AddTransient<IInAppService, InAppService>(); 
+        services.AddTransient<IPushService, PushService>(); 
+        services.AddTransient<IEmailService, EmailService>(); 
+        services.AddTransient<ISmsService, SmsService>(); 
 
-        // Register all notification handlers
         services.AddTransient<INotificationHandler, InAppNotificationHandler>();
         services.AddTransient<INotificationHandler, PushNotificationHandler>();
         services.AddTransient<INotificationHandler, EmailNotificationHandler>();
         services.AddTransient<INotificationHandler, SmsNotificationHandler>();
 
-        // ثبت IEventPublisher برای OutboxProcessor
-        services.AddScoped<IEventPublisher, RabbitMQEventPublisher>();
+        services.AddScoped<IEventPublisher, RabbitMqEventPublisher>();
         
-        // Register NotificationConsumer as a hosted service
-        services.AddHostedService<NotificationConsumer>(sp =>
-        {
-            var factory = sp.GetRequiredService<RabbitMqConnectionFactory>();
-            var serializer = sp.GetRequiredService<IMessageSerializer>();
-            var handler = sp.GetRequiredService<INotificationHandler>();
-
-            var queueName = "notifications.queue"; // مقدار مورد نظر خودت اینجا بذار
-
-            return new NotificationConsumer(factory, serializer, handler, queueName);
-        });
+    
+        services.AddHostedService<NotificationConsumer>();
 
         services.AddHostedService<OutboxProcessor>();
     }

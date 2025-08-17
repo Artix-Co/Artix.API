@@ -46,6 +46,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Identity", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.RabbitMQ", "src\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj", "{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.AppHost", "Artix.AppHost\Artix.AppHost.csproj", "{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.ServiceDefaults", "Artix.ServiceDefaults\Artix.ServiceDefaults.csproj", "{E05BF439-342D-4C39-BA06-4C8578EEF522}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,5 +116,13 @@ Global
 		{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

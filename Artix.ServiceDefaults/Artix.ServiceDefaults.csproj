@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost"  Version="9.2.1"/>
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.2.1" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0-rc.2.617" />
+    <PackageReference Include="AspNetCore.HealthChecks.RabbitMQ" Version="9.0.0-rc.2.617" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0-rc.2.617" />
+  </ItemGroup>
+</Project>
+
+
+ 

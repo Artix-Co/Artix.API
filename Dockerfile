@@ -1,19 +1,31 @@
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 80
+
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY Artix.API.sln ./
-COPY Directory.Packages.props ./
-COPY src/ ./src/
-#COPY test/ ./test/
+# کپی فایل‌های solution و پروژه‌ها
+COPY ["Artix.API.sln", "."]
+COPY ["Directory.Packages.props", "."]
+COPY ["src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj", "src/Presentation/Artix.API.WebService/"]
+COPY ["Artix.ServiceDefaults/Artix.ServiceDefaults.csproj", "Artix.ServiceDefaults/"]
+COPY ["Artix.AppHost/Artix.AppHost.csproj", "Artix.AppHost/"]
 
-RUN dotnet restore Artix.API.sln
+# کپی محتوای پروژه‌ها
+COPY ["src/", "src/"]
+COPY ["Artix.ServiceDefaults/", "Artix.ServiceDefaults/"]
+COPY ["Artix.AppHost/", "Artix.AppHost/"]
 
-WORKDIR /src/src/Presentation/Artix.API.WebService
-RUN dotnet publish Artix.API.WebService.csproj -c $BUILD_CONFIGURATION -o /app/publish --no-restore
+# Restore پروژه‌ها
+RUN dotnet restore "Artix.API.sln"
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+# Build و Publish پروژه Artix.API.WebService
+WORKDIR "/src/src/Presentation/Artix.API.WebService"
+RUN dotnet publish "Artix.API.WebService.csproj" -c $BUILD_CONFIGURATION -o /app/publish --no-restore
+
+FROM base AS final
 WORKDIR /app
-EXPOSE 80
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Artix.API.WebService.dll"]

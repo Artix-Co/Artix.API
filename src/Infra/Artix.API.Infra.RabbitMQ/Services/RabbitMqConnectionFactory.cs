@@ -16,12 +16,12 @@ public class RabbitMqConnectionFactory
             Port = options.Value.Port,
             UserName = options.Value.Username,
             Password = options.Value.Password,
-            DispatchConsumersAsync = true
+            // DispatchConsumersAsync = true
         };
     }
 
-    public IConnection CreateConnection()
+    public async Task<IConnection> CreateConnectionAsync()
     {
-        return this._factory.CreateConnection();
+        return await this._factory.CreateConnectionAsync();
     }
 }

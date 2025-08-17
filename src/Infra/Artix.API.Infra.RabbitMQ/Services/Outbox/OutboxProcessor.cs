@@ -27,42 +27,40 @@ public class OutboxProcessor : BackgroundService
         {
             try
             {
-                using (var scope = _scopeFactory.CreateScope())
+                await using var scope = this._scopeFactory.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+                var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
+
+                var messages = await context.OutboxMessages
+                    .Where(m => m.Status == "Pending")
+                    .Take(50)
+                    .ToListAsync(stoppingToken);
+
+                foreach (var message in messages)
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
-                    var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
-
-                    var messages = await context.OutboxMessages
-                        .Where(m => m.Status == "Pending")
-                        .Take(50)
-                        .ToListAsync(stoppingToken);
-
-                    foreach (var message in messages)
+                    try
                     {
-                        try
+                        var eventType = this.GetEventType(message.Type);
+                        if (eventType == null)
                         {
-                            var eventType = GetEventType(message.Type);
-                            if (eventType == null)
-                            {
-                                _logger.LogWarning("Event type {Type} not found.", message.Type);
-                                message.Status = "Failed";
-                                continue;
-                            }
-
-                            var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType);
-                            await publisher.PublishAsync(@event, stoppingToken);
-                            message.Status = "Processed";
-                            message.ProcessedAt = DateTime.UtcNow;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to process message {MessageId}", message.Id);
+                            this._logger.LogWarning("Event type {Type} not found.", message.Type);
                             message.Status = "Failed";
+                            continue;
                         }
-                    }
 
-                    await context.SaveChangesAsync(stoppingToken);
+                        var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType)!;
+                        await publisher.PublishAsync(@event, stoppingToken);
+                        message.Status = "Processed";
+                        message.ProcessedAt = DateTime.UtcNow;
+                    }
+                    catch (Exception ex)
+                    {
+                        this._logger.LogError(ex, "Failed to process message {MessageId}", message.Id);
+                        message.Status = "Failed";
+                    }
                 }
+
+                await context.SaveChangesAsync(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -75,18 +73,15 @@ public class OutboxProcessor : BackgroundService
 
     private Type? GetEventType(string typeName)
     {
-        // تلاش برای پیدا کردن نوع در Assembly فعلی
         var type = Type.GetType(typeName);
         if (type != null)
             return type;
 
-        // جستجو در Assembly حاوی IDomainEvent
         var domainAssembly = typeof(IDomainEvent).Assembly;
         type = domainAssembly.GetType(typeName);
         if (type != null)
             return type;
 
-        // جستجو در تمام Assemblyهای لودشده
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             type = assembly.GetType(typeName);
@@ -94,9 +89,7 @@ public class OutboxProcessor : BackgroundService
                 return type;
         }
 
-        // لاگ برای دیباگ
-        _logger.LogInformation("Loaded assemblies: {Assemblies}",
-            string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
+        _logger.LogInformation("Loaded assemblies: {Assemblies}", string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
         return null;
     }
 }
