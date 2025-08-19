@@ -79,14 +79,13 @@ internal sealed class ApiKeyAuthenticationMiddleware
     private static async Task WriteResponseAsync(HttpContext context, int statusCode, string message)
     {
         context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "application/json";
         var wrapped = new BaseApiResponse<object>
         {
             IsSuccess = false,
             Message = message,
             Errors = null
         };
-        await context.Response.WriteAsync(JsonSerializer.Serialize(wrapped));
+        await context.Response.WriteAsJsonAsync(wrapped);
     }
 }
 

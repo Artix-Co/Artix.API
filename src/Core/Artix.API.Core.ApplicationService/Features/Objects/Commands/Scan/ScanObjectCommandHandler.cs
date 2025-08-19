@@ -15,19 +15,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IObjectCommandRepository _objectCommandRepository;
-    private readonly INotificationProducer _notificationProducer;
+    private readonly INotificationService _notificationService;
 
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        INotificationProducer notificationProducer,
-        IObjectCommandRepository objectCommandRepository)
+        IObjectCommandRepository objectCommandRepository, INotificationService notificationService)
         : base(httpContextAccessor, userManager)
     {
         _museumCommandRepository = museumCommandRepository;
-        _notificationProducer = notificationProducer;
         _objectCommandRepository = objectCommandRepository;
+        _notificationService = notificationService;
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
@@ -54,16 +53,17 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
-        var message = new NotificationMessage(
+        // منطق ثبت سفارش
+        var notification = new NotificationMessage(
             NotificationId: Guid.NewGuid(),
             UserId: user.Id,
-            Title: "ماموریت جدید",
-            Body: "یک ماموریت جدید داری!",
-            Type: NotificationType.InApp,
+            Title: "سفارش شما ثبت شد",
+            Body: $"سفارش #{@object.BusinessId} با موفقیت ثبت شد.",
+            Type: NotificationType.Push,
             CreatedAt: DateTime.UtcNow,
             Metadata: null
         );
-        await _notificationProducer.PublishAsync(message, "inapp.notifications");
+        await _notificationService.SendUserNotificationAsync(notification);
 
         return @object.BusinessId;
     }

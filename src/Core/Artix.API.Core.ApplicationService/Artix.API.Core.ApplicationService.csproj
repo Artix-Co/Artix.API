@@ -20,4 +20,10 @@
     <ProjectReference Include="..\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
   </ItemGroup>
 
+ 
+
+  <ItemGroup>
+    <Folder Include="Features\Notifications\" />
+  </ItemGroup>
+
 </Project>

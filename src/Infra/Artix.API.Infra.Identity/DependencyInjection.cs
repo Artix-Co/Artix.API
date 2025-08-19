@@ -43,6 +43,7 @@ public static class DependencyInjection
             })
             .AddJwtBearer(options =>
             {
+                
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -53,11 +54,22 @@ public static class DependencyInjection
                     ValidAudience = authSettings.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
-                    ClockSkew = TimeSpan.Zero // بی‌تاخیر
+                    ClockSkew = TimeSpan.Zero ,
+                    NameClaimType = "nameid"
                 };
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            context.Request.Path.StartsWithSegments("/notificationHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnTokenValidated = async context =>
                     {
                         var userManager =

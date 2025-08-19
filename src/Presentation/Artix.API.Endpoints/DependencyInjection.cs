@@ -44,7 +44,7 @@ public static class DependencyInjection
             await next();
         });
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
 
         app.UseCors("CorsPolicy");
 

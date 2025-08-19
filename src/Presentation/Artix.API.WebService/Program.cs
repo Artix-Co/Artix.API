@@ -2,6 +2,7 @@ using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
+using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Redis.Services.LeaderElection;
 using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
@@ -16,37 +17,29 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddSignalR();
 
 
 var environment = builder.Environment;
 
 
+var keyStorePathKeys = environment.IsDevelopment()
+    ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
+    : "/app/dataprotection-keys";
 
-
-if (environment.IsProduction())
-{
-    builder.Services.AddDataProtection()
-        .SetApplicationName("Artix")
-        .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"));
-}
-
- 
-
+builder.Services.AddDataProtection()
+    .SetApplicationName("Artix")
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStorePathKeys));
 
 
 builder.Services.AddArtixServices(builder.Configuration);
-builder.Services.AddLoadBalancerOnDistributedLock(builder.Configuration);
-builder.Services.AddHostedService<LeaderElectionService>();
+
 builder.Host.UseSerilog();
 
 builder.AddServiceDefaults();
 var app = builder.Build();
 
 Log.Logger.Information("Application built!");
-
- 
-
 
 
 using (var scope = app.Services.CreateScope())
@@ -81,39 +74,17 @@ app.UseExceptionHandler(config =>
     });
 });
 app.UseResponseCompression();
-app.UseCustomMiddlewares(app.Environment);
+// app.UseCustomMiddlewares(app.Environment);
 
 Log.Logger.Information("Application started!");
 
 
-if (environment.IsDevelopment())  
+if (environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
     app.MapOpenApi();
 }
- 
-app.MapGet("/", () => Results.Redirect("/swagger"));
-// app.MapGet("/elastic-health", async (IElasticClient elasticClient) =>
-// {
-//     var response = await elasticClient.PingAsync();
-//
-//     BaseApiResponse<string> result = new BaseApiResponse<string>();
-//
-//
-//     if (response.IsValid)
-//     {
-//         result.IsSuccess = true;
-//         result.Data = "connected to elasticsearch";
-//         return result;
-//     }
-//
-//     result.IsSuccess = false;
-//     result.Data = "not connected to elasticsearch";
-//     return result;
-// });
-
-
 
 
 app.UseResponseCaching();
@@ -131,18 +102,22 @@ app.Use(async (context, next) =>
 });
 
 app.UseRouting();
+app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
- 
+
+app.MapHub<NotificationHub>("/notificationHub");
+
 
 // Define endpoints
-app.MapGet("/lock", (LeaderState leader) =>
-{
-    return leader.IsLeader ? Results.Ok("I'm the leader and I serve this.") : Results.StatusCode(503);
-});
+app.MapGet("/lock",
+    (LeaderState leader) =>
+    {
+        return leader.IsLeader ? Results.Ok("I'm the leader and I serve this.") : Results.StatusCode(503);
+    });
 
 app.MapGet("/process", (LeaderState leader) =>
 {
@@ -155,5 +130,3 @@ app.MapGet("/process", (LeaderState leader) =>
 });
 
 app.Run();
-
-

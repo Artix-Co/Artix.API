@@ -33,21 +33,20 @@ public static class HostingExtension
 {
     public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // فعال‌سازی فشرده‌سازی پاسخ‌ها (Gzip)
         services.AddResponseCompression(options =>
         {
-            options.EnableForHttps = true; // فعال‌سازی برای HTTPS
-            options.Providers.Add<GzipCompressionProvider>(); // استفاده از Gzip
+            options.EnableForHttps = true;  
+            options.Providers.Add<GzipCompressionProvider>();  
             options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
                 "application/json"
             ]);
         });
-
-
-// تنظیم سطح فشرده‌سازی Gzip
+        
+        
+        
         services.Configure<GzipCompressionProviderOptions>(options =>
         {
-            options.Level = CompressionLevel.Optimal; // تعادل بین سرعت و میزان فشرده‌سازی
+            options.Level = CompressionLevel.Optimal;  
         });
         
         // Configure Settings
@@ -96,7 +95,7 @@ public static class HostingExtension
         services.AddApplicationServices();
         services.AddContractServices();
         services.AddElasticsearch(configuration);
-        services.AddCorsPolicy(configuration);
+        // services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
 
         services.AddDomainServiceServices();
@@ -122,20 +121,7 @@ public static class HostingExtension
         });
     }
 
-    public static void AddLoadBalancerOnDistributedLock(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddSingleton<IDistributedLockFactory>(sp =>
-        {
-            var redisOptions = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
-            var redisEndpoints = new[]
-            {
-                new RedLockEndPoint { EndPoint = new DnsEndPoint(redisOptions.Host, redisOptions.Port), Password = redisOptions.Password }
-            };
-            return RedLockFactory.Create(redisEndpoints);
-        });
-
-        services.AddSingleton<LeaderState>();
-    }
+     
     private static void AddElasticsearch(this IServiceCollection services, IConfiguration configuration)
     {
         var elasticsearchSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();

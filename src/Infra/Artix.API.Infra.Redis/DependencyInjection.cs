@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Redis;
 
+using System.Net;
 using Core.Contract.Configs.Redis;
 using Core.Contract.Features.Caches.Museums;
 using Core.Contract.Features.Caches.Objects;
@@ -7,7 +8,11 @@ using Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RedLockNet;
+using RedLockNet.SERedis;
+using RedLockNet.SERedis.Configuration;
 using Services;
+using Services.LeaderElection;
 using StackExchange.Redis;
 
 public static class DependencyInjection
@@ -42,6 +47,20 @@ public static class DependencyInjection
                 sp.GetRequiredService<IConnectionMultiplexer>(),
                 "recent:objects:user",
                 sp.GetRequiredService<ILogger<RedisCacheService<RecentObjectDto>>>()));
+        
+        
+        services.AddSingleton<IDistributedLockFactory>(sp =>
+        {
+            var redisOptions = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+            var redisEndpoints = new[]
+            {
+                new RedLockEndPoint { EndPoint = new DnsEndPoint(redisOptions.Host, redisOptions.Port), Password = redisOptions.Password }
+            };
+            return RedLockFactory.Create(redisEndpoints);
+        });
+        
+        services.AddSingleton<LeaderState>();
+        services.AddHostedService<LeaderElectionService>();
     }
 }
 

@@ -2,7 +2,7 @@
 
 public record NotificationMessage(
     Guid NotificationId,
-    long UserId,
+    long? UserId,
     string Title,
     string Body,
     NotificationType Type,
