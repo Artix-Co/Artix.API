@@ -1,9 +1,12 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
 
 using Contract.Features.Museums.Commands;
+using Contract.Features.Notifications.Commands.AddUserNotification;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Scan;
+using Domain.Entities.Notification.Enums;
 using Domain.Entities.User;
+using DomainService.Interfaces.Notification;
 using Exceptions;
 using Infra.RabbitMQ.Interfaces.Notification;
 using Infra.RabbitMQ.Models.Notification;
@@ -15,18 +18,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IObjectCommandRepository _objectCommandRepository;
-    private readonly INotificationService _notificationService;
+    private readonly INotificationServiceProvider _notificationServiceProvider;
 
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IObjectCommandRepository objectCommandRepository, INotificationService notificationService)
+        IObjectCommandRepository objectCommandRepository, INotificationServiceProvider notificationServiceProvider)
         : base(httpContextAccessor, userManager)
     {
         _museumCommandRepository = museumCommandRepository;
         _objectCommandRepository = objectCommandRepository;
-        _notificationService = notificationService;
+        _notificationServiceProvider = notificationServiceProvider;
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
@@ -53,17 +56,16 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
-        // منطق ثبت سفارش
-        var notification = new NotificationMessage(
-            NotificationId: Guid.NewGuid(),
-            UserId: user.Id,
-            Title: "سفارش شما ثبت شد",
-            Body: $"سفارش #{@object.BusinessId} با موفقیت ثبت شد.",
-            Type: NotificationType.Push,
-            CreatedAt: DateTime.UtcNow,
-            Metadata: null
-        );
-        await _notificationService.SendUserNotificationAsync(notification);
+        await this._notificationServiceProvider.SendUserNotificationAsync(
+            new AddUserNotificationCommand
+            {
+                UserId = user.Id,
+                Body = "notification from service provider",
+                Metadata = null,
+                Title = "you scanned an obj",
+                Type = NotificationType.InApp
+            }, cancellationToken);
+
 
         return @object.BusinessId;
     }

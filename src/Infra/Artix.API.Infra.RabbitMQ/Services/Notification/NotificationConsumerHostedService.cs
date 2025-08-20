@@ -1,23 +1,30 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
 using System.Text.Json;
+using Core.Domain.Entities.Notification;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Models.Notification;
+using Microsoft.Extensions.DependencyInjection;
+using Sql.Data.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 public class NotificationConsumerHostedService : BackgroundService
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IConnection _connection;
     private readonly IChannel _channel;
+    private readonly IServiceScopeFactory _scopeFactory; // اضافه
 
     public NotificationConsumerHostedService(
         RabbitMqConnectionFactory factory,
-        IHubContext<NotificationHub> hubContext)
+        IHubContext<NotificationHub> hubContext,
+        IServiceScopeFactory scopeFactory)
     {
         _hubContext = hubContext;
+        _scopeFactory = scopeFactory;
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
 
@@ -44,15 +51,24 @@ public class NotificationConsumerHostedService : BackgroundService
 
             if (ea.RoutingKey.StartsWith("notifications.user."))
             {
-                // ارسال به کاربر خاص (گروه UserId)
                 await _hubContext.Clients.Group(message.UserId.ToString())
                     .SendAsync("ReceiveNotification", message, stoppingToken);
             }
             else if (ea.RoutingKey == "notifications.all")
             {
-                // ارسال به همه
-                await _hubContext.Clients.All
-                    .SendAsync("ReceiveNotification", message, stoppingToken);
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", message, stoppingToken);
+            }
+
+            // اضافه: آپدیت status
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+            var notification = await dbContext.Notifications
+                .Include(n=>n.UserNotifications)
+                .FirstOrDefaultAsync(n => n.BusinessId == message.NotificationId, stoppingToken);
+            if (notification != null)
+            {
+                notification.MarkAsSent();
+                await dbContext.SaveChangesAsync(stoppingToken);
             }
 
             await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
@@ -65,6 +81,7 @@ public class NotificationConsumerHostedService : BackgroundService
 
         await Task.CompletedTask;
     }
+
 
     public override void Dispose()
     {

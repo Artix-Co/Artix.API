@@ -12,13 +12,12 @@ public static class DependencyInjection
     public static void AddRabbitMqService(this IServiceCollection services)
     {
         services.AddSingleton<RabbitMqConnectionFactory>();
-
         services.AddSingleton<INotificationProducer, NotificationProducer>();
-        services.AddHostedService<NotificationConsumerHostedService>();
         services.AddSingleton<INotificationService, NotificationService>();
-
         services.AddScoped<IEventPublisher, RabbitMqEventPublisher>();
 
+        services.AddHostedService<NotificationOutboxProcessor>();
+        services.AddHostedService<NotificationConsumerHostedService>();
         services.AddHostedService<OutboxProcessor>();
     }
 }

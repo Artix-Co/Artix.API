@@ -12,16 +12,16 @@ public class NotificationService : INotificationService
         this._notificationProducer = notificationProducer;
     }
 
-    public async Task SendUserNotificationAsync(NotificationMessage message)
+    public async Task SendUserNotificationAsync(NotificationMessage message,
+        CancellationToken cancellationToken = default)
     {
-        // routing key برای کاربر خاص: notifications.user.{UserId}
         string routingKey = $"notifications.user.{message.UserId}";
-        await this._notificationProducer.PublishAsync("notifications", routingKey, message);
+        await this._notificationProducer.PublishAsync("notifications", routingKey, message, cancellationToken);
     }
 
-    public async Task SendBroadcastNotificationAsync(NotificationMessage message)
+    public async Task SendBroadcastNotificationAsync(NotificationMessage message,
+        CancellationToken cancellationToken = default)
     {
-        // routing key برای broadcast: notifications.all
-        await this._notificationProducer.PublishAsync("notifications", "notifications.all", message);
+        await this._notificationProducer.PublishAsync("notifications", "notifications.all", message, cancellationToken);
     }
 }

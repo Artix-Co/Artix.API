@@ -9,6 +9,7 @@ using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
+using Core.Domain.Entities.Notification;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.OTP;
 using Core.Domain.Entities.Version;
@@ -71,6 +72,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<VoiceTrackFile> VoiceTrackFiles { get; set; }
     public DbSet<AppVersion> AppVersions { get; set; }
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     #endregion
 

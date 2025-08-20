@@ -309,6 +309,116 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.ToTable("MuseumObjects", (string)null);
                 });
 
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Notification.Notification", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FailedAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsBroadcast")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("SenderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Notification.UserNotification", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DeliveryStatus")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("NotificationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserNotification");
+                });
+
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.OTP.OTP", b =>
                 {
                     b.Property<long>("Id")
@@ -1409,6 +1519,25 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Navigation("Object");
                 });
 
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Notification.UserNotification", b =>
+                {
+                    b.HasOne("Artix.API.Core.Domain.Entities.Notification.Notification", "Notification")
+                        .WithMany("UserNotifications")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Artix.API.Core.Domain.Entities.User.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notification");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Object.ObjectFile", b =>
                 {
                     b.HasOne("Artix.API.Core.Domain.Entities.File.File", "File")
@@ -1572,7 +1701,7 @@ namespace Artix.API.Infra.Sql.Migrations
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserObject", b =>
                 {
                     b.HasOne("Artix.API.Core.Domain.Entities.Object.Object", "Object")
-                        .WithMany()
+                        .WithMany("UserObjects")
                         .HasForeignKey("ObjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1735,6 +1864,11 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Navigation("MuseumObjects");
                 });
 
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Notification.Notification", b =>
+                {
+                    b.Navigation("UserNotifications");
+                });
+
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Object.Object", b =>
                 {
                     b.Navigation("ObjectFiles");
@@ -1742,6 +1876,8 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Navigation("ObjectHistoricalPeriods");
 
                     b.Navigation("ObjectTypes");
+
+                    b.Navigation("UserObjects");
                 });
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Object.Type", b =>
