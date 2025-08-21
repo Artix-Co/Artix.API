@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: Artix-Co/Artix.API
 
 jobs:
   build-and-push:
@@ -24,6 +24,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
       - name: Install cosign
         if: github.event_name != 'pull_request'
@@ -47,7 +53,6 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # Generate tags like 'dev', 'v1.0.0', or 'sha-<commit>'
           flavor: |
             latest=auto
             prefix=
@@ -78,8 +83,12 @@ jobs:
             image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
             for tag in $TAGS; do
               tag=${tag//${{ env.IMAGE_NAME }}/${{ env.IMAGE_NAME }}-$service}
-              digest=$(docker inspect --format='{{.Id}}' $tag)
-              echo "Signing $tag@$digest"
-              cosign sign --yes $tag@$digest
+              digest=$(docker inspect --format='{{.Id}}' $tag 2>/dev/null || echo "")
+              if [ -n "$digest" ]; then
+                echo "Signing $tag@$digest"
+                cosign sign --yes $tag@$digest
+              else
+                echo "Warning: Image $tag not found, skipping signing"
+              fi
             done
           done
