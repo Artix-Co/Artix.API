@@ -1,7 +1,7 @@
 name: Docker
 
 on:
-  schedule Gen:
+  push:
     branches: [ "dev" ]
     tags: [ 'v*.*.*' ]
   pull_request:
@@ -60,16 +60,15 @@ jobs:
 
       - name: Pull and build Docker images with docker-compose
         run: |
-          # Pull external images (e.g., sqlserver:latest) before building
+          # Pull external images (e.g., sqlserver) before building
           docker-compose -f docker-compose.yaml pull
           docker-compose -f docker-compose.yaml build
 
       - name: Push Docker images to registry
         if: github.event_name != 'pull_request'
         run: |
-          # Tag only services with a build context (skip prebuilt images like sqlserver)
+          # Tag only services with a build context
           for service in $(docker-compose -f docker-compose.yaml config --services); do
-            # Check if the service has a build configuration
             if docker-compose -f docker-compose.yaml config | grep -A 2 "services:$service" | grep -q "build:"; then
               image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
               for tag in ${{ steps.meta.outputs.tags }}; do
@@ -89,7 +88,6 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           for service in $(docker-compose -f docker-compose.yaml config --services); do
-            # Only sign images that were built (have build context)
             if docker-compose -f docker-compose.yaml config | grep -A 2 "services:$service" | grep -q "build:"; then
               image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
               for tag in $TAGS; do
