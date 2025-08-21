@@ -1,13 +1,13 @@
 name: Docker
 
 on:
-  schedule:
-    - cron: '24 14 * * *' # Runs daily at 14:24 UTC
-  push:
+  schedule Gen:
     branches: [ "dev" ]
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "dev" ]
+  schedule:
+    - cron: '24 14 * * *' # Runs daily at 14:24 UTC
 
 env:
   REGISTRY: ghcr.io
@@ -58,19 +58,28 @@ jobs:
             prefix=
             suffix=
 
-      - name: Build Docker images with docker-compose
+      - name: Pull and build Docker images with docker-compose
         run: |
+          # Pull external images (e.g., sqlserver:latest) before building
+          docker-compose -f docker-compose.yaml pull
           docker-compose -f docker-compose.yaml build
 
       - name: Push Docker images to registry
         if: github.event_name != 'pull_request'
         run: |
-          # Tag all images with metadata tags
+          # Tag only services with a build context (skip prebuilt images like sqlserver)
           for service in $(docker-compose -f docker-compose.yaml config --services); do
-            image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
-            for tag in ${{ steps.meta.outputs.tags }}; do
-              docker tag $service ${tag//${{ env.IMAGE_NAME }}/${{ env.IMAGE_NAME }}-$service}
-            done
+            # Check if the service has a build configuration
+            if docker-compose -f docker-compose.yaml config | grep -A 2 "services:$service" | grep -q "build:"; then
+              image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
+              for tag in ${{ steps.meta.outputs.tags }}; do
+                new_tag=${tag//${{ env.IMAGE_NAME }}/${{ env.IMAGE_NAME }}-$service}
+                echo "Tagging $service as $new_tag"
+                docker tag $service $new_tag
+              done
+            else
+              echo "Skipping tagging for $service (no build context)"
+            fi
           done
           docker-compose -f docker-compose.yaml push
 
@@ -80,15 +89,20 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           for service in $(docker-compose -f docker-compose.yaml config --services); do
-            image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
-            for tag in $TAGS; do
-              tag=${tag//${{ env.IMAGE_NAME }}/${{ env.IMAGE_NAME }}-$service}
-              digest=$(docker inspect --format='{{.Id}}' $tag 2>/dev/null || echo "")
-              if [ -n "$digest" ]; then
-                echo "Signing $tag@$digest"
-                cosign sign --yes $tag@$digest
-              else
-                echo "Warning: Image $tag not found, skipping signing"
-              fi
-            done
+            # Only sign images that were built (have build context)
+            if docker-compose -f docker-compose.yaml config | grep -A 2 "services:$service" | grep -q "build:"; then
+              image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$service
+              for tag in $TAGS; do
+                new_tag=${tag//${{ env.IMAGE_NAME }}/${{ env.IMAGE_NAME }}-$service}
+                digest=$(docker inspect --format='{{.Id}}' $new_tag 2>/dev/null || echo "")
+                if [ -n "$digest" ]; then
+                  echo "Signing $new_tag@$digest"
+                  cosign sign --yes $new_tag@$digest
+                else
+                  echo "Warning: Image $new_tag not found, skipping signing"
+                fi
+              done
+            else
+              echo "Skipping signing for $service (no build context)"
+            fi
           done
