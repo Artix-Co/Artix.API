@@ -2,7 +2,7 @@
 
 using Primitives.Handlers;
 
-public class GetLoginQuery : IQuery<LoginDto>
+public sealed class GetLoginQuery : IQuery<LoginDto>
 {
     public string Username { get; set; }
     public string Password { get; set; }

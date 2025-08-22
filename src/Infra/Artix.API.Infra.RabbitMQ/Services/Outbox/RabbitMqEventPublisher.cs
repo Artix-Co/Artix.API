@@ -7,7 +7,7 @@ using global::RabbitMQ.Client.Events;
 using Interfaces.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 
-public class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
+internal sealed class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private IConnection _connection;
@@ -28,7 +28,6 @@ public class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
         this._connection = await factory.CreateConnectionAsync();
         this._channel = await this._connection.CreateChannelAsync(null, cancellationToken);
 
-        // تعریف Exchange از نوع topic
         await _channel.ExchangeDeclareAsync(
             exchange: Exchange,
             type: ExchangeType.Topic,

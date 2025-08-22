@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Models.Notification;
 using Sql.Data.DbContexts;
 
-public class NotificationOutboxProcessor : BackgroundService
+internal sealed class NotificationOutboxProcessor : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly INotificationProducer _producer;
@@ -18,7 +18,7 @@ public class NotificationOutboxProcessor : BackgroundService
         _scopeFactory = scopeFactory;
         this._producer = producer;
     }
-    
+
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -27,7 +27,6 @@ public class NotificationOutboxProcessor : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
 
-            // گرفتن نوتیفیکیشن‌های Pending
             var pendingNotifications = await dbContext.Notifications
                 .Include(n => n.UserNotifications)
                 .Where(n =>
@@ -36,7 +35,7 @@ public class NotificationOutboxProcessor : BackgroundService
                 )
                 .OrderBy(n => n.Priority)
                 .ThenBy(n => n.CreatedAt)
-                .Take(100) // batch processing
+                .Take(100)
                 .ToListAsync(cancellationToken);
 
             foreach (var notification in pendingNotifications)
@@ -45,10 +44,9 @@ public class NotificationOutboxProcessor : BackgroundService
                 {
                     if (notification.IsBroadcast)
                     {
-                        // برای نوتیفیکیشن‌های broadcast
                         var message = new NotificationMessage(
-                            notification.BusinessId, // Guid به جای BusinessId
-                            null, // UserId برای broadcast null است
+                            notification.BusinessId,
+                            null,
                             notification.Title,
                             notification.Body,
                             notification.Type,
@@ -59,17 +57,15 @@ public class NotificationOutboxProcessor : BackgroundService
 
                         await _producer.PublishAsync("notifications", routingKey, message, cancellationToken);
 
-                        // آپدیت وضعیت نوتیفیکیشن
                         notification.MarkAsSent();
                     }
                     else
                     {
-                        // برای نوتیفیکیشن‌های خاص کاربر
                         foreach (var userNotification in notification.UserNotifications)
                         {
                             var message = new NotificationMessage(
                                 notification.BusinessId,
-                                userNotification.UserId, // UserId از UserNotification
+                                userNotification.UserId,
                                 notification.Title,
                                 notification.Body,
                                 notification.Type,
@@ -92,7 +88,7 @@ public class NotificationOutboxProcessor : BackgroundService
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken); // هر ۱۰ ثانیه چک کن
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
         }
     }
 }

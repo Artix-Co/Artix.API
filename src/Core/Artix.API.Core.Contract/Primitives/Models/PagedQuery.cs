@@ -1,6 +1,6 @@
 namespace Artix.API.Core.Contract.Primitives.Models;
 
-using Artix.API.Core.Contract.Primitives.Handlers;
+using Handlers;
 
 public abstract class PagedQuery<TResponse> : IQuery<PagedData<TResponse>>
 {

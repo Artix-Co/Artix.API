@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Users.Queries.GetReNewAccessToken;
 
-using Artix.API.Core.Contract.Primitives.Handlers;
+using Primitives.Handlers;
 
 public sealed class GetReNewAccessTokenQuery : IQuery<ReNewAccessTokenDto>
 {

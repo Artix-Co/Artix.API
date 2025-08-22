@@ -4,7 +4,7 @@ using Artix.API.Core.Contract.Configs.RabbitMQ;
 using global::RabbitMQ.Client;
 using Microsoft.Extensions.Options;
 
-public class RabbitMqConnectionFactory
+internal sealed class RabbitMqConnectionFactory
 {
     private readonly ConnectionFactory _factory;
 

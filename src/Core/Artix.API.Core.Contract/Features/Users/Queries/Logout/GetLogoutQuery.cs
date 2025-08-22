@@ -2,7 +2,7 @@
 
 using Primitives.Handlers;
 
-public class GetLogoutQuery : IQuery<LogoutDto>
+public sealed class GetLogoutQuery : IQuery<LogoutDto>
 {
  
 }

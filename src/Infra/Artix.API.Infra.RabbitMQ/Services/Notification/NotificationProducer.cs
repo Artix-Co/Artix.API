@@ -4,7 +4,7 @@ using System.Text.Json;
 using global::RabbitMQ.Client;
 using Interfaces.Notification;
 
-public class NotificationProducer : INotificationProducer, IDisposable
+internal sealed class NotificationProducer : INotificationProducer, IDisposable
 {
     private readonly IConnection _connection;
     private readonly IChannel _channel;
@@ -24,15 +24,15 @@ public class NotificationProducer : INotificationProducer, IDisposable
         var properties = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
 
         await _channel.BasicPublishAsync(
-            exchange: exchange,
-            routingKey: routingKey,
+            exchange,
+            routingKey,
             mandatory: true, // اگر پیام غیرقابل روتینگ باشه، برگردانده می‌شه
-            basicProperties: properties,
-            body: body,
-            cancellationToken: cancellationToken
+            properties,
+            body,
+            cancellationToken
         );
     }
-    
+
 
     public void Dispose()
     {

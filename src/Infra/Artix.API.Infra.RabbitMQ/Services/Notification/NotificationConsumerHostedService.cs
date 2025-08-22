@@ -1,48 +1,48 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
 using System.Text.Json;
-using Core.Domain.Entities.Notification;
+using Artix.API.Infra.RabbitMQ.Models.Notification;
+using Services;
+using Sql.Data.DbContexts;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Hosting;
-using Models.Notification;
-using Microsoft.Extensions.DependencyInjection;
-using Sql.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-public class NotificationConsumerHostedService : BackgroundService
+internal sealed class NotificationConsumerHostedService : BackgroundService
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IConnection _connection;
     private readonly IChannel _channel;
-    private readonly IServiceScopeFactory _scopeFactory; // اضافه
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public NotificationConsumerHostedService(
         RabbitMqConnectionFactory factory,
         IHubContext<NotificationHub> hubContext,
         IServiceScopeFactory scopeFactory)
     {
-        _hubContext = hubContext;
-        _scopeFactory = scopeFactory;
-        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+        this._hubContext = hubContext;
+        this._scopeFactory = scopeFactory;
+        this._connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        this._channel = this._connection.CreateChannelAsync().GetAwaiter().GetResult();
 
         // تعریف exchange
-        _channel.ExchangeDeclareAsync("notifications", ExchangeType.Topic, durable: true);
+        this._channel.ExchangeDeclareAsync("notifications", ExchangeType.Topic, durable: true);
 
         // تعریف queue برای کاربران
-        _channel.QueueDeclareAsync("user_notifications", durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBindAsync("user_notifications", "notifications", "notifications.user.*");
+        this._channel.QueueDeclareAsync("user_notifications", durable: true, exclusive: false, autoDelete: false);
+        this._channel.QueueBindAsync("user_notifications", "notifications", "notifications.user.*");
 
         // تعریف queue برای broadcast
-        _channel.QueueDeclareAsync("all_notifications", durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBindAsync("all_notifications", "notifications", "notifications.all");
+        this._channel.QueueDeclareAsync("all_notifications", durable: true, exclusive: false, autoDelete: false);
+        this._channel.QueueBindAsync("all_notifications", "notifications", "notifications.all");
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var consumer = new AsyncEventingBasicConsumer(_channel);
+        var consumer = new AsyncEventingBasicConsumer(this._channel);
         consumer.ReceivedAsync += async (model, ea) =>
         {
             var body = ea.Body.ToArray();
@@ -51,33 +51,32 @@ public class NotificationConsumerHostedService : BackgroundService
 
             if (ea.RoutingKey.StartsWith("notifications.user."))
             {
-                await _hubContext.Clients.Group(message.UserId.ToString())
-                    .SendAsync("ReceiveNotification", message, stoppingToken);
+                await this._hubContext.Clients.Group(message.UserId.ToString())
+                    .SendAsync("ReceiveNotification", message, cancellationToken);
             }
             else if (ea.RoutingKey == "notifications.all")
             {
-                await _hubContext.Clients.All.SendAsync("ReceiveNotification", message, stoppingToken);
+                await this._hubContext.Clients.All.SendAsync("ReceiveNotification", message, cancellationToken);
             }
 
-            // اضافه: آپدیت status
-            using var scope = _scopeFactory.CreateScope();
+            using var scope = this._scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
             var notification = await dbContext.Notifications
-                .Include(n=>n.UserNotifications)
-                .FirstOrDefaultAsync(n => n.BusinessId == message.NotificationId, stoppingToken);
+                .Include(n => n.UserNotifications)
+                .FirstOrDefaultAsync(n => n.BusinessId == message.NotificationId, cancellationToken);
             if (notification != null)
             {
                 notification.MarkAsSent();
-                await dbContext.SaveChangesAsync(stoppingToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
 
-            await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: stoppingToken);
+            await this._channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken);
         };
 
-        await _channel.BasicConsumeAsync(queue: "user_notifications", autoAck: false, consumer: consumer,
-            cancellationToken: stoppingToken);
-        await _channel.BasicConsumeAsync(queue: "all_notifications", autoAck: false, consumer: consumer,
-            cancellationToken: stoppingToken);
+        await this._channel.BasicConsumeAsync(queue: "user_notifications", autoAck: false, consumer: consumer,
+            cancellationToken);
+        await this._channel.BasicConsumeAsync(queue: "all_notifications", autoAck: false, consumer: consumer,
+            cancellationToken);
 
         await Task.CompletedTask;
     }
@@ -85,8 +84,8 @@ public class NotificationConsumerHostedService : BackgroundService
 
     public override void Dispose()
     {
-        _channel.CloseAsync();
-        _connection.CloseAsync();
+        this._channel.CloseAsync();
+        this._connection.CloseAsync();
         base.Dispose();
     }
 }

@@ -3,7 +3,7 @@
 using Interfaces.Notification;
 using Models.Notification;
 
-public class NotificationService : INotificationService
+internal sealed class NotificationService : INotificationService
 {
     private readonly INotificationProducer _notificationProducer;
 
