@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.Logout;
 
 using Contract.Features.Users.Queries.Logout;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -23,7 +24,7 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
         this._userManager = userManager;
     }
 
-    public override async Task<LogoutDto> Handle(GetLogoutQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<LogoutDto>> Handle(GetLogoutQuery query, CancellationToken cancellationToken)
     {
         var result = new LogoutDto();
         var user = await GetCurrentUserAsync(cancellationToken);
@@ -36,6 +37,7 @@ internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, Logo
             await _httpContextAccessor.HttpContext.SignOutAsync();
         }
 
-        return result;
+    
+        return Result<LogoutDto>.Success(result);
     }
 }

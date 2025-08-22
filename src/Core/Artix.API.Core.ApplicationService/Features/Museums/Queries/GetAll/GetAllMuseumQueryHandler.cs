@@ -2,6 +2,7 @@
 
 using Contract.Features.Museums.Queries;
 using Contract.Features.Museums.Queries.GetAll;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,10 +20,10 @@ internal sealed class GetAllMuseumQueryHandler : QueryHandlerBase<GetAllMuseumsQ
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<IEnumerable<AllMuseumDto>> Handle(GetAllMuseumsQuery query,
+    public override async Task<Result<IEnumerable<AllMuseumDto>>> Handle(GetAllMuseumsQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetAllAsync(query, cancellationToken);
-        return result;
+        return Result<IEnumerable<AllMuseumDto>>.Success(result);
     }
 }

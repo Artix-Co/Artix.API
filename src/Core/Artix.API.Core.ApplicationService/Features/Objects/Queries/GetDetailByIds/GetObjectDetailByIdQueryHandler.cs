@@ -3,6 +3,7 @@
 using Contract.Features.Caches.Objects;
 using Contract.Features.Objects.Queries;
 using Contract.Features.Objects.Queries.GetDetailByIds;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Exceptions;
 using Infra.Redis.Interfaces;
@@ -25,7 +26,7 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
         this._objectCache = objectCache;
     }
 
-    public override async Task<ObjectDetailByIdDto> Handle(GetObjectDetailByIdQuery query,
+    public override async Task<Result<ObjectDetailByIdDto>> Handle(GetObjectDetailByIdQuery query,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
@@ -37,8 +38,11 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        await this._objectCache.AddToRecentAsync(user.Id.ToString(), RecentObjectDto.Create(result.BusinessId, result.Name));
+        await this._objectCache.AddToRecentAsync(user.Id.ToString(),
+            RecentObjectDto.Create(result.BusinessId, result.Name));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
-        return result;
+
+
+        return Result<ObjectDetailByIdDto>.Success(result);
     }
 }

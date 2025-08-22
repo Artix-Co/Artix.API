@@ -3,6 +3,7 @@
 using Contract.Features.Caches.Museums;
 using Contract.Features.Caches.Objects;
 using Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -24,12 +25,13 @@ internal sealed class
         this._museumCache = museumCache;
     }
 
-    public override async Task<IEnumerable<UserRecentObjectsVisitDto>> Handle(GetUserRecentObjectsVisitQuery query,
+    public override async Task<Result<IEnumerable<UserRecentObjectsVisitDto>>> Handle(
+        GetUserRecentObjectsVisitQuery query,
         CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
         var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString(), 10);
         var result = recentVisitsCached.Select(m => new UserRecentObjectsVisitDto { Id = m.Id, Name = m.Name, });
-        return result;
+        return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(result);
     }
 }

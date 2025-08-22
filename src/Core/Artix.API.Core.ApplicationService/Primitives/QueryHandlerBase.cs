@@ -2,6 +2,7 @@
 
 using System.Security.Claims;
 using Contract.Primitives.Handlers;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -38,5 +39,5 @@ public abstract class QueryHandlerBase<TQuery, TResponse> : IQueryHandler<TQuery
         return user;
     }
     
-    public abstract Task<TResponse> Handle(TQuery query, CancellationToken cancellationToken);
+    public abstract Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken);
 }

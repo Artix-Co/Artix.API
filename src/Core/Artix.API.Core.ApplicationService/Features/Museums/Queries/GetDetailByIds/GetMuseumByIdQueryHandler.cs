@@ -6,6 +6,7 @@ using Artix.API.Core.Contract.Features.Caches.Museums;
 using Artix.API.Core.Contract.Features.Museums.Commands;
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
         this._museumCache = museumCache;
     }
 
-    public override async Task<MuseumByIdDto> Handle(GetMuseumByIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<MuseumByIdDto>> Handle(GetMuseumByIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 
@@ -40,6 +41,6 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
 
         await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.BusinessId, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
-        return result;
+        return Result<MuseumByIdDto>.Success(result);
     }
 }

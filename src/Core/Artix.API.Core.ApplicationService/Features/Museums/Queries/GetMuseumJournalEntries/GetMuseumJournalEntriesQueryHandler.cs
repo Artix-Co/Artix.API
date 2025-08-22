@@ -2,6 +2,7 @@
 
 using Contract.Features.Museums.Queries;
 using Contract.Features.Museums.Queries.GetMuseumJournalEntries;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -21,10 +22,10 @@ internal sealed class
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<IEnumerable<MuseumJournalEntryDto>> Handle(GetMuseumJournalEntriesQuery query,
+    public override async Task<Result<IEnumerable<MuseumJournalEntryDto>>> Handle(GetMuseumJournalEntriesQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetJournalEntriesAsync(query, cancellationToken);
-        return result;
+        return Result<IEnumerable<MuseumJournalEntryDto>>.Success(result);
     }
 }

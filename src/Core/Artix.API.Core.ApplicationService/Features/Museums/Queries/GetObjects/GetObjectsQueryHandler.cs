@@ -22,10 +22,10 @@ internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQue
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<PagedData<AllObjectDto>> Handle(GetAllObjectsQuery query,
+    public override async Task<Result<PagedData<AllObjectDto>>> Handle(GetAllObjectsQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetAllObjectsAsync(query, cancellationToken);
-        return result;
+        return Result<PagedData<AllObjectDto>>.Success(result);
     }
 }

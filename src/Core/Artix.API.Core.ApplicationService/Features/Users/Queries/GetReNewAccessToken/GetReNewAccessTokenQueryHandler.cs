@@ -2,6 +2,7 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.GetReNewAccessToken;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Infra.Identity.Interfaces.TokenService;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,7 @@ internal sealed class GetReNewAccessTokenQueryHandler : QueryHandlerBase<GetReNe
         this._tokenService = tokenService;
     }
 
-    public override async Task<ReNewAccessTokenDto> Handle(GetReNewAccessTokenQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<ReNewAccessTokenDto>> Handle(GetReNewAccessTokenQuery query, CancellationToken cancellationToken)
     {
         var tokenServiceResult =
             await this._tokenService.ReNewAccessTokenAsync(query.RefreshToken, cancellationToken);
@@ -31,6 +32,6 @@ internal sealed class GetReNewAccessTokenQueryHandler : QueryHandlerBase<GetReNe
             AccessTokenExpiresAt = tokenServiceResult.AccessTokenExpiresAt,
         };
         
-        return result;
+        return Result<ReNewAccessTokenDto>.Success(result);
     }
 }

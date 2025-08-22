@@ -5,6 +5,7 @@ using Artix.API.Core.Contract.Features.Versions.Commands;
 using Artix.API.Core.Contract.Features.Versions.Queries;
 using Artix.API.Core.Contract.Features.Versions.Queries.GetLast;
 using Artix.API.Core.Domain.Entities.User;
+using Contract.Primitives.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -25,10 +26,10 @@ internal sealed class
         this._versionQueryRepository = versionQueryRepository;
     }
 
-    public override async Task<LastVersionDto> Handle(GetLastVersionQuery query,
+    public override async Task<Result<LastVersionDto>> Handle(GetLastVersionQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._versionQueryRepository.GetLastAsync(query, cancellationToken);
-        return result;
+        return Result<LastVersionDto>.Success(result);
     }
 }

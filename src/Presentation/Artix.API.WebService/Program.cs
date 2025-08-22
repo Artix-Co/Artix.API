@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Domain.Entities.User;
+using Artix.API.Endpoints;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
@@ -72,7 +73,7 @@ app.UseExceptionHandler(config =>
     });
 });
 app.UseResponseCompression();
-// app.UseCustomMiddlewares(app.Environment);
+app.UseCustomMiddlewares(app.Environment);
 
 Log.Logger.Information("Application started!");
 
@@ -86,18 +87,7 @@ if (environment.IsDevelopment())
 
 
 app.UseResponseCaching();
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "GET")
-    {
-        context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
-        {
-            Public = true, MaxAge = TimeSpan.FromSeconds(60) // کش 60 ثانیه‌ای برای پاسخ‌ها
-        };
-    }
 
-    await next();
-});
 
 app.UseRouting();
 app.UseWebSockets();

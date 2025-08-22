@@ -2,6 +2,7 @@
 
 using System.Security.Claims;
 using Contract.Features.Users.Queries.GetUserProfile;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -17,11 +18,12 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
     }
 
 
-    public override async Task<UserProfileDto> Handle(GetUserProfileQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<UserProfileDto>> Handle(GetUserProfileQuery query,
+        CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
 
-        return new UserProfileDto
+        var result = new UserProfileDto
         {
             Id = user.BusinessId,
             Email = user.Email,
@@ -31,5 +33,7 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
             IsPro = user.IsPro,
             PhoneNumber = user.PhoneNumber,
         };
+
+        return Result<UserProfileDto>.Success(result);
     }
 }

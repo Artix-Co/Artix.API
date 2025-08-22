@@ -2,6 +2,7 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.Login;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Infra.Identity.Interfaces.LoginHistory;
 using Infra.Identity.Interfaces.TokenProvider;
@@ -28,7 +29,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         this._httpContextAccessor = httpContextAccessor;
     }
 
-    public override async Task<LoginDto> Handle(GetLoginQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<LoginDto>> Handle(GetLoginQuery query, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(query.Username) || string.IsNullOrEmpty(query.Password))
         {
@@ -51,7 +52,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
         var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
 
-        return new LoginDto
+        var result = new LoginDto
         {
             AccessToken = tokenResult.AccessToken,
             RefreshToken = tokenResult.RefreshToken,
@@ -61,5 +62,7 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
             DisplayName = user.DisplayName,
             Roles = userRoles.ToList()
         };
+
+        return Result<LoginDto>.Success(result);
     }
 }

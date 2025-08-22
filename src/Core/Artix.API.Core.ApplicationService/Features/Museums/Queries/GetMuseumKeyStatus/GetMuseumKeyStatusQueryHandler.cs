@@ -2,6 +2,7 @@
 
 using Contract.Features.Museums.Queries;
 using Contract.Features.Museums.Queries.GetMuseumKeyStatus;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +20,7 @@ internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseu
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<MuseumKeyStatusDto> Handle(GetMuseumKeyStatusQuery query,
+    public override async Task<Result<MuseumKeyStatusDto>> Handle(GetMuseumKeyStatusQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetKeyStatusAsync(query, cancellationToken);
@@ -30,6 +31,6 @@ internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseu
             throw new KeyNotFoundException("The given museum key status could not be found.");
         }
         
-        return result;
+        return Result<MuseumKeyStatusDto>.Success(result);
     }
 }

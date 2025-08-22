@@ -3,6 +3,7 @@
 using Contract.Features.Collections.Queries;
 using Contract.Features.Collections.Queries.GetCollectionByUserId;
 using Contract.Features.Collections.Queries.GetUserCollection;
+using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +22,7 @@ internal sealed class
         this._collectionQueryRepository = collectionQueryRepository;
     }
 
-    public override async Task<IEnumerable<CollectionsByUserIdDto>> Handle(GetCollectionsByUserIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<IEnumerable<CollectionsByUserIdDto>>> Handle(GetCollectionsByUserIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userCollectionList =
@@ -31,6 +32,6 @@ internal sealed class
         {
             Id = uc.Id, Name = uc.Name, Description = uc.Description,
         });
-        return result;
+        return Result<IEnumerable<CollectionsByUserIdDto>>.Success(result);
     }
 }

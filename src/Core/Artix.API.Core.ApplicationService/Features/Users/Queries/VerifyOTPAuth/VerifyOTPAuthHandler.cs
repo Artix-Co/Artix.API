@@ -6,6 +6,7 @@ using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
 using Primitives;
 using Domain.Entities.User;
 using Contract.Features.Users.Queries.VerifyOTPAuth;
+using Contract.Primitives.Models;
 using Domain.Entities.User.Enums;
 using Exceptions;
 using Infra.Identity.Interfaces.LoginHistory;
@@ -44,7 +45,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
         this._httpContextAccessor = httpContextAccessor;
     }
 
-    public override async Task<VerifyOTPAuthDto> Handle(GetVerifyOTPAuthQuery query,
+    public override async Task<Result<VerifyOTPAuthDto>> Handle(GetVerifyOTPAuthQuery query,
         CancellationToken cancellationToken)
     {
         const string ROLE = nameof(Role.Client);
@@ -123,7 +124,8 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             var smsMessage = $"Welcome {newUser.DisplayName}! You are now registered.";
             // await _smsSender.SendAsync(newUser.PhoneNumber, smsMessage, cancellationToken);
 
-            return new VerifyOTPAuthDto
+
+            var result = new VerifyOTPAuthDto
             {
                 IsNewUser = true,
                 UserId = newUser.BusinessId,
@@ -132,6 +134,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
                 RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
             };
+            return Result<VerifyOTPAuthDto>.Success(result);
         }
         else if (otp.Purpose == "Login" && user != null)
         {
@@ -161,7 +164,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             var smsMessage = $"Welcome back {user.DisplayName}! You are now logged in.";
             // await _smsSender.SendAsync(user.PhoneNumber, smsMessage, cancellationToken);
 
-            return new VerifyOTPAuthDto
+            var result = new VerifyOTPAuthDto
             {
                 IsNewUser = false,
                 UserId = user.BusinessId,
@@ -170,6 +173,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
                 RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
             };
+            return Result<VerifyOTPAuthDto>.Success(result);
         }
         else
         {

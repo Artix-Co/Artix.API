@@ -37,7 +37,7 @@ internal sealed class ApiVersionCheckMiddleware
             return;
         }
 
-        if (!_environment.IsProduction())
+        if (_environment.IsDevelopment())
         {
             _logger.LogDebug("Skipping API version checking in {Environment}", _environment.EnvironmentName);
             await _next(context);
@@ -87,7 +87,7 @@ internal sealed class ApiVersionCheckMiddleware
             return false;
         }
 
-        if (!_cache.TryGetValue("LatestAppVersion", out LastVersionDto latestVersion))
+        if (!_cache.TryGetValue("LatestAppVersion", out Result<LastVersionDto> latestVersion))
         {
             _logger.LogInformation("Fetching latest app version from database for request to {Path}",
                 context.Request.Path);
@@ -96,15 +96,15 @@ internal sealed class ApiVersionCheckMiddleware
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             latestVersion = await mediator.Send(new GetLastVersionQuery(), context.RequestAborted);
 
-            if (latestVersion != null)
+            if (latestVersion.Data != null)
             {
                 _cache.Set("LatestAppVersion", latestVersion, TimeSpan.FromMinutes(10));
-                _logger.LogDebug("Cached latest app version {LatestVersion}", latestVersion.VersionString);
+                _logger.LogDebug("Cached latest app version {LatestVersion}", latestVersion.Data.VersionString);
             }
         }
         else
         {
-            _logger.LogDebug("Loaded latest app version {LatestVersion} from cache", latestVersion.VersionString);
+            _logger.LogDebug("Loaded latest app version {LatestVersion} from cache", latestVersion.Data.VersionString);
         }
 
         if (latestVersion == null)
@@ -117,7 +117,7 @@ internal sealed class ApiVersionCheckMiddleware
         if (RequiresUpdate(clientVersion, latestVersion))
         {
             _logger.LogWarning("Client version {ClientVersion} is outdated. Latest version is {LatestVersion}",
-                clientVersionString, latestVersion.VersionString);
+                clientVersionString, latestVersion.Data.VersionString);
             await WriteResponseAsync(context, StatusCodes.Status426UpgradeRequired, "App version is outdated");
             return false;
         }
@@ -148,15 +148,15 @@ internal sealed class ApiVersionCheckMiddleware
         return true;
     }
 
-    private bool RequiresUpdate(AppVersion clientVersion, LastVersionDto latestVersion)
+    private bool RequiresUpdate(AppVersion clientVersion, Result<LastVersionDto> latestVersion)
     {
-        var latestVersionParts = latestVersion.VersionString.Split('.');
+        var latestVersionParts = latestVersion.Data.VersionString.Split('.');
         if (latestVersionParts.Length != 3 || !int.TryParse(latestVersionParts[0], out var latestMajor) ||
             !int.TryParse(latestVersionParts[1], out var latestMinor) ||
             !int.TryParse(latestVersionParts[2], out var latestPatch))
         {
             _logger.LogWarning("Latest version string {LatestVersion} is invalid. Skipping update requirement check.",
-                latestVersion.VersionString);
+                latestVersion.Data.VersionString);
             return false;
         }
 
@@ -165,6 +165,6 @@ internal sealed class ApiVersionCheckMiddleware
                        (latestMajor == clientVersion.Major && latestMinor == clientVersion.Minor &&
                         latestPatch > clientVersion.Patch);
 
-        return isNewer && (latestVersion.IsRequired || !latestVersion.MinSupported);
+        return isNewer && (latestVersion.Data.IsRequired || !latestVersion.Data.MinSupported);
     }
 }
