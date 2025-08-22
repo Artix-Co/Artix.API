@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.WebService;
 
 using System.IO.Compression;
-using System.Net;
 using Core.ApplicationService;
 using Core.Contract;
 using Core.Contract.Configs.Authentication;
@@ -11,21 +10,15 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
 using Core.DomainService;
-using Endpoints;
 using Filters;
 using Infra.File;
 using Infra.Identity;
 using Infra.RabbitMQ;
 using Infra.Redis;
-using Infra.Redis.Services.LeaderElection;
 using Infra.Sql;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Nest;
-using RedLockNet;
-using RedLockNet.SERedis;
-using RedLockNet.SERedis.Configuration;
 using Serilog;
 using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
 

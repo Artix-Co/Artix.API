@@ -1,9 +1,7 @@
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Domain.Entities.User;
-using Artix.API.Endpoints;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
-using Artix.API.Infra.Redis.Services.LeaderElection;
 using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
@@ -11,8 +9,8 @@ using Artix.API.WebService;
 using Artix.ServiceDefaults;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -111,22 +109,5 @@ app.MapControllers();
 
 app.MapHub<NotificationHub>("/notificationHub");
 
-
-// Define endpoints
-app.MapGet("/lock",
-    (LeaderState leader) =>
-    {
-        return leader.IsLeader ? Results.Ok("I'm the leader and I serve this.") : Results.StatusCode(503);
-    });
-
-app.MapGet("/process", (LeaderState leader) =>
-{
-    if (!leader.IsLeader)
-        return Results.StatusCode(503);
-
-    var id = Guid.NewGuid();
-    Console.WriteLine($"✔️ Leader handled the request: {id}");
-    return Results.Ok($"Handled by leader: {id}");
-});
 
 app.Run();
