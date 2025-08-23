@@ -35,8 +35,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
 
 
-        if (query is null)
-            throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
+ 
 
         var model3DBase64 = query.ObjectFiles
             .Where(of => of.File.MimeType is "model/obj" or "model/gltf-binary")

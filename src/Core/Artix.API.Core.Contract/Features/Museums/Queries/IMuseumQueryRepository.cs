@@ -12,16 +12,14 @@ using Primitives.Repositories;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {
-    Task<IEnumerable<AllMuseumDto>>
-        GetAllAsync(GetAllMuseumsQuery dto, CancellationToken cancellationToken = default);
+    IEnumerable<AllMuseumDto> GetAll(GetAllMuseumsQuery dto);
 
-    Task<MuseumDetailsByIdDto?> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto, CancellationToken cancellationToken = default);
-
-    Task<IEnumerable<MuseumObjectDto>> GetObjectsAsync(GetMuseumObjectsQuery dto,
+    Task<MuseumDetailsByIdDto> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto,
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<MuseumJournalEntryDto>> GetJournalEntriesAsync(GetMuseumJournalEntriesQuery dto,
-        CancellationToken cancellationToken = default);
+    IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto);
+
+    IEnumerable<MuseumJournalEntryDto> GetJournalEntries(GetMuseumJournalEntriesQuery dto);
 
     Task<MuseumKeyStatusDto?> GetKeyStatusAsync(GetMuseumKeyStatusQuery dto,
         CancellationToken cancellationToken = default);

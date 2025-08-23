@@ -23,7 +23,7 @@ internal sealed class GetAllMuseumQueryHandler : QueryHandlerBase<GetAllMuseumsQ
     public override async Task<Result<IEnumerable<AllMuseumDto>>> Handle(GetAllMuseumsQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await this._museumQueryRepository.GetAllAsync(query, cancellationToken);
+        var result = this._museumQueryRepository.GetAll(query);
         return Result<IEnumerable<AllMuseumDto>>.Success(result);
     }
 }

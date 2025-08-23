@@ -17,7 +17,9 @@ internal sealed class
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
 
-    public GetMuseumJournalEntriesQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache, httpContextAccessor, userManager)
+    public GetMuseumJournalEntriesQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache,
+        httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
     }
@@ -25,7 +27,7 @@ internal sealed class
     public override async Task<Result<IEnumerable<MuseumJournalEntryDto>>> Handle(GetMuseumJournalEntriesQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await this._museumQueryRepository.GetJournalEntriesAsync(query, cancellationToken);
+        var result = this._museumQueryRepository.GetJournalEntries(query);
         return Result<IEnumerable<MuseumJournalEntryDto>>.Success(result);
     }
 }
