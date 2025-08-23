@@ -3,7 +3,4 @@
 using Primitives.Handlers;
 using Primitives.Models;
 
-public sealed class GetUserCollectionsQuery : IQuery<IEnumerable<UserCollectionDto>>
-{
-    public long UserId { get; set; }
-}
+public sealed record GetUserCollectionsQuery(long UserId) : IQuery<IEnumerable<UserCollectionDto>>;

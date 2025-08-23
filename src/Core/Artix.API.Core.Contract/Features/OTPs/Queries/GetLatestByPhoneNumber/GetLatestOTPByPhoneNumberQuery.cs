@@ -2,8 +2,5 @@
 
 using Primitives.Handlers;
 
-public sealed class GetLatestOTPByPhoneNumberQuery : IQuery<LatestOTPByPhoneNumberDto>
-{
-    public string PhoneNumber { get; set; }
-    public string OtpCode { get; set; }
-}
+public sealed record GetLatestOTPByPhoneNumberQuery(string PhoneNumber, string OtpCode)
+    : IQuery<LatestOTPByPhoneNumberDto>;

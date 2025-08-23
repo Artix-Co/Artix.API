@@ -22,13 +22,11 @@ using Primitives;
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
     private readonly ILogger<MuseumQueryRepository> _logger;
-    private readonly ArtixQueryDbContext _queryDbContext;
 
     public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger)
         : base(queryDbContext)
     {
         _logger = logger;
-        _queryDbContext = queryDbContext;
     }
 
     public async Task<IEnumerable<AllMuseumDto>> GetAllAsync(GetAllMuseumsQuery dto,
@@ -46,14 +44,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             }
 
             var museums = await museumsQuery
-                .Select(m => new AllMuseumDto
-                {
-                    Id = m.BusinessId,
-                    Name = m.Name,
-                    Description = m.Description,
-                    CreatedAt = m.CreatedAt,
-                    IsActive = m.IsActive
-                })
+                .Select(m => new AllMuseumDto(m.BusinessId, m.Name, m.Description, m.CreatedAt, m.IsActive))
                 .OrderBy(m => m.Name)
                 .ToListAsync(cancellationToken);
 
@@ -67,7 +58,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         }
     }
 
-    public async Task<MuseumByIdDto?> GetDetailsByIdAsync(GetMuseumByIdQuery dto,
+    public async Task<MuseumDetailsByIdDto?> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto,
         CancellationToken cancellationToken = default)
     {
         try
@@ -86,17 +77,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                         JournalEntryCount = _queryDbContext.JournalEntries
                             .Count(je => moGroup.Any(mo => mo.ObjectId == je.ObjectId))
                     })
-                .Select(x => new MuseumByIdDto
-                {
-                    Name = x.Museum.Name,
-                    BusinessId = x.Museum.BusinessId,
-                    Description = x.Museum.Description,
-                    CreatedAt = x.Museum.CreatedAt,
-                    ModifiedAt = x.Museum.ModifiedAt,
-                    IsActive = x.Museum.IsActive,
-                    ObjectCount = x.MuseumObjects.Count(),
-                    JournalEntryCount = x.JournalEntryCount
-                })
+                .Select(x => new MuseumDetailsByIdDto(x.Museum.BusinessId, x.Museum.Name, x.Museum.Description,
+                    x.Museum.CreatedAt, x.Museum.IsActive, x.MuseumObjects.Count(), x.JournalEntryCount))
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (museum == null)
@@ -137,13 +119,13 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     (x, m) => new { x.Object, x.MuseumObject, Museum = m })
                 .Where(x => x.Museum.BusinessId == dto.MuseumId)
                 .Select(x => new MuseumObjectDto
-                {
-                    Id = x.Object.BusinessId,
-                    MuseumId = x.Museum.BusinessId,
-                    Name = x.Object.Name,
-                    Description = x.Object.GeneralInformation,
-                    CreatedAt = x.Object.CreatedAt
-                })
+                (
+                    x.Object.BusinessId,
+                    x.Museum.BusinessId,
+                    x.Object.Name,
+                    x.Object.GeneralInformation,
+                    x.Object.CreatedAt
+                ))
                 .OrderBy(dto => dto.Name)
                 .ToListAsync(cancellationToken);
 
@@ -177,15 +159,15 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     join u in _queryDbContext.Users on uje.UserId equals u.Id into userGroup
                     from user in userGroup.DefaultIfEmpty()
                     select new MuseumJournalEntryDto
-                    {
-                        Id = je.BusinessId,
-                        MuseumId = m.BusinessId,
-                        UserId = user.BusinessId,
-                        Content = je.Notes,
-                        CreatedAt = je.CreatedAt,
-                        Title = je.Title,
-                        SketchUrl = je.SketchUrl
-                    })
+                    (
+                        je.BusinessId,
+                        m.BusinessId,
+                        user.BusinessId,
+                        je.Notes,
+                        je.CreatedAt,
+                        je.Title,
+                        je.SketchUrl
+                    ))
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -223,10 +205,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 (from umk in _queryDbContext.UserMuseumKeys
                     where umk.MuseumId == museum.Id && umk.UserId == dto.UserId
                     join u in _queryDbContext.Users on umk.UserId equals u.Id
-                    select new MuseumKeyStatusDto
-                    {
-                        MuseumId = dto.MuseumId, HasKey = true, GrantedAt = umk.AcquiredAt, ExpiresAt = null
-                    })
+                    select new MuseumKeyStatusDto(dto.MuseumId, true, umk.AcquiredAt, null))
                 .FirstOrDefaultAsync(cancellationToken);
 
 
@@ -234,10 +213,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             {
                 _logger.LogInformation("No key found for museum ID {MuseumId} and user ID {UserId}", dto.MuseumId,
                     dto.UserId);
-                return new MuseumKeyStatusDto
-                {
-                    MuseumId = dto.MuseumId, HasKey = false, GrantedAt = null, ExpiresAt = null
-                };
+                return new MuseumKeyStatusDto(dto.MuseumId, false, null, null);
             }
 
             _logger.LogInformation("Successfully retrieved key status for museum ID {MuseumId}, user ID {UserId}",
@@ -306,39 +282,39 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 .Skip((dto.Page - 1) * dto.PageSize)
                 .Take(dto.PageSize)
                 .Select(o => new AllObjectDto
-                {
-                    Id = o.BusinessId,
-                    Name = o.Name,
-                    Description = o.GeneralInformation,
-                    MuseumId = (from mo in _queryDbContext.MuseumObjects
+                (
+                    o.BusinessId,
+                    o.Name,
+                    o.GeneralInformation,
+                    (from mo in _queryDbContext.MuseumObjects
                         join m in _queryDbContext.Museums on mo.MuseumId equals m.Id
                         where mo.ObjectId == o.Id
                         select m.BusinessId).FirstOrDefault(),
-                    QRCode = o.QrCode,
-                    IsSpecial = o.IsSpecial,
-                    IsHidden = o.IsHidden,
-                    Tier = o.Tier,
-                    Version = o.Version,
-                    CreatedAt = o.CreatedAt,
-                    Types = _queryDbContext.ObjectTypes
+                    o.QrCode,
+                    o.IsSpecial,
+                    o.IsHidden,
+                    o.Tier,
+                    o.Version,
+                    o.CreatedAt,
+                    _queryDbContext.ObjectTypes
                         .Where(ot => ot.ObjectId == o.Id)
                         .Join(_queryDbContext.Types,
                             ot => ot.TypeId,
                             t => t.Id,
-                            (ot, t) => new TypeDto { Id = t.BusinessId, Name = t.Name, Description = t.Description })
+                            (ot, t) => new TypeDto(t.BusinessId, t.Name, t.Description))
                         .ToList(),
-                    HistoricalPeriods = _queryDbContext.HistoricalPeriods
+                    _queryDbContext.HistoricalPeriods
                         .Where(hp => _queryDbContext.ObjectHistoricalPeriods
                             .Any(ohp => ohp.ObjectId == o.Id && ohp.HistoricalPeriodId == hp.Id))
                         .Select(hp => new HistoricalPeriodDto
-                        {
-                            Id = hp.BusinessId,
-                            Name = hp.Name,
-                            Description = hp.Description,
-                            StartDate = hp.StartDate,
-                            EndDate = hp.EndDate
-                        }).ToList()
-                })
+                        (
+                            hp.BusinessId,
+                            hp.Name,
+                            hp.Description,
+                            hp.StartDate,
+                            hp.EndDate
+                        )).ToList()
+                ))
                 .ToListAsync(cancellationToken);
 
             _logger.LogInformation("Successfully retrieved {Count} objects for query", pagedObjects.Count);

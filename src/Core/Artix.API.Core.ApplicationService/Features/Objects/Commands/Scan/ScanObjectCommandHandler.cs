@@ -56,17 +56,17 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
-        await this._notificationServiceProvider.SendUserNotificationAsync(
-            new AddUserNotificationCommand
-            {
-                UserId = user.Id,
-                Body = "notification from service provider",
-                Metadata = null,
-                Title = "you scanned an obj",
-                Type = NotificationType.InApp
-            }, cancellationToken);
-
-
+        var userNotification = new AddUserNotificationCommand
+        (
+            user.Id,
+            "notification from service provider",
+            "you scanned an obj",
+            NotificationType.InApp,
+            null
+        );
+       
+        await this._notificationServiceProvider.SendUserNotificationAsync(userNotification, cancellationToken);
+        
         return @object.BusinessId;
     }
 }

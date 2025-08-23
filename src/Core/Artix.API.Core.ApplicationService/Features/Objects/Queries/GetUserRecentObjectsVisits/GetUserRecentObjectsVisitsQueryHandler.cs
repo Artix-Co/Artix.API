@@ -30,8 +30,8 @@ internal sealed class
         CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
-        var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString(), 10);
-        var result = recentVisitsCached.Select(m => new UserRecentObjectsVisitDto { Id = m.Id, Name = m.Name, });
+        var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString());
+        var result = recentVisitsCached.Select(m => new UserRecentObjectsVisitDto(m.Id, m.Name));
         return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(result);
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
 
+// TODO: develop validation for this handler
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
 {
     private readonly UserManager<AppUser> _userManager;

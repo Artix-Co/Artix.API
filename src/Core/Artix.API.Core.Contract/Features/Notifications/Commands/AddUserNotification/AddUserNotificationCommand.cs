@@ -3,11 +3,9 @@ namespace Artix.API.Core.Contract.Features.Notifications.Commands.AddUserNotific
 using Domain.Entities.Notification.Enums;
 using Primitives.Handlers;
 
-public sealed class AddUserNotificationCommand : ICommand
-{
-    public long UserId { get; set; }
-    public string Title { get; set; }
-    public string Body { get; set; }
-    public NotificationType Type { get; set; }
-    public string? Metadata { get; set; }
-}
+public sealed record AddUserNotificationCommand(
+    long UserId,
+    string Title,
+    string Body,
+    NotificationType Type,
+    string? Metadata) : ICommand;

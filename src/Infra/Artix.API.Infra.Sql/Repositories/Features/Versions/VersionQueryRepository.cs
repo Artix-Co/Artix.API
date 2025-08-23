@@ -6,22 +6,23 @@ using Core.Domain.Entities.Version;
 using Data.DbContexts;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 public sealed class VersionQueryRepository : QueryRepository<AppVersion>, IVersionQueryRepository
 {
-    private readonly ArtixQueryDbContext _queryDbContext;
+    private readonly ILogger<VersionQueryRepository> _logger;
 
-    public VersionQueryRepository(ArtixQueryDbContext queryDbContext) : base(queryDbContext)
+    public VersionQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<VersionQueryRepository> logger) : base(
+        queryDbContext)
     {
-        this._queryDbContext = queryDbContext;
+        this._logger = logger;
     }
 
     public async Task<LastVersionDto> GetLastAsync(
         GetLastVersionQuery dto,
         CancellationToken cancellationToken = default)
     {
-        var result = new LastVersionDto();
         var query = await this._queryDbContext.AppVersions
             .Where(v => !v.IsDeleted)
             .OrderByDescending(v => v.Major)
@@ -29,18 +30,13 @@ public sealed class VersionQueryRepository : QueryRepository<AppVersion>, IVersi
             .ThenByDescending(v => v.Patch)
             .FirstOrDefaultAsync(cancellationToken);
 
-        
-            
+
         if (query is null)
         {
             throw InfrastructureNotFoundException.WithMessage("No version found.");
         }
 
-        result.IsRequired = query.IsRequired;
-        result.MinSupported = query.MinSupported;
-        result.Description = query.Description;
-        result.VersionString = query.VersionString;
-        
+        var result = new LastVersionDto(query.IsRequired, query.MinSupported, query.Description, query.VersionString);
         return result;
     }
 }

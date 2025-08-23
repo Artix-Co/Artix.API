@@ -2,7 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class InitiateOTPAuthCommand: ICommand
-{
-    public required string PhoneNumber { get; set; }
-}
+public sealed record InitiateOTPAuthCommand(string PhoneNumber) : ICommand;

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Primitives;
 
+// TODO: develop validation for this handler
 internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCommand>
 {
     private readonly UserManager<AppUser> _userManager;

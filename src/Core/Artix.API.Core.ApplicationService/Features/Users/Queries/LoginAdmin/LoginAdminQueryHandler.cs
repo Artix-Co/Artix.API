@@ -53,15 +53,15 @@ internal sealed class LoginAdminQueryHandler : QueryHandlerBase<GetLoginQuery, L
 
 
         var result = new LoginDto
-        {
-            AccessToken = tokenResult.AccessToken,
-            RefreshToken = tokenResult.RefreshToken,
-            AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
-            RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt,
-            Username = user.UserName!,
-            DisplayName = user.DisplayName,
-            Roles = userRoles.ToList()
-        };
+        (
+            tokenResult.AccessToken,
+            tokenResult.RefreshToken,
+            tokenResult.AccessTokenExpiresAt,
+            tokenResult.RefreshTokenExpiresAt,
+            user.UserName,
+            user.DisplayName,
+            userRoles.ToList()
+        );
 
         return Result<LoginDto>.Success(result);
     }

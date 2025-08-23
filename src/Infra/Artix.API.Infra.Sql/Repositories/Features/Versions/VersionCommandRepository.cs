@@ -6,15 +6,13 @@ using Data.DbContexts;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-public class VersionCommandRepository : CommandRepository<AppVersion>, IVersionCommandRepository
+public sealed class VersionCommandRepository : CommandRepository<AppVersion>, IVersionCommandRepository
 {
     private readonly ILogger<VersionCommandRepository> _logger;
-    private readonly ArtixCommandDbContext _commandDbContext;
 
     public VersionCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<VersionCommandRepository> logger)
         : base(commandDbContext)
     {
         _logger = logger;
-        _commandDbContext = commandDbContext;
     }
 }

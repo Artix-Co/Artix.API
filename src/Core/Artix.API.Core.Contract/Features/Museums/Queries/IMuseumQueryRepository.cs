@@ -15,7 +15,7 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
     Task<IEnumerable<AllMuseumDto>>
         GetAllAsync(GetAllMuseumsQuery dto, CancellationToken cancellationToken = default);
 
-    Task<MuseumByIdDto?> GetDetailsByIdAsync(GetMuseumByIdQuery dto, CancellationToken cancellationToken = default);
+    Task<MuseumDetailsByIdDto?> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto, CancellationToken cancellationToken = default);
 
     Task<IEnumerable<MuseumObjectDto>> GetObjectsAsync(GetMuseumObjectsQuery dto,
         CancellationToken cancellationToken = default);

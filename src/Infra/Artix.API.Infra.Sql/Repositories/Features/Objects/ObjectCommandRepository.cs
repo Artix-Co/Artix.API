@@ -10,12 +10,10 @@ using Primitives;
 public sealed class ObjectCommandRepository : CommandRepository<Object>, IObjectCommandRepository
 {
     private readonly ILogger<ObjectCommandRepository> _logger;
-    private readonly ArtixCommandDbContext _commandDbContext;
 
     public ObjectCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<ObjectCommandRepository> logger)
         : base(commandDbContext)
     {
         _logger = logger;
-        _commandDbContext = commandDbContext;
     }
 }

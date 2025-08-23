@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 
 // TODO: develop validator for this handler
-internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumByIdQuery, MuseumByIdDto>
+internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDetailsByIdQuery, MuseumDetailsByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
     private readonly ICacheService<RecentMuseumDto> _museumCache;
@@ -28,7 +28,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
         this._museumCache = museumCache;
     }
 
-    public override async Task<Result<MuseumByIdDto>> Handle(GetMuseumByIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 
@@ -41,6 +41,6 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumById
 
         await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.BusinessId, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
-        return Result<MuseumByIdDto>.Success(result);
+        return Result<MuseumDetailsByIdDto>.Success(result);
     }
 }

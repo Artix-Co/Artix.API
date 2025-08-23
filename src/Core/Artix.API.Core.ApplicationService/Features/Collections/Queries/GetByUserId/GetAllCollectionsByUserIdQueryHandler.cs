@@ -11,7 +11,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 internal sealed class
-    GetAllCollectionsByUserIdQueryHandler : QueryHandlerBase<GetCollectionsByUserIdQuery, IEnumerable<CollectionsByUserIdDto>>
+    GetAllCollectionsByUserIdQueryHandler : QueryHandlerBase<GetCollectionsByUserIdQuery,
+    IEnumerable<CollectionsByUserIdDto>>
 {
     private readonly ICollectionQueryRepository _collectionQueryRepository;
 
@@ -22,16 +23,15 @@ internal sealed class
         this._collectionQueryRepository = collectionQueryRepository;
     }
 
-    public override async Task<Result<IEnumerable<CollectionsByUserIdDto>>> Handle(GetCollectionsByUserIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<IEnumerable<CollectionsByUserIdDto>>> Handle(GetCollectionsByUserIdQuery query,
+        CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userCollectionList =
-            this._collectionQueryRepository.GetCollectionsByUserId(new GetUserCollectionsQuery { UserId = user.Id, });
+            this._collectionQueryRepository.GetCollectionsByUserId(new GetUserCollectionsQuery(user.Id));
 
-        var result = userCollectionList.Select(uc => new CollectionsByUserIdDto
-        {
-            Id = uc.Id, Name = uc.Name, Description = uc.Description,
-        });
+        var result =
+            userCollectionList.Select(uc => new CollectionsByUserIdDto(uc.Id, uc.Name, uc.Description, uc.IsPublic));
         return Result<IEnumerable<CollectionsByUserIdDto>>.Success(result);
     }
 }

@@ -2,7 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetObjectDetailByIdQuery : IQuery<ObjectDetailByIdDto>
-{
-    public Guid Id { get; set; }
-}
+public sealed record GetObjectDetailByIdQuery(Guid Id ) : IQuery<ObjectDetailByIdDto>;

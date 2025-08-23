@@ -28,8 +28,8 @@ internal sealed class
         GetUserRecentMuseumsVisitQuery query, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
-        var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString(), 10);
-        var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto { Id = m.Id, Name = m.Name, });
+        var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString());
+        var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto(m.Id, m.Name));
         return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
     }
 }

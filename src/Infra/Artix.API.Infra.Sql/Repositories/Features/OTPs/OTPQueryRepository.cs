@@ -9,16 +9,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-public class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryRepository
+public sealed class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryRepository
 {
     private readonly ILogger<OTPQueryRepository> _logger;
-    private readonly ArtixQueryDbContext _queryDbContext;
 
 
     public OTPQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<OTPQueryRepository> logger) : base(
         queryDbContext)
     {
-        this._queryDbContext = queryDbContext;
         this._logger = logger;
     }
 
@@ -36,6 +34,6 @@ public class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryRepository
         if (!otp.IsValid(dto.OtpCode))
             throw new InvalidOperationException("Invalid or expired OTP");
 
-        return new LatestOTPByPhoneNumberDto { Id = otp.BusinessId, Code = otp.Code };
+        return new LatestOTPByPhoneNumberDto(otp.BusinessId, otp.Code);
     }
 }

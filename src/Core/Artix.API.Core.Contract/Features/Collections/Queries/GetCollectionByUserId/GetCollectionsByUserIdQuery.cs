@@ -2,6 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetCollectionsByUserIdQuery : IQuery<IEnumerable<CollectionsByUserIdDto>>
-{
-}
+public sealed record GetCollectionsByUserIdQuery : IQuery<IEnumerable<CollectionsByUserIdDto>>;

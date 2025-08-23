@@ -53,7 +53,7 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
 
 
         var otpDto = await this._otpQueryRepository.GetLatestByPhoneNumberAsync(
-            new GetLatestOTPByPhoneNumberQuery { PhoneNumber = query.PhoneNumber, OtpCode = query.OtpCode },
+            new GetLatestOTPByPhoneNumberQuery(query.PhoneNumber, query.OtpCode),
             cancellationToken);
 
         var otp = await this._otpCommandRepository.GetByIdAsync(otpDto.Id, cancellationToken);
@@ -126,14 +126,15 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
 
 
             var result = new VerifyOTPAuthDto
-            {
-                IsNewUser = true,
-                UserId = newUser.BusinessId,
-                AccessToken = tokenResult.AccessToken,
-                RefreshToken = tokenResult.RefreshToken,
-                AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
-                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
-            };
+            (
+                true,
+                newUser.BusinessId,
+                tokenResult.AccessToken,
+                tokenResult.RefreshToken,
+                tokenResult.AccessTokenExpiresAt,
+                tokenResult.RefreshTokenExpiresAt
+            );
+
             return Result<VerifyOTPAuthDto>.Success(result);
         }
         else if (otp.Purpose == "Login" && user != null)
@@ -165,14 +166,14 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
             // await _smsSender.SendAsync(user.PhoneNumber, smsMessage, cancellationToken);
 
             var result = new VerifyOTPAuthDto
-            {
-                IsNewUser = false,
-                UserId = user.BusinessId,
-                AccessToken = tokenResult.AccessToken,
-                RefreshToken = tokenResult.RefreshToken,
-                AccessTokenExpiresAt = tokenResult.AccessTokenExpiresAt,
-                RefreshTokenExpiresAt = tokenResult.RefreshTokenExpiresAt
-            };
+            (
+                false,
+                user.BusinessId,
+                tokenResult.AccessToken,
+                tokenResult.RefreshToken,
+                tokenResult.AccessTokenExpiresAt,
+                tokenResult.RefreshTokenExpiresAt
+            );
             return Result<VerifyOTPAuthDto>.Success(result);
         }
         else

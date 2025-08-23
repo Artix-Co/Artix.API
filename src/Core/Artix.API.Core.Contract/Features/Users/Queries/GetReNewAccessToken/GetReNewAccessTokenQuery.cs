@@ -2,7 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetReNewAccessTokenQuery : IQuery<ReNewAccessTokenDto>
-{
-    public required string RefreshToken { get; set; }
-}
+public sealed record GetReNewAccessTokenQuery (string RefreshToken): IQuery<ReNewAccessTokenDto>;

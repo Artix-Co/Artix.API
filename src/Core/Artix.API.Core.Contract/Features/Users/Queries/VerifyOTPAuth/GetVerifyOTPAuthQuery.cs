@@ -2,8 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetVerifyOTPAuthQuery : IQuery<VerifyOTPAuthDto>
-{
-    public required string PhoneNumber { get; set; }
-    public required string OtpCode { get; set; }
-}
+public sealed record GetVerifyOTPAuthQuery(string PhoneNumber, string OtpCode) : IQuery<VerifyOTPAuthDto>;

@@ -36,7 +36,7 @@ public sealed class MuseumController : BaseController
     [Authorize]
     [HttpGet("by-id")]
     [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumByIdQuery query)
+    public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumDetailsByIdQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);

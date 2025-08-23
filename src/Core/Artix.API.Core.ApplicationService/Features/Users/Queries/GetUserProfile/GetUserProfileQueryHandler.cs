@@ -23,17 +23,8 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
     {
         var user = await GetCurrentUserAsync(cancellationToken);
 
-        var result = new UserProfileDto
-        {
-            Id = user.BusinessId,
-            Email = user.Email,
-            DisplayName = user.DisplayName,
-            Username = user.UserName,
-            AvatarUrl = user.AvatarUrl,
-            IsPro = user.IsPro,
-            PhoneNumber = user.PhoneNumber,
-        };
-
+        var result = new UserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, user.AvatarUrl,
+            user.PhoneNumber, user.IsPro);
         return Result<UserProfileDto>.Success(result);
     }
 }

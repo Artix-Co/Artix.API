@@ -2,6 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetUserRecentMuseumsVisitQuery : IQuery<IEnumerable<UserRecentMuseumsVisitDto>>
-{
-}
+public sealed record GetUserRecentMuseumsVisitQuery : IQuery<IEnumerable<UserRecentMuseumsVisitDto>>;

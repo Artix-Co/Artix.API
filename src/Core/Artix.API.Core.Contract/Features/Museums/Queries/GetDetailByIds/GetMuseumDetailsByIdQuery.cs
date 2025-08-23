@@ -2,7 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetMuseumByIdQuery : IQuery<MuseumByIdDto>
-{
-    public Guid Id { get; set; }
-}
+public sealed record GetMuseumDetailsByIdQuery(Guid Id) : IQuery<MuseumDetailsByIdDto>;

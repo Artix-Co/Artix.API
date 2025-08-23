@@ -9,13 +9,11 @@ using Primitives;
 public sealed class NotificationCommandRepository : CommandRepository<Notification>, INotificationCommandRepository
 {
     private readonly ILogger<NotificationCommandRepository> _logger;
-    private readonly ArtixCommandDbContext _commandDbContext;
 
     public NotificationCommandRepository(ArtixCommandDbContext commandDbContext,
         ILogger<NotificationCommandRepository> logger)
         : base(commandDbContext)
     {
         _logger = logger;
-        _commandDbContext = commandDbContext;
     }
 }

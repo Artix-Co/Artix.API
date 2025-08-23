@@ -8,21 +8,15 @@ using Primitives;
 
 public sealed class CollectionQueryRepository : QueryRepository<Collection>, ICollectionQueryRepository
 {
-    private readonly ArtixQueryDbContext _queryDbContext;
-
     public CollectionQueryRepository(ArtixQueryDbContext queryDbContext) : base(queryDbContext)
     {
-        this._queryDbContext = queryDbContext;
     }
 
     public IEnumerable<UserCollectionDto> GetCollectionsByUserId(GetUserCollectionsQuery dto)
     {
         return _queryDbContext.Collections
             .Where(c => c.UserId == dto.UserId)
-            .Select(c => new UserCollectionDto
-            {
-                Id = c.BusinessId, Name = c.Name, Description = c.Description, IsPublic = c.IsPublic
-            })
+            .Select(c => new UserCollectionDto(c.BusinessId, c.Name, c.Description, c.IsPublic))
             .AsEnumerable();
     }
 }

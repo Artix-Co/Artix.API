@@ -3,7 +3,4 @@
 using Primitives.Handlers;
 using Primitives.Models;
 
-public sealed class GetMuseumJournalEntriesQuery : IQuery<IEnumerable<MuseumJournalEntryDto>>
-{
-    public long MuseumId { get; set; }
-}
+public sealed record GetMuseumJournalEntriesQuery(long MuseumId) : IQuery<IEnumerable<MuseumJournalEntryDto>>;

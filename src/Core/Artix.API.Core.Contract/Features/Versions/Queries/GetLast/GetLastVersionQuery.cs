@@ -2,6 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetLastVersionQuery : IQuery<LastVersionDto>
-{
-}
+public sealed record GetLastVersionQuery : IQuery<LastVersionDto>;

@@ -2,9 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class AddObjectToCollectionCommand: ICommand
-{
-    public long UserId { get; set; }
-    public long ObjectId { get; set; }
-    public long CollectionId { get; set; }
-}
+public sealed record AddObjectToCollectionCommand(long UserId, long ObjectId, long CollectionId) : ICommand;

@@ -3,7 +3,6 @@
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
 using Core.Contract.Features.Objects.Queries.GetDetailByIds;
-using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
 using Exceptions;
@@ -14,20 +13,17 @@ using Primitives;
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
     private readonly ILogger<ObjectQueryRepository> _logger;
-    private readonly ArtixQueryDbContext _queryDbContext;
 
     public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger)
         : base(queryDbContext)
     {
         _logger = logger;
-        _queryDbContext = queryDbContext;
     }
 
     public async Task<ObjectDetailByIdDto> GetDetailsByIdAsync(GetObjectDetailByIdQuery dto,
         CancellationToken cancellationToken = default)
     {
         var query = await _queryDbContext.Objects
-            .AsNoTracking()
             .Include(o => o.ObjectFiles)
             .ThenInclude(of => of.File)
             .Include(o => o.ObjectHistoricalPeriods)
@@ -42,28 +38,31 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         if (query is null)
             throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
 
+        var model3DBase64 = query.ObjectFiles
+            .Where(of => of.File.MimeType is "model/obj" or "model/gltf-binary")
+            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.File.FilePath)))
+            .FirstOrDefault();
+
+        var historicalPeriodsList = query.ObjectHistoricalPeriods
+            .Select(ohp => new HistoricalPeriodDto
+            (
+                ohp.HistoricalPeriod.BusinessId,
+                ohp.HistoricalPeriod.Name,
+                ohp.HistoricalPeriod.Description,
+                ohp.HistoricalPeriod.StartDate,
+                ohp.HistoricalPeriod.EndDate
+            ))
+            .ToList();
+
         var result = new ObjectDetailByIdDto
-        {
-            Id = query.Id,
-            BusinessId = query.BusinessId,
-            Name = query.Name,
-            GeneralInformation = query.GeneralInformation,
-            SpecializedInformation = query.SpecialInformation,
-            HistoricalPeriods = query.ObjectHistoricalPeriods
-                .Select(ohp => new HistoricalPeriodDto
-                {
-                    Id = ohp.HistoricalPeriod.BusinessId,
-                    Name = ohp.HistoricalPeriod.Name,
-                    Description = ohp.HistoricalPeriod.Description,
-                    StartDate = ohp.HistoricalPeriod.StartDate,
-                    EndDate = ohp.HistoricalPeriod.EndDate
-                })
-                .ToList(),
-            Model3DBase64 = query.ObjectFiles
-                .Where(of => of.File.MimeType == "model/obj" || of.File.MimeType == "model/gltf-binary")
-                .Select(of => Convert.ToBase64String(System.IO.File.ReadAllBytes(of.File.FilePath)))
-                .FirstOrDefault()
-        };
+        (
+            query.BusinessId,
+            query.Name,
+            query.GeneralInformation,
+            query.SpecialInformation,
+            model3DBase64,
+            historicalPeriodsList
+        );
 
         return result;
     }

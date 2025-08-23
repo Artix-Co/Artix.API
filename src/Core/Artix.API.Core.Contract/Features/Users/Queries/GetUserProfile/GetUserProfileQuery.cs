@@ -2,6 +2,4 @@
 
 using Primitives.Handlers;
 
-public sealed class GetUserProfileQuery : IQuery<UserProfileDto>
-{
-}
+public sealed record GetUserProfileQuery : IQuery<UserProfileDto>;

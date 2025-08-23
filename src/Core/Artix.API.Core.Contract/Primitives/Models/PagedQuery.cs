@@ -2,8 +2,7 @@ namespace Artix.API.Core.Contract.Primitives.Models;
 
 using Handlers;
 
-public abstract class PagedQuery<TResponse> : IQuery<PagedData<TResponse>>
-{
-    public int Page { get; set; } = 1;  // Default to first page
-    public int PageSize { get; set; } = 10; // Default page size
-}
+public abstract record PagedQuery<TResponse>(
+    int Page = 1,
+    int PageSize = 10
+) : IQuery<PagedData<TResponse>>;
