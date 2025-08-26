@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Newtonsoft.Json;
 
 public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, long,
     IdentityUserClaim<long>,
@@ -133,14 +134,19 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
             .Select(e => e.Entity)
             .ToList();
 
+
         foreach (var aggregate in aggregates)
         {
             foreach (var @event in aggregate.DomainEvents)
             {
                 var outboxMessage = new OutboxMessage
                 {
-                    Type = @event.GetType().FullName,
-                    Data = JsonSerializer.Serialize(@event),
+                    Type = @event.GetType().AssemblyQualifiedName!,
+                    Data = JsonConvert.SerializeObject(@event, new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto,
+                        Formatting = Formatting.Indented
+                    }),
                     Status = "Pending",
                     CreatedAt = DateTime.UtcNow
                 };

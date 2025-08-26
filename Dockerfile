@@ -13,8 +13,9 @@ COPY ["src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj", "src/
 COPY ["Artix.ServiceDefaults/Artix.ServiceDefaults.csproj", "Artix.ServiceDefaults/"]
 COPY ["Artix.AppHost/Artix.AppHost.csproj", "Artix.AppHost/"]
 
-# کپی محتوای پروژه‌ها
+
 COPY ["src/", "src/"]
+COPY ["tests/", "tests/"]
 COPY ["Artix.ServiceDefaults/", "Artix.ServiceDefaults/"]
 COPY ["Artix.AppHost/", "Artix.AppHost/"]
 

@@ -3,7 +3,7 @@
 using Artix.API.Core.Domain.DomainEvents;
 using MediatR;
 
-public class DomainEventNotification : INotification
+public sealed class DomainEventNotification : INotification
 {
     public IDomainEvent DomainEvent { get; }
 

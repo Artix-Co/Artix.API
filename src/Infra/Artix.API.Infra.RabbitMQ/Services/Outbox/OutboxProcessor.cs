@@ -42,24 +42,28 @@ internal sealed class OutboxProcessor : BackgroundService
                 {
                     try
                     {
-                        var eventType = this.GetEventType(message.Type);
+                        var eventType = Type.GetType(message.Type);
                         if (eventType == null)
                         {
-                            this._logger.LogWarning("Event type {Type} not found.", message.Type);
+                            _logger.LogWarning("Event type {Type} not found. Assemblies loaded: {Assemblies}", 
+                                message.Type, 
+                                string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
                             message.Status = "Failed";
                             continue;
                         }
 
-                        var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType)!;
+                        var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true // برای سازگاری با CamelCase
+                        })!;
+
+
                         await publisher.PublishAsync(@event, stoppingToken);
-                        
-                         
 
                         // انتشار به MediatR
                         var notification = new DomainEventNotification(@event);
                         await mediator.Publish(notification, stoppingToken);
-                        
-                        
+
                         message.Status = "Processed";
                         message.ProcessedAt = DateTime.UtcNow;
                     }
