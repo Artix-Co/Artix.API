@@ -11,6 +11,22 @@ public class UserXp : BaseEntity
     public long TotalXp { get; private set; }
     public DateTime LastUpdated { get; private set; }
 
+    protected UserXp()
+    {
+    }
+
+    private UserXp(long userId)
+    {
+        UserId = userId;
+        TotalXp = 0;
+        LastUpdated = DateTime.UtcNow;
+    }
+
+
+    public static UserXp Create(long userId)
+    {
+        return new UserXp(userId);
+    }
 
     public void AddXp(long xp)
     {

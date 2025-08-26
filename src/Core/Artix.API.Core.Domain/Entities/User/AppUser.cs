@@ -96,4 +96,20 @@ public class AppUser : IdentityUser<long>
     {
         _friendshipFriends.Add(friendship);
     }
+    
+    public void AddUserXp(UserXp userXp)
+    {
+        if (userXp == null)
+            throw new ArgumentNullException(nameof(userXp));
+        if (this._userXps.All(ux => ux.UserId != userXp.UserId))
+            _userXps.Add(userXp);
+    }
+
+    public void AddUserSeasonProgress(UserSeasonProgress seasonProgress)
+    {
+        if (seasonProgress == null)
+            throw new ArgumentNullException(nameof(seasonProgress));
+        if (!_userSeasonProgresses.Any(sp => sp.UserId == seasonProgress.UserId && sp.SeasonId == seasonProgress.SeasonId))
+            _userSeasonProgresses.Add(seasonProgress);
+    }
 }

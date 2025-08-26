@@ -7,31 +7,43 @@ public class UserSeasonProgress : BaseEntity
 {
     public long UserId { get; private set; }
     public virtual AppUser User { get; private set; }
-    
-    
+
+
     public long SeasonId { get; private set; }
     public virtual Season Season { get; private set; }
-    
-    
+
+
     public int TotalXp { get; private set; }
     public DateTime LastUpdated { get; private set; }
 
-  
- 
 
-     
+    protected UserSeasonProgress()
+    {
+    }
+
+    private UserSeasonProgress(long userId, long seasonId, int totalXp)
+    {
+        UserId = userId;
+        SeasonId = seasonId;
+        TotalXp = totalXp;
+        LastUpdated = DateTime.UtcNow;
+    }
+
+
+    public  static UserSeasonProgress Create(long userId, long seasonId, int totalXp)
+    {
+        return new UserSeasonProgress(userId, seasonId, totalXp);
+    }
 
     public void AddXp(int xp)
     {
         if (xp <= 0) return;
         TotalXp += xp;
         LastUpdated = DateTime.UtcNow;
-        
     }
 
     public void UpdateLastUpdated(DateTime dateTime)
     {
         LastUpdated = dateTime;
-        
     }
 }
