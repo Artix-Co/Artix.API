@@ -18,18 +18,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IObjectCommandRepository _objectCommandRepository;
-    private readonly INotificationServiceProvider _notificationServiceProvider;
+   
 
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IObjectCommandRepository objectCommandRepository, INotificationServiceProvider notificationServiceProvider)
+        IObjectCommandRepository objectCommandRepository)
         : base(httpContextAccessor, userManager)
     {
         _museumCommandRepository = museumCommandRepository;
         _objectCommandRepository = objectCommandRepository;
-        _notificationServiceProvider = notificationServiceProvider;
+
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
@@ -47,25 +47,14 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         if (userObject == null)
         {
-            @object.ProcessUserInteraction(user.Id);
+            @object.FirstTimeUserScan(user.Id);
         }
         else
         {
-            @object.UpgradeUserObject(userObject);
+            @object.RepeatUserScan(userObject);
         }
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
-
-        var userNotification = new AddUserNotificationCommand
-        (
-            user.Id,
-            "notification from service provider",
-            "you scanned an obj",
-            NotificationType.InApp,
-            null
-        );
-       
-        await this._notificationServiceProvider.SendUserNotificationAsync(userNotification, cancellationToken);
         
         return @object.BusinessId;
     }

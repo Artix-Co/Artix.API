@@ -2,7 +2,7 @@
 
 using DomainEvents;
 
-public record UserObjectUpgradedEvent(
+public record RepeatUserScanEvent(
     Guid BusinessId,
     long UserId,
     long ObjectId,

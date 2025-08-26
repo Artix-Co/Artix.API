@@ -432,15 +432,15 @@ public class Object : AggregateRoot
         return file is not null && allowedMimeTypes.Contains(file.MimeType);
     }
 
-    public void ProcessUserInteraction(long userId)
+    public void FirstTimeUserScan(long userId)
     {
         var userObject = UserObject.Create(userId, Id);
         userObject.AssignToUser(DateTime.UtcNow);
         _userObjects.Add(userObject);
-        RaiseDomainEvent(new UserObjectCreatedEvent(BusinessId, userId, this.Id, 1, DateTime.UtcNow, true));
+        RaiseDomainEvent(new FirstUserScanEvent(BusinessId, userId, this.Id, 1, DateTime.UtcNow, true));
     }
 
-    public void UpgradeUserObject(UserObject userObject)
+    public void RepeatUserScan(UserObject userObject)
     {
         // TODO: user layer exception
         if (userObject == null)
@@ -450,7 +450,7 @@ public class Object : AggregateRoot
             _userObjects.Add(userObject); 
 
         userObject.Upgrade();
-        RaiseDomainEvent(new UserObjectUpgradedEvent(BusinessId, userObject.UserId, userObject.ObjectId,
+        RaiseDomainEvent(new RepeatUserScanEvent(BusinessId, userObject.UserId, userObject.ObjectId,
             userObject.ScanCount, true));
     }
 }
