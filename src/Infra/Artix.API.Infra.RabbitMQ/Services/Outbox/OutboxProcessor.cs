@@ -3,6 +3,7 @@
 using System.Text.Json;
 using Core.Domain.DomainEvents;
 using Interfaces.Outbox;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,8 @@ internal sealed class OutboxProcessor : BackgroundService
                 await using var scope = this._scopeFactory.CreateAsyncScope();
                 var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
                 var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
-
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                
                 var messages = await context.OutboxMessages
                     .Where(m => m.Status == "Pending")
                     .Take(50)
@@ -50,6 +52,14 @@ internal sealed class OutboxProcessor : BackgroundService
 
                         var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType)!;
                         await publisher.PublishAsync(@event, stoppingToken);
+                        
+                         
+
+                        // انتشار به MediatR
+                        var notification = new DomainEventNotification(@event);
+                        await mediator.Publish(notification, stoppingToken);
+                        
+                        
                         message.Status = "Processed";
                         message.ProcessedAt = DateTime.UtcNow;
                     }

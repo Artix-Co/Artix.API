@@ -2,65 +2,58 @@
 
 using System.Text.Json;
 using Core.Domain.DomainEvents;
+using Core.Domain.Entities.Object.Events;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
 using Interfaces.Outbox;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 internal sealed class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private IConnection _connection;
-    private IChannel _channel;
+    private readonly IConnection _connection;
+    private readonly IChannel _channel;
     private bool _disposed;
     private const string Exchange = "domain-events";
 
     public RabbitMqEventPublisher(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
-    }
 
-
-    public async Task PublishAsync(IDomainEvent @event, CancellationToken cancellationToken = default)
-    {
-        await using var scope = this._scopeFactory.CreateAsyncScope();
+        using var scope = _scopeFactory.CreateScope();
         var factory = scope.ServiceProvider.GetRequiredService<RabbitMqConnectionFactory>();
-        this._connection = await factory.CreateConnectionAsync();
-        this._channel = await this._connection.CreateChannelAsync(null, cancellationToken);
-
-        await _channel.ExchangeDeclareAsync(
+        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+        _channel.ExchangeDeclareAsync(
             exchange: Exchange,
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
-            arguments: null,
-            cancellationToken: cancellationToken);
+            arguments: null);
+    }
 
+    public async Task PublishAsync(IDomainEvent @event, CancellationToken cancellationToken = default)
+    {
         if (_disposed)
             throw new ObjectDisposedException(nameof(RabbitMqEventPublisher));
 
-
         var eventType = @event.GetType().Name;
         var routingKey = $"domain.{eventType}";
-        var messageBody = JsonSerializer.SerializeToUtf8Bytes(@event);
+        var body = JsonSerializer.SerializeToUtf8Bytes(@event);
 
-        var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.ReceivedAsync += async (sender, ea) =>
-        {
-            var ch = ((AsyncEventingBasicConsumer)sender).Channel;
-            var properties = ea.BasicProperties;
-            var replyProps = new BasicProperties { CorrelationId = properties.CorrelationId };
 
-            await _channel.BasicPublishAsync(
-                exchange: Exchange,
-                routingKey: routingKey,
-                mandatory: true,
-                basicProperties: replyProps,
-                body: messageBody,
-                cancellationToken: cancellationToken);
+        var properties = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
 
-            await ch.BasicAckAsync(ea.DeliveryTag, false, cancellationToken);
-        };
+
+        await _channel.BasicPublishAsync(
+            Exchange,
+            routingKey,
+            mandatory: true, 
+            properties,
+            body,
+            cancellationToken
+        );
     }
 
     public async ValueTask DisposeAsync()
@@ -70,38 +63,30 @@ internal sealed class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
 
         _disposed = true;
 
-        if (_channel != null)
+        try
         {
-            try
-            {
-                await _channel.CloseAsync();
-            }
-            catch
-            {
-                // نادیده گرفتن خطاها در زمان بستن کانال
-            }
-            finally
-            {
-                _channel.Dispose();
-                _channel = null;
-            }
+            await this._channel.CloseAsync();
+        }
+        catch
+        {
+            // نادیده گرفتن خطاها
+        }
+        finally
+        {
+            this._channel.Dispose();
         }
 
-        if (_connection != null)
+        try
         {
-            try
-            {
-                await _connection.CloseAsync();
-            }
-            catch
-            {
-                // نادیده گرفتن خطاها در زمان بستن اتصال
-            }
-            finally
-            {
-                _connection.Dispose();
-                _connection = null;
-            }
+            await this._connection.CloseAsync();
+        }
+        catch
+        {
+            // نادیده گرفتن خطاها
+        }
+        finally
+        {
+            this._connection.Dispose();
         }
 
         GC.SuppressFinalize(this);
