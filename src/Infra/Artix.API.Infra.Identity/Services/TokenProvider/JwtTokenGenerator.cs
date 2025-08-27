@@ -68,6 +68,7 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         // Generate access token
         var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(_accessTokenExpireTimeInSeconds);
         var accessToken = CreateJwtToken(authClaims, accessTokenExpiresAt);
+        await this.StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
 
         _logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
             accessTokenExpiresAt);
