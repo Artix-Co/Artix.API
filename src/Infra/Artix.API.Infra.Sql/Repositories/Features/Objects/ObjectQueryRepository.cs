@@ -24,8 +24,12 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         CancellationToken cancellationToken = default)
     {
         var query = await _queryDbContext.Objects
-            .Include(o => o.ObjectFiles)
+            .Include(o => o.Object3DModels)
             .ThenInclude(of => of.File)
+            
+            .Include(o => o.ObjectImages)
+            .ThenInclude(of => of.File)
+            
             .Include(o => o.ObjectHistoricalPeriods)
             .ThenInclude(ohp => ohp.HistoricalPeriod)
             .AsSplitQuery()
@@ -37,8 +41,13 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
 
  
 
-        var model3DBase64 = query.ObjectFiles
+        var model3DBase64 = query.Object3DModels
             .Where(of => of.File.MimeType is "model/obj" or "model/gltf-binary")
+            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.File.FilePath)))
+            .FirstOrDefault();
+        
+        var imageBase64 = query.ObjectImages
+            .Where(of => of.File.MimeType is "jpg/png" or "jpeg/webp")
             .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.File.FilePath)))
             .FirstOrDefault();
 
@@ -60,6 +69,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             query.GeneralInformation,
             query.SpecialInformation,
             model3DBase64,
+            imageBase64,
             historicalPeriodsList
         );
 

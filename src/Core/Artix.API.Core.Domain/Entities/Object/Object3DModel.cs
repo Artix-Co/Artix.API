@@ -3,7 +3,7 @@
 using File;
 using Exceptions;
 
-public class ObjectFile
+public class Object3DModel
 {
     public long ObjectId { get; private set; }
     public virtual Object Object { get; private set; }
@@ -12,9 +12,9 @@ public class ObjectFile
     public virtual File File { get; private set; }
 
     
-    protected ObjectFile() { }
+    protected Object3DModel() { }
 
-    private ObjectFile(Object obj, File file)
+    private Object3DModel(Object obj, File file)
     {
         if (obj == null)
             throw DomainException.InvalidValue(nameof(obj));
@@ -27,8 +27,8 @@ public class ObjectFile
         this.FileId = file.Id;
     }
     
-    public static ObjectFile Create(Object obj, File file)
+    public static Object3DModel Create(Object obj, File file)
     {
-        return new ObjectFile(obj, file);
+        return new Object3DModel(obj, file);
     }
 }

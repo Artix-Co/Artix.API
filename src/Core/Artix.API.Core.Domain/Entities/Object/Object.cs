@@ -2,6 +2,7 @@
 
 using Collection;
 using Common;
+using Enums;
 using File;
 using Events;
 using User;
@@ -18,10 +19,15 @@ public class Object : AggregateRoot
     public int? Tier { get; private set; }
     public bool IsSpecial { get; private set; } = false;
     public bool IsHidden { get; private set; } = false;
+    public ObjectSaleType ObjectSaleType { get; private set; }
 
 
-    private readonly List<ObjectFile> _objectFiles = new();
-    public virtual IReadOnlyCollection<ObjectFile> ObjectFiles => this._objectFiles.AsReadOnly();
+    private readonly List<Object3DModel> _object3DModels = new();
+    public virtual IReadOnlyCollection<Object3DModel> Object3DModels => this._object3DModels.AsReadOnly();
+
+
+    private readonly List<ObjectImage> _objectImages = new();
+    public virtual IReadOnlyCollection<ObjectImage> ObjectImages => this._objectImages.AsReadOnly();
 
 
     private readonly List<ObjectType> _objectTypes = new();
@@ -32,8 +38,8 @@ public class Object : AggregateRoot
 
     public virtual IReadOnlyCollection<ObjectHistoricalPeriod> ObjectHistoricalPeriods =>
         this._objectHistoricalPeriods.AsReadOnly();
-    
-    
+
+
     private readonly List<UserObject> _userObjects = new();
     public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
 
@@ -52,12 +58,18 @@ public class Object : AggregateRoot
         bool isSpecial,
         bool isHidden,
         List<ObjectType> objectTypes,
-        List<ObjectHistoricalPeriod> objectHistoricalPeriods)
+        List<ObjectHistoricalPeriod> objectHistoricalPeriods,
+        ObjectSaleType objectSaleType
+    )
     {
-        this.ValidateName(name);
-        this.ValidateQrCode(qrCode);
-        this.ValidateVersion(version);
-        this.ValidateTier(tier);
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.InvalidValue(nameof(name));
+        if (string.IsNullOrWhiteSpace(qrCode))
+            throw DomainException.InvalidValue(nameof(qrCode));
+        if (version is < 0)
+            throw DomainException.InvalidValue("Version cannot be negative.");
+        if (tier is < 0)
+            throw DomainException.InvalidValue("Tier cannot be negative.");
 
         this.Name = name;
         this.QrCode = qrCode;
@@ -67,33 +79,40 @@ public class Object : AggregateRoot
         this.Tier = tier;
         this.IsSpecial = isSpecial;
         this.IsHidden = isHidden;
-
-        this._objectTypes = objectTypes ?? new List<ObjectType>();
-        this._objectHistoricalPeriods = objectHistoricalPeriods ?? new List<ObjectHistoricalPeriod>();
+        this._objectTypes = objectTypes;
+        this._objectHistoricalPeriods = objectHistoricalPeriods;
+        this.ObjectSaleType = objectSaleType;
     }
-
-    private void ValidateName(string name)
+    
+    private Object(
+        string name,
+        string? qrCode,
+        string? generalInformation,
+        string? specialInformation,
+        int? version,
+        int? tier,
+        bool isSpecial,
+        bool isHidden,
+        ObjectSaleType objectSaleType)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue(nameof(name));
-    }
-
-    private void ValidateQrCode(string? qrCode)
-    {
+            throw DomainException.InvalidValue("Name cannot be null or empty.");
         if (string.IsNullOrWhiteSpace(qrCode))
-            throw DomainException.InvalidValue(nameof(qrCode));
-    }
-
-    private void ValidateVersion(int? version)
-    {
+            throw DomainException.InvalidValue("QrCode cannot be null or empty.");
         if (version is < 0)
             throw DomainException.InvalidValue("Version cannot be negative.");
-    }
-
-    private void ValidateTier(int? tier)
-    {
         if (tier is < 0)
             throw DomainException.InvalidValue("Tier cannot be negative.");
+
+        this.Name = name;
+        this.QrCode = qrCode;
+        this.GeneralInformation = generalInformation;
+        this.SpecialInformation = specialInformation;
+        this.Version = version;
+        this.Tier = tier;
+        this.IsSpecial = isSpecial;
+        this.IsHidden = isHidden;
+        this.ObjectSaleType = objectSaleType;
     }
 
     // Builder class
@@ -107,6 +126,7 @@ public class Object : AggregateRoot
         private int? _tier;
         private bool _isSpecial;
         private bool _isHidden;
+        private ObjectSaleType _objectSaleType;
         private readonly List<ObjectType> _objectTypes = new();
         private readonly List<ObjectHistoricalPeriod> _objectHistoricalPeriods = new();
 
@@ -125,6 +145,12 @@ public class Object : AggregateRoot
         public ObjectBuilder WithGeneralInformation(string? generalInformation)
         {
             this._generalInformation = generalInformation;
+            return this;
+        }
+
+        public ObjectBuilder WithObjectSaleType(ObjectSaleType objectSaleType)
+        {
+            this._objectSaleType = objectSaleType;
             return this;
         }
 
@@ -214,7 +240,8 @@ public class Object : AggregateRoot
                 this._isSpecial,
                 this._isHidden,
                 this._objectTypes,
-                this._objectHistoricalPeriods
+                this._objectHistoricalPeriods,
+                this._objectSaleType
             );
         }
     }
@@ -225,34 +252,7 @@ public class Object : AggregateRoot
         return new ObjectBuilder();
     }
 
-    private Object(
-        string name,
-        string? qrCode,
-        string? generalInformation,
-        string? specialInformation,
-        int? version,
-        int? tier,
-        bool isSpecial,
-        bool isHidden)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue("Name cannot be null or empty.");
-        if (string.IsNullOrWhiteSpace(qrCode))
-            throw DomainException.InvalidValue("QrCode cannot be null or empty.");
-        if (version is < 0)
-            throw DomainException.InvalidValue("Version cannot be negative.");
-        if (tier is < 0)
-            throw DomainException.InvalidValue("Tier cannot be negative.");
 
-        this.Name = name;
-        this.QrCode = qrCode;
-        this.GeneralInformation = generalInformation;
-        this.SpecialInformation = specialInformation;
-        this.Version = version;
-        this.Tier = tier;
-        this.IsSpecial = isSpecial;
-        this.IsHidden = isHidden;
-    }
 
     public static Object Create(
         string name,
@@ -264,7 +264,15 @@ public class Object : AggregateRoot
         bool isSpecial = false,
         bool isHidden = false)
     {
-        return new Object(name, qrCode, generalInformation, specialInformation, version, tier, isSpecial, isHidden);
+        return new Object(name,
+            qrCode,
+            generalInformation,
+            specialInformation,
+            version,
+            tier,
+            isSpecial,
+            isHidden,
+            ObjectSaleType.Free);
     }
 
     public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)
@@ -282,15 +290,12 @@ public class Object : AggregateRoot
 
     public void Rename(string newName)
     {
-        this.ValidateName(newName);
+        if (string.IsNullOrWhiteSpace(newName))
+            throw DomainException.InvalidValue("Name cannot be null or empty.");
+
         this.Name = newName;
     }
 
-    public void ChangeQrCode(string? newQrCode)
-    {
-        this.ValidateQrCode(newQrCode);
-        this.QrCode = newQrCode;
-    }
 
     public void MarkAsSpecial()
     {
@@ -380,8 +385,6 @@ public class Object : AggregateRoot
         if (!collection.Items.Any(ci => ci.ObjectId == this.Id))
         {
             var collectionItem = CollectionItem.Create(collection, this);
-
-            // فرض می‌کنیم Collection کلاس خودش متدی برای افزودن CollectionItem داره:
             collection.AddItem(collectionItem);
         }
     }
@@ -396,40 +399,59 @@ public class Object : AggregateRoot
         if (!allowedMimeTypes.Contains(file.MimeType))
             throw DomainException.InvalidValue(nameof(file.MimeType));
 
-        var existingModel = this._objectFiles
+        var existingModel = this._object3DModels
             .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
 
         if (existingModel is not null)
-            this._objectFiles.Remove(existingModel);
+            this._object3DModels.Remove(existingModel);
 
-        this._objectFiles.Add(ObjectFile.Create(this, file));
+        this._object3DModels.Add(Object3DModel.Create(this, file));
+    }
+
+
+    public void AssignImage(File file, string[] allowedMimeTypes)
+    {
+        if (file is null)
+            throw DomainException.InvalidValue(nameof(file));
+
+
+        if (!allowedMimeTypes.Contains(file.MimeType))
+            throw DomainException.InvalidValue(nameof(file.MimeType));
+
+        var existingModel = this._objectImages
+            .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
+
+        if (existingModel is not null)
+            this._objectImages.Remove(existingModel);
+
+        this._objectImages.Add(ObjectImage.Create(this, file));
     }
 
     public void Remove3DModel()
     {
-        var existingModel = this._objectFiles.FirstOrDefault(of => Is3DModel(of.File));
+        var existingModel = this._object3DModels.FirstOrDefault(of => Is3DModel(of.File));
 
         if (existingModel is not null)
-            this._objectFiles.Remove(existingModel);
+            this._object3DModels.Remove(existingModel);
     }
 
     public File? Get3DModel()
     {
-        return this._objectFiles
+        return this._object3DModels
             .FirstOrDefault(of => Is3DModel(of.File))
             ?.File;
     }
 
     public bool Has3DModel()
     {
-        return this._objectFiles.Exists(of => Is3DModel(of.File));
+        return this._object3DModels.Exists(of => Is3DModel(of.File));
     }
 
     private static bool Is3DModel(File file)
     {
         var allowedMimeTypes = new[] { "model/gltf-binary", "model/obj", "model/gltf+json" };
 
-        return file is not null && allowedMimeTypes.Contains(file.MimeType);
+        return allowedMimeTypes.Contains(file.MimeType);
     }
 
     public void FirstTimeUserScan(long userId)
@@ -444,10 +466,10 @@ public class Object : AggregateRoot
     {
         // TODO: user layer exception
         if (userObject == null)
-            throw new ArgumentNullException(nameof(userObject));
+            throw DomainException.InvalidValue(nameof(userObject));
 
         if (!_userObjects.Contains(userObject))
-            _userObjects.Add(userObject); 
+            _userObjects.Add(userObject);
 
         userObject.Upgrade();
         RaiseDomainEvent(new RepeatUserScanEvent(BusinessId, userObject.UserId, userObject.ObjectId,

@@ -14,17 +14,22 @@ public class Museum : AggregateRoot
     private readonly List<MuseumObject> _museumObjects = new();
     public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
 
+
+    private readonly List<MuseumImage> _museumImages = new();
+    public virtual IReadOnlyCollection<MuseumImage> MuseumImages => this._museumImages.AsReadOnly();
+
+
     protected Museum()
     {
     }
 
     private Museum(string name, string? description, bool isActive)
     {
-        ValidateName(name);
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.InvalidValue(nameof(name));
         Name = name;
         Description = description;
         IsActive = isActive;
-        // تولید Domain Event در Constructor
         RaiseDomainEvent(new MuseumCreatedEvent(BusinessId, name, description, isActive));
     }
 
@@ -35,10 +40,11 @@ public class Museum : AggregateRoot
 
     public void UpdateDetails(string name, string? description = null)
     {
-        ValidateName(name);
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.InvalidValue(nameof(name));
         Name = name;
         Description = description;
-        
+
         // RaiseDomainEvent(new MuseumUpdatedEvent(BusinessId, name, description));
     }
 
@@ -84,10 +90,4 @@ public class Museum : AggregateRoot
 
     public Object? FindObject(Guid objectBusinessId) => MuseumObjects.Select(mo => mo.Object)
         .FirstOrDefault(o => o.BusinessId == objectBusinessId);
-
-    private void ValidateName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue(nameof(name));
-    }
 }

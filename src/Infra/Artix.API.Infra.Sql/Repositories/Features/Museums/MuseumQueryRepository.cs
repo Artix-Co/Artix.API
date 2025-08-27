@@ -11,6 +11,7 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,16 +34,28 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
-        var museumsQuery = _queryDbContext.Museums.AsQueryable();
+        var query = _queryDbContext.Museums
+            .Include(o => o.MuseumImages)
+            .ThenInclude(of => of.File)
+            .AsSplitQuery();
+
+        var imageBase64 = query
+            .SelectMany(m => m.MuseumImages)
+            .Where(of => of.File.MimeType == "jpg" || of.File.MimeType == "png" || of.File.MimeType == "jpeg" ||
+                         of.File.MimeType == "webp")
+            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.File.FilePath)))
+            .FirstOrDefault();
+
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
         {
-            museumsQuery = museumsQuery.Where(m => m.Name.Contains(dto.Name));
+            query = query.Where(m => m.Name.Contains(dto.Name));
         }
 
-        var museums = museumsQuery
+
+        var museums = query
             .AsEnumerable()
-            .Select(m => new AllMuseumDto(m.BusinessId, m.Name, m.Description, m.CreatedAt, m.IsActive))
+            .Select(m => new AllMuseumDto(m.BusinessId, m.Name, imageBase64, m.Description, m.CreatedAt, m.IsActive))
             .OrderBy(m => m.Name);
 
         if (museums == null)

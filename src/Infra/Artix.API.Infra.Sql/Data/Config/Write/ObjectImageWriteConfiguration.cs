@@ -1,15 +1,14 @@
-﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
+﻿namespace Artix.API.Infra.Sql.Data.Config.Write;
 
-using Artix.API.Core.Domain.Entities.Museum;
 using Core.Domain.Entities.Object;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class ObjectFileReadConfiguration : IEntityTypeConfiguration<ObjectFile>
+internal sealed class ObjectImageWriteConfiguration : IEntityTypeConfiguration<ObjectImage>
 {
-    public void Configure(EntityTypeBuilder<ObjectFile> entity)
+    public void Configure(EntityTypeBuilder<ObjectImage> entity)
     {
-        entity.ToTable("ObjectFiles");
+        entity.ToTable("ObjectImages");
 
         entity.HasKey(of => new { of.FileId, of.ObjectId });
 
@@ -17,12 +16,12 @@ internal sealed class ObjectFileReadConfiguration : IEntityTypeConfiguration<Obj
         entity.Property(of => of.ObjectId).IsRequired();
 
         entity.HasOne(of => of.File)
-            .WithMany(f => f.ObjectFiles)
+            .WithMany(f => f.ObjectImages)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(of => of.Object)
-            .WithMany(o => o.ObjectFiles)
+            .WithMany(o => o.ObjectImages)
             .HasForeignKey(of => of.ObjectId)
             .OnDelete(DeleteBehavior.Restrict);
 

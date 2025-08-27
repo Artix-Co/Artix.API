@@ -52,11 +52,13 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
 
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
+    public DbSet<MuseumImage> MuseumImages { get; set; }
     public DbSet<Type> Types { get; set; }
     public DbSet<OTP> OTPs { get; set; }
- 
     public DbSet<Object> Objects { get; set; }
     public DbSet<ObjectType> ObjectTypes { get; set; }
+    public DbSet<ObjectImage> ObjectImages { get; set; }
+    public DbSet<Object3DModel> Object3DModels { get; set; }
     public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }
     public DbSet<ObjectHistoricalPeriod> ObjectHistoricalPeriods { get; set; }
     public DbSet<File> Files { get; set; }

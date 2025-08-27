@@ -8,4 +8,5 @@ public sealed record ObjectDetailByIdDto(
     string? GeneralInformation,
     string? SpecializedInformation,
     string? Model3DBase64,
+    string? ImageBase64,
     List<HistoricalPeriodDto> HistoricalPeriods);

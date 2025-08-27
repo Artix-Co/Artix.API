@@ -33,11 +33,20 @@ internal sealed class FileReadConfiguration : BaseEntityConfiguration<File>
             .IsRequired(false);
         
         
-        entity.HasMany(f => f.ObjectFiles)
+        entity.HasMany(f => f.Object3DModels)
             .WithOne(of => of.File)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
         
+        entity.HasMany(f => f.ObjectImages)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasMany(f => f.MuseumImages)
+            .WithOne(of => of.File)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
         
               
         entity.HasMany(f => f.VoiceTrackFiles)
