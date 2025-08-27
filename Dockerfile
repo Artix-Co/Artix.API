@@ -15,7 +15,7 @@ COPY ["Artix.AppHost/Artix.AppHost.csproj", "Artix.AppHost/"]
 
 
 COPY ["src/", "src/"]
-COPY ["tests/", "tests/"]
+#COPY ["tests/", "tests/"]
 COPY ["Artix.ServiceDefaults/", "Artix.ServiceDefaults/"]
 COPY ["Artix.AppHost/", "Artix.AppHost/"]
 
