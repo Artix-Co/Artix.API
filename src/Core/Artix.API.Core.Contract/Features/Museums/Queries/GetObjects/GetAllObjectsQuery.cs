@@ -12,4 +12,4 @@ public sealed record GetAllObjectsQuery(
     int? Version = null,
     string SortBy = "Name",
     bool SortDescending = false
-) : PagedQuery<AllObjectDto>;
+) : PaginationQuery<AllObjectDto>;

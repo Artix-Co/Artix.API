@@ -20,7 +20,7 @@ public sealed class ObjectController : ClientBaseController
     }
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(BaseApiResponse<PagedData<AllObjectDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseApiResponse<PaginatedResult<AllObjectDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
     {
         var result = await this._mediator.Send(query);

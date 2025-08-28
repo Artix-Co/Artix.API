@@ -10,7 +10,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 // TODO: develop validator for this handler
-internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQuery, PagedData<AllObjectDto>>
+internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQuery, PaginatedResult<AllObjectDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
@@ -22,10 +22,10 @@ internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQue
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<Result<PagedData<AllObjectDto>>> Handle(GetAllObjectsQuery query,
+    public override async Task<Result<PaginatedResult<AllObjectDto>>> Handle(GetAllObjectsQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetAllObjectsAsync(query, cancellationToken);
-        return Result<PagedData<AllObjectDto>>.Success(result);
+        return Result<PaginatedResult<AllObjectDto>>.Success(result);
     }
 }

@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Museums;
 
 using Artix.API.Core.Contract.Features.Museums.Queries;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetAll;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumObjects;
@@ -15,8 +14,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Contract.Features.Museums.Queries.GetAllMuseumsAdmin;
+using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Data.DbContexts;
+using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Primitives;
 
@@ -30,7 +32,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         _logger = logger;
     }
 
-    public IEnumerable<AllMuseumDto> GetAll(GetAllMuseumsQuery dto)
+    public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
@@ -55,7 +57,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var museums = query
             .AsEnumerable()
-            .Select(m => new AllMuseumDto(m.BusinessId, m.Name, imageBase64, m.Description, m.CreatedAt, m.IsActive))
+            .Select(m =>
+                new AllMuseumsClientDto(m.BusinessId, m.Name, imageBase64, m.Description, m.CreatedAt, m.IsActive))
             .OrderBy(m => m.Name);
 
         if (museums == null)
@@ -197,7 +200,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     }
 
 
-    public async Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+    public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching objects with query: {@Query}", dto);
@@ -244,7 +247,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         };
 
         var pagedObjects = query
-            .Skip((dto.Page - 1) * dto.PageSize)
+            .Skip((dto.PageNumber - 1) * dto.PageSize)
             .Take(dto.PageSize)
             .Select(o => new AllObjectDto
             (
@@ -280,13 +283,82 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                         hp.EndDate
                     )).ToList()
             ))
-            .AsEnumerable();
+            .ToList();
 
-        return new PagedData<AllObjectDto>(
-            items: pagedObjects,
-            totalCount: totalCount,
-            pageSize: dto.PageSize,
-            currentPage: dto.Page
+        return new PaginatedResult<AllObjectDto>(
+            pagedObjects,
+            totalCount,
+            dto.PageNumber,
+            true,
+            dto.PageSize
         );
     }
+
+public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(
+    GetAllMuseumsAdminQuery dto,
+    CancellationToken cancellationToken = default)
+{
+    var pageNumber = Math.Max(dto.PageNumber, 1);
+    var pageSize = Math.Max(dto.PageSize, 1);
+
+    var query = _queryDbContext.Museums
+        .AsQueryable(); 
+
+    if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
+    {
+        var searchTerm = dto.GlobalSearch.ToLower();
+        query = query.Where(m =>
+            m.Name.ToLower().Contains(searchTerm) ||
+            m.Description.ToLower().Contains(searchTerm));
+    }
+
+    if (dto.FilterByActive.HasValue)
+    {
+        query = query.Where(m => m.IsActive == dto.FilterByActive.Value);
+    }
+
+    if (!string.IsNullOrWhiteSpace(dto.SortBy))
+    {
+        query = dto.SortBy.ToLower() switch
+        {
+            "name" => dto.SortDirection == SortDirection.Asc
+                ? query.OrderBy(m => m.Name)
+                : query.OrderByDescending(m => m.Name),
+            "createdat" => dto.SortDirection == SortDirection.Asc
+                ? query.OrderBy(m => m.CreatedAt)
+                : query.OrderByDescending(m => m.CreatedAt),
+            "isactive" => dto.SortDirection == SortDirection.Asc
+                ? query.OrderBy(m => m.IsActive)
+                : query.OrderByDescending(m => m.IsActive),
+            _ => query.OrderBy(m => m.CreatedAt)
+        };
+    }
+    else
+    {
+        query = query.OrderBy(m => m.CreatedAt);
+    }
+
+    var totalCount = await query.CountAsync(cancellationToken);
+
+    query = query
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize);
+
+    var pagedItems = await query
+        .Select(m => new AllMuseumsAdminDto(
+            m.BusinessId,
+            m.Name,
+            m.Description,
+            m.CreatedAt,
+            m.IsActive))
+        .ToListAsync(cancellationToken);
+
+    return new PaginatedResult<AllMuseumsAdminDto>(
+        Items: pagedItems,
+        TotalCount: totalCount,
+        PageNumber: pageNumber,
+        Draw: true,
+        PageSize: pageSize
+    );
+}
 }

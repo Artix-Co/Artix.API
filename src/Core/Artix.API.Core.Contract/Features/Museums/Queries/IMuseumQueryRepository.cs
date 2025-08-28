@@ -1,7 +1,8 @@
 ﻿namespace Artix.API.Core.Contract.Features.Museums.Queries;
 
 using Domain.Entities.Museum;
-using GetAll;
+using GetAllMuseumsAdmin;
+using GetAllMuseumsClient;
 using GetDetailByIds;
 using GetMuseumJournalEntries;
 using GetMuseumKeyStatus;
@@ -12,7 +13,7 @@ using Primitives.Repositories;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {
-    IEnumerable<AllMuseumDto> GetAll(GetAllMuseumsQuery dto);
+    IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto);
 
     Task<MuseumDetailsByIdDto> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto,
         CancellationToken cancellationToken = default);
@@ -25,6 +26,8 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
         CancellationToken cancellationToken = default);
 
 
-    Task<PagedData<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+    Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default);
+
+    Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(GetAllMuseumsAdminQuery dto, CancellationToken cancellationToken=default);
 }

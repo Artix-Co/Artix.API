@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
-using Core.Contract.Features.Museums.Queries.GetAll;
+using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
@@ -17,16 +17,16 @@ public sealed class MuseumController : ClientBaseController
     public MuseumController(IMediator mediator) : base(mediator) { }
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAllMuseumsQuery query)
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumsClientDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAllMuseumsClientQuery clientQuery)
     {
-        var result = await this._mediator.Send(query);
+        var result = await this._mediator.Send(clientQuery);
         return this.Ok(result);
     }
 
     [Authorize]
     [HttpGet("by-id")]
-    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<AllMuseumsClientDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumDetailsByIdQuery query)
     {
         var result = await this._mediator.Send(query);
