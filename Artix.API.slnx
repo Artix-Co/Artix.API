@@ -13,8 +13,8 @@
     <Project Path="src/Infra/Artix.API.Infra.Sql/Artix.API.Infra.Sql.csproj" />
   </Folder>
   <Folder Name="/src/Presentation/">
-    <Project Path="src/Presentation/Artix.API.Presentation.Endpoints/Artix.API.Presentation.Endpoints.csproj" />
-    <Project Path="src/Presentation/Artix.API.Presentation.WebService/Artix.API.Presentation.WebService.csproj" />
+    <Project Path="src\Presentation\Artix.API.Endpoints\Artix.API.Endpoints.csproj" Type="Classic C#" />
+    <Project Path="src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/test/" />
 </Solution>
