@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace Artix.API.Endpoints.Controllers;
+﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
 using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
@@ -13,16 +11,13 @@ using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/auth")]
-public sealed class AuthenticationController : BaseController
+
+public sealed class AuthenticationController : ClientBaseController
 {
-    private readonly IMediator _mediator;
-
     public AuthenticationController(IMediator mediator) : base(mediator)
     {
-        this._mediator = mediator;
     }
 
 
@@ -31,7 +26,7 @@ public sealed class AuthenticationController : BaseController
     public async Task<IActionResult> RegisterMobileAsync(InitiateOTPAuthCommand command)
     {
         var result = await this._mediator.Send(command);
-        return Ok(result);
+        return this.Ok(result);
     }
 
     [HttpPost("verify-otp")]
@@ -39,34 +34,19 @@ public sealed class AuthenticationController : BaseController
     public async Task<IActionResult> RegisterMobileAsync([FromBody] GetVerifyOTPAuthQuery query)
     {
         var result = await this._mediator.Send(query);
-        return Ok(result);
+        return this.Ok(result);
     }
 
 
-    [HttpPost("register-admin")]
-    [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterAdminCommand command)
-    {
-        var result = await this._mediator.Send(command);
-        return Ok(result);
-    }
+   
 
 
-    [HttpPost("login")]
-    [ProducesResponseType(typeof(BaseApiResponse<LoginDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> LoginAsync([FromBody] GetLoginQuery query)
-    {
-        var result = await this._mediator.Send(query);
-        return Ok(result);
-    }
-
-    
     [HttpPost("renew-access-token")]
     [ProducesResponseType(typeof(BaseApiResponse<ReNewAccessTokenDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LoginAsync([FromBody] GetReNewAccessTokenQuery query)
     {
         var result = await this._mediator.Send(query);
-        return Ok(result);
+        return this.Ok(result);
     }
 
     [Authorize]
@@ -75,6 +55,6 @@ public sealed class AuthenticationController : BaseController
     public async Task<IActionResult> LogoutAsync([FromBody] GetLogoutQuery query)
     {
         var result = await this._mediator.Send(query);
-        return Ok(result);
+        return this.Ok(result);
     }
 }

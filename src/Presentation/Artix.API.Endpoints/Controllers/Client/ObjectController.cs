@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Controllers;
+﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
 using Core.Contract.Features.Museums.Queries.GetObjects;
@@ -13,23 +13,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/objects")]
-public sealed class ObjectController : BaseController
+public sealed class ObjectController : ClientBaseController
 {
-    private readonly IMediator _mediator;
-
     public ObjectController(IMediator mediator) : base(mediator)
     {
-        _mediator = mediator;
     }
 
-    [HttpGet("objects")]
+    [HttpGet("all")]
     [ProducesResponseType(typeof(BaseApiResponse<PagedData<AllObjectDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
     {
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await this._mediator.Send(query);
+        return this.Ok(result);
     }
 
     [Authorize]
@@ -37,8 +32,8 @@ public sealed class ObjectController : BaseController
     [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var result = await this._mediator.Send(command);
+        return this.Ok(result);
     }
 
     [Authorize]
@@ -46,8 +41,8 @@ public sealed class ObjectController : BaseController
     [ProducesResponseType(typeof(BaseApiResponse<ObjectDetailByIdDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailByIdQuery query)
     {
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await this._mediator.Send(query);
+        return this.Ok(result);
     }
 
     [Authorize]
@@ -55,8 +50,8 @@ public sealed class ObjectController : BaseController
     [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpgradeObject([FromBody] UpgradeObjectCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var result = await this._mediator.Send(command);
+        return this.Ok(result);
     }
 
     [Authorize]
@@ -64,8 +59,8 @@ public sealed class ObjectController : BaseController
     [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddObjectToUserCollection([FromBody] AddObjectToUserCollectionCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var result = await this._mediator.Send(command);
+        return this.Ok(result);
     }
 
 
@@ -74,7 +69,7 @@ public sealed class ObjectController : BaseController
     [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<UserRecentObjectsVisitDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentObjectsVisitQuery query)
     {
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await this._mediator.Send(query);
+        return this.Ok(result);
     }
 }
