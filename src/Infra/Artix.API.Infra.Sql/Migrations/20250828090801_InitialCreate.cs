@@ -141,6 +141,34 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Metadata = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SenderId = table.Column<long>(type: "bigint", nullable: true),
+                    IsBroadcast = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    FailedAttempts = table.Column<int>(type: "int", nullable: false),
+                    LastErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Objects",
                 columns: table => new
                 {
@@ -154,6 +182,7 @@ namespace Artix.API.Infra.Sql.Migrations
                     Tier = table.Column<int>(type: "int", nullable: true),
                     IsSpecial = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsHidden = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ObjectSaleType = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -474,6 +503,30 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MuseumImages",
+                columns: table => new
+                {
+                    MuseumId = table.Column<long>(type: "bigint", nullable: false),
+                    FileId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MuseumImages", x => new { x.FileId, x.MuseumId });
+                    table.ForeignKey(
+                        name: "FK_MuseumImages_Files_FileId",
+                        column: x => x.FileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MuseumImages_Museums_MuseumId",
+                        column: x => x.MuseumId,
+                        principalTable: "Museums",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserMuseumKeys",
                 columns: table => new
                 {
@@ -500,6 +553,40 @@ namespace Artix.API.Infra.Sql.Migrations
                         name: "FK_UserMuseumKeys_Museums_MuseumId",
                         column: x => x.MuseumId,
                         principalTable: "Museums",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserNotification",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    NotificationId = table.Column<long>(type: "bigint", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeliveryStatus = table.Column<int>(type: "int", nullable: false),
+                    DeliveredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserNotification", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserNotification_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserNotification_Notifications_NotificationId",
+                        column: x => x.NotificationId,
+                        principalTable: "Notifications",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -539,7 +626,7 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ObjectFiles",
+                name: "Object3DModels",
                 columns: table => new
                 {
                     ObjectId = table.Column<long>(type: "bigint", nullable: false),
@@ -547,15 +634,15 @@ namespace Artix.API.Infra.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ObjectFiles", x => new { x.FileId, x.ObjectId });
+                    table.PrimaryKey("PK_Object3DModels", x => new { x.FileId, x.ObjectId });
                     table.ForeignKey(
-                        name: "FK_ObjectFiles_Files_FileId",
+                        name: "FK_Object3DModels_Files_FileId",
                         column: x => x.FileId,
                         principalTable: "Files",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ObjectFiles_Objects_FileId",
+                        name: "FK_Object3DModels_Objects_FileId",
                         column: x => x.FileId,
                         principalTable: "Objects",
                         principalColumn: "Id",
@@ -581,6 +668,30 @@ namespace Artix.API.Infra.Sql.Migrations
                     table.ForeignKey(
                         name: "FK_ObjectHistoricalPeriods_Objects_ObjectId",
                         column: x => x.ObjectId,
+                        principalTable: "Objects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ObjectImages",
+                columns: table => new
+                {
+                    ObjectId = table.Column<long>(type: "bigint", nullable: false),
+                    FileId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ObjectImages", x => new { x.FileId, x.ObjectId });
+                    table.ForeignKey(
+                        name: "FK_ObjectImages_Files_FileId",
+                        column: x => x.FileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ObjectImages_Objects_FileId",
+                        column: x => x.FileId,
                         principalTable: "Objects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -977,6 +1088,16 @@ namespace Artix.API.Infra.Sql.Migrations
                 column: "SellerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ObjectFiles_FileId",
+                table: "MuseumImages",
+                column: "FileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ObjectFiles_ObjectId",
+                table: "MuseumImages",
+                column: "MuseumId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MuseumObjects_MuseumId",
                 table: "MuseumObjects",
                 column: "MuseumId");
@@ -988,12 +1109,12 @@ namespace Artix.API.Infra.Sql.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_ObjectFiles_FileId",
-                table: "ObjectFiles",
+                table: "Object3DModels",
                 column: "FileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ObjectFiles_ObjectId",
-                table: "ObjectFiles",
+                table: "Object3DModels",
                 column: "ObjectId");
 
             migrationBuilder.CreateIndex(
@@ -1004,6 +1125,16 @@ namespace Artix.API.Infra.Sql.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ObjectHistoricalPeriods_ObjectId",
                 table: "ObjectHistoricalPeriods",
+                column: "ObjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ObjectFiles_FileId",
+                table: "ObjectImages",
+                column: "FileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ObjectFiles_ObjectId",
+                table: "ObjectImages",
                 column: "ObjectId");
 
             migrationBuilder.CreateIndex(
@@ -1061,6 +1192,16 @@ namespace Artix.API.Infra.Sql.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserMuseumKeys_UserId",
                 table: "UserMuseumKeys",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotification_NotificationId",
+                table: "UserNotification",
+                column: "NotificationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotification_UserId",
+                table: "UserNotification",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -1155,10 +1296,16 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "MarketplaceItems");
 
             migrationBuilder.DropTable(
-                name: "ObjectFiles");
+                name: "MuseumImages");
+
+            migrationBuilder.DropTable(
+                name: "Object3DModels");
 
             migrationBuilder.DropTable(
                 name: "ObjectHistoricalPeriods");
+
+            migrationBuilder.DropTable(
+                name: "ObjectImages");
 
             migrationBuilder.DropTable(
                 name: "ObjectTypes");
@@ -1180,6 +1327,9 @@ namespace Artix.API.Infra.Sql.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserMuseumKeys");
+
+            migrationBuilder.DropTable(
+                name: "UserNotification");
 
             migrationBuilder.DropTable(
                 name: "UserObjects");
@@ -1210,6 +1360,9 @@ namespace Artix.API.Infra.Sql.Migrations
 
             migrationBuilder.DropTable(
                 name: "JournalEntries");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
 
             migrationBuilder.DropTable(
                 name: "Files");

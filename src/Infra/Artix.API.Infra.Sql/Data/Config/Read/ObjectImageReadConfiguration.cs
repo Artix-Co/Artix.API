@@ -4,7 +4,7 @@ using Artix.API.Core.Domain.Entities.Object;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class ObjectImageWriteConfiguration : IEntityTypeConfiguration<ObjectImage>
+internal sealed class ObjectImageReadConfiguration : IEntityTypeConfiguration<ObjectImage>
 {
     public void Configure(EntityTypeBuilder<ObjectImage> entity)
     {
