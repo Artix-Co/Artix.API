@@ -5,5 +5,6 @@ public record AllObjectsAdminDto(
     string Name,
     string? GeneralInformation,
     string? SpecialInformation,
+    string MuseumName,
     int? Version
 );

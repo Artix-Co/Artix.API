@@ -103,6 +103,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         );
     }
 
+
     public async Task<PaginatedResult<AllObjectsAdminDto>> GetAllObjectsAdminAsync(
         GetAllObjectsAdminQuery dto,
         CancellationToken cancellationToken = default)
@@ -110,7 +111,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         var pageNumber = Math.Max(dto.PageNumber, 1);
         var pageSize = Math.Max(dto.PageSize, 1);
 
-        var query = _queryDbContext.Objects.AsQueryable();
+        var query = _queryDbContext.Objects
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
         {
@@ -118,7 +120,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             query = query.Where(o =>
                 o.Name.ToLower().Contains(searchTerm) ||
                 (o.GeneralInformation != null && o.GeneralInformation.ToLower().Contains(searchTerm)) ||
-                (o.SpecialInformation != null && o.SpecialInformation.ToLower().Contains(searchTerm)));
+                (o.SpecialInformation != null && o.SpecialInformation.ToLower().Contains(searchTerm)) ||
+                _queryDbContext.MuseumObjects.Any(mo => mo.ObjectId == o.Id &&
+                                                        _queryDbContext.Museums.Any(m =>
+                                                            m.Id == mo.MuseumId &&
+                                                            m.Name.ToLower().Contains(searchTerm))));
         }
 
         if (!string.IsNullOrWhiteSpace(dto.SortBy))
@@ -141,26 +147,60 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        query = query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize);
-
         var pagedItems = await query
-            .Select(o => new AllObjectsAdminDto(
-                o.BusinessId,
-                o.Name,
-                o.GeneralInformation,
-                o.SpecialInformation,
-                o.Version
-            ))
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .GroupJoin(
+                _queryDbContext.MuseumObjects,
+                obj => obj.Id,
+                mo => mo.ObjectId,
+                (obj, museumObjects) => new { Object = obj, MuseumObjects = museumObjects }
+            )
+            .SelectMany(
+                x => x.MuseumObjects.DefaultIfEmpty(),
+                (obj, mo) => new { obj.Object, MuseumObject = mo }
+            )
+            .GroupJoin(
+                _queryDbContext.Museums,
+                x => x.MuseumObject != null ? x.MuseumObject.MuseumId : 0, // اصلاح 0 به Guid.Empty
+                museum => museum.Id,
+                (x, museums) => new { x.Object, Museums = museums }
+            )
+            .GroupBy(x => new
+            {
+                x.Object.BusinessId,
+                x.Object.Name,
+                x.Object.GeneralInformation,
+                x.Object.SpecialInformation,
+                x.Object.Version
+            })
+            .Select(g => new
+            {
+                g.Key.BusinessId,
+                g.Key.Name,
+                g.Key.GeneralInformation,
+                g.Key.SpecialInformation,
+                MuseumNames = g.SelectMany(m => m.Museums.Select(museum => museum.Name)).Distinct(),
+                g.Key.Version
+            })
             .ToListAsync(cancellationToken);
 
+        // تبدیل به AllObjectsAdminDto در سمت کلاینت
+        var resultItems = pagedItems.Select(item => new AllObjectsAdminDto(
+            item.BusinessId,
+            item.Name,
+            item.GeneralInformation,
+            item.SpecialInformation,
+            string.Join(", ", item.MuseumNames.Where(name => !string.IsNullOrEmpty(name))),
+            item.Version
+        )).ToList();
+
         return new PaginatedResult<AllObjectsAdminDto>(
-            Items: pagedItems.AsReadOnly(),
+            Items: resultItems.AsReadOnly(),
             TotalCount: totalCount,
             PageNumber: pageNumber,
-            Draw: true,
-            PageSize: pageSize
+            PageSize: pageSize,
+            Draw: true
         );
     }
 

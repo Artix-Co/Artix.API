@@ -10,6 +10,7 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
 using Core.DomainService;
+using Endpoints;
 using Filters;
 using Infra.File;
 using Infra.Identity;
@@ -88,7 +89,7 @@ public static class HostingExtension
         services.AddApplicationServices();
         services.AddContractServices();
         services.AddElasticsearch(configuration);
-        // services.AddCorsPolicy(configuration);
+        services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
 
         services.AddDomainServiceServices();
