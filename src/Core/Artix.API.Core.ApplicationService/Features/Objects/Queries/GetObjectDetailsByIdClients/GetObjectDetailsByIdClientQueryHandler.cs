@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetDetailByIds;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetObjectDetailsByIdClients;
 
 using Contract.Features.Caches.Objects;
 using Contract.Features.Objects.Queries;
-using Contract.Features.Objects.Queries.GetDetailByIds;
+using Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Exceptions;
@@ -13,12 +13,12 @@ using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 // TODO: develop validator for this handler
-internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObjectDetailByIdQuery, ObjectDetailByIdDto>
+internal sealed class GetObjectDetailsByIdClientQueryHandler : QueryHandlerBase<GetObjectDetailsByIdClientQuery, ObjectDetailsByIdClientDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheService<RecentObjectDto> _objectCache;
 
-    public GetObjectDetailByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
+    public GetObjectDetailsByIdClientQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository,
         ICacheService<RecentObjectDto> objectCache) : base(cache, httpContextAccessor, userManager)
     {
@@ -26,23 +26,23 @@ internal sealed class GetObjectDetailByIdQueryHandler : QueryHandlerBase<GetObje
         this._objectCache = objectCache;
     }
 
-    public override async Task<Result<ObjectDetailByIdDto>> Handle(GetObjectDetailByIdQuery query,
+    public override async Task<Result<ObjectDetailsByIdClientDto>> Handle(GetObjectDetailsByIdClientQuery clientQuery,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 
-        var result = await this._objectQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
+        var result = await this._objectQueryRepository.GetDetailsByIdAsync(clientQuery, cancellationToken);
 
         if (result == null)
         {
-            throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(result), clientQuery.Id);
         }
 
         await this._objectCache.AddToRecentAsync(user.Id.ToString(),
-            RecentObjectDto.Create(result.BusinessId, result.Name));
+            RecentObjectDto.Create(result.Id, result.Name));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
 
 
-        return Result<ObjectDetailByIdDto>.Success(result);
+        return Result<ObjectDetailsByIdClientDto>.Success(result);
     }
 }

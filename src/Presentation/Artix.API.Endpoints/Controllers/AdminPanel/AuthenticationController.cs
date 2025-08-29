@@ -16,7 +16,7 @@ public sealed class AuthenticationController: AdminBaseController
 
     
     [HttpPost("register")]
-    [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterAdminCommand command)
     {
         var result = await this._mediator.Send(command);
@@ -25,7 +25,7 @@ public sealed class AuthenticationController: AdminBaseController
 
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(BaseApiResponse<LoginDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<LoginDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LoginAsync([FromBody] GetLoginQuery query)
     {
         var result = await this._mediator.Send(query);

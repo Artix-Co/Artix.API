@@ -17,7 +17,7 @@ public sealed class UserController : ClientBaseController
 
     [Authorize]
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(BaseApiResponse<UserProfileDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<UserProfileDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
@@ -27,7 +27,7 @@ public sealed class UserController : ClientBaseController
 
     [Authorize]
     [HttpPatch("modify-profile")]
-    [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)
     {
         var result = await this._mediator.Send(command);
@@ -37,7 +37,7 @@ public sealed class UserController : ClientBaseController
 
     // [Authorize]
     // [HttpGet("collection")]
-    // [ProducesResponseType(typeof(BaseApiResponse<IEnumerable<CollectionsByUserIdDto>>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(Result<IEnumerable<CollectionsByUserIdDto>>), StatusCodes.Status200OK)]
     // public async Task<IActionResult> CollectionsAsync([FromQuery] GetCollectionsByUserIdQuery query)
     // {
     //     var result = await this._mediator.Send(query);

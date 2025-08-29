@@ -22,7 +22,7 @@ public sealed class AuthenticationController : ClientBaseController
 
 
     [HttpPost("send-otp")]
-    [ProducesResponseType(typeof(BaseApiResponse<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegisterMobileAsync(InitiateOTPAuthCommand command)
     {
         var result = await this._mediator.Send(command);
@@ -30,7 +30,7 @@ public sealed class AuthenticationController : ClientBaseController
     }
 
     [HttpPost("verify-otp")]
-    [ProducesResponseType(typeof(BaseApiResponse<VerifyOTPAuthDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<VerifyOTPAuthDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegisterMobileAsync([FromBody] GetVerifyOTPAuthQuery query)
     {
         var result = await this._mediator.Send(query);
@@ -42,7 +42,7 @@ public sealed class AuthenticationController : ClientBaseController
 
 
     [HttpPost("renew-access-token")]
-    [ProducesResponseType(typeof(BaseApiResponse<ReNewAccessTokenDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<ReNewAccessTokenDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LoginAsync([FromBody] GetReNewAccessTokenQuery query)
     {
         var result = await this._mediator.Send(query);
@@ -51,7 +51,7 @@ public sealed class AuthenticationController : ClientBaseController
 
     [Authorize]
     [HttpPost("logout")]
-    [ProducesResponseType(typeof(BaseApiResponse<LogoutDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<LogoutDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LogoutAsync([FromBody] GetLogoutQuery query)
     {
         var result = await this._mediator.Send(query);
