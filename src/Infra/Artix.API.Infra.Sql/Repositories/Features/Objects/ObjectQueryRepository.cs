@@ -35,7 +35,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .Select(o => new
             {
                 Object = new { o.BusinessId, o.Name, o.GeneralInformation, o.SpecialInformation },
-                Model3D = o.Object3DModels
+                Model3D = o.ObjectModels
                     .Where(of => of.File.MimeType == "model/obj" || of.File.MimeType == "model/gltf-binary")
                     .Select(of => new { of.File.FilePath })
                     .FirstOrDefault(),
@@ -204,82 +204,152 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         );
     }
 
+
     public async Task<ObjectDetailsByIdAdminDto> GetAllObjectDetailsByIdAdminAsync(
-        GetObjectDetailsByIdAdminQuery dto,
-        CancellationToken cancellationToken = default)
+        GetObjectDetailsByIdAdminQuery dto, CancellationToken cancellationToken = default)
     {
+        // Validate input
+        if (dto?.Id == null)
+        {
+            throw new ArgumentNullException(nameof(dto.Id), "Object ID cannot be null.");
+        }
+
+        // Log the query input
+        _logger.LogInformation("Querying object with BusinessId: {BusinessId}", dto.Id);
+
+        // Fetch data from database
         var query = await _queryDbContext.Objects
-            .Where(o => o.BusinessId == dto.Id)
-            .Select(o => new
-            {
-                Object = o,
-                Model3D = o.Object3DModels
-                    .Where(of => of.File.MimeType == "model/obj" || of.File.MimeType == "model/gltf-binary")
-                    .Select(of => new { of.File.FilePath })
-                    .FirstOrDefault(),
-                Image = o.ObjectImages
-                    .Where(of => of.File.MimeType == "jpg/png" || of.File.MimeType == "jpeg/webp")
-                    .Select(of => new { of.File.FilePath })
-                    .FirstOrDefault(),
-                HistoricalPeriods = o.ObjectHistoricalPeriods
-                    .Select(ohp => new HistoricalPeriodDto(
-                        ohp.HistoricalPeriod.BusinessId,
-                        ohp.HistoricalPeriod.Name,
-                        ohp.HistoricalPeriod.Description,
-                        ohp.HistoricalPeriod.StartDate,
-                        ohp.HistoricalPeriod.EndDate
-                    )),
-                Types = o.ObjectTypes
-                    .Select(ot => new TypeDto(
-                        ot.Type.BusinessId,
-                        ot.Type.Name,
-                        ot.Type.Description
-                    ))
-            })
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(cancellationToken);
+            .Include(o => o.ObjectModels)
+            .ThenInclude(of => of.File)
+            .Include(o => o.ObjectImages)
+            .ThenInclude(of => of.File)
+            .Include(o => o.ObjectHistoricalPeriods)
+            .ThenInclude(ohp => ohp.HistoricalPeriod)
+            .Include(o => o.ObjectTypes)
+            .ThenInclude(ot => ot.Type)
+            .FirstOrDefaultAsync(o => o.BusinessId == dto.Id, cancellationToken);
 
-        if (query is null)
+        if (query == null)
+        {
+            _logger.LogWarning("No object found for BusinessId: {BusinessId}", dto.Id);
             throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
-
-        string? model3DBase64 = null;
-        if (query.Model3D?.FilePath != null)
-        {
-            await using var fileStream = new FileStream(query.Model3D.FilePath, FileMode.Open, FileAccess.Read,
-                FileShare.Read, bufferSize: 4096, useAsync: true);
-            using var memoryStream = new MemoryStream();
-            await fileStream.CopyToAsync(memoryStream, cancellationToken);
-            model3DBase64 = Convert.ToBase64String(memoryStream.ToArray());
         }
 
-        string? imageBase64 = null;
-        if (query.Image?.FilePath != null)
+        // Log Object3DModels details
+        _logger.LogInformation("Object3DModels count: {Count}", query.ObjectModels?.Count() ?? 0);
+        if (query.ObjectModels != null && query.ObjectModels.Any())
         {
-            await using var fileStream = new FileStream(query.Image.FilePath, FileMode.Open, FileAccess.Read,
-                FileShare.Read, bufferSize: 4096, useAsync: true);
-            using var memoryStream = new MemoryStream();
-            await fileStream.CopyToAsync(memoryStream, cancellationToken);
-            imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+            foreach (var object3DModel in query.ObjectModels)
+            {
+                _logger.LogInformation(
+                    "Model: ObjectId={ObjectId}, FileId={FileId}, MimeType={MimeType}, FilePath={FilePath}",
+                    object3DModel.ObjectId, object3DModel.FileId, object3DModel.File?.MimeType, object3DModel.File?.FilePath);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("No Object3DModels found for BusinessId: {BusinessId}", dto.Id);
         }
 
-        var historicalPeriodsList = query.HistoricalPeriods.AsEnumerable().ToList();
-        var typesList = query.Types.AsEnumerable().ToList();
+        // Process 3D model file
+        // Process 3D model file
+        string model3DBase64 = null;
+        var model = query.ObjectModels?.FirstOrDefault(of => AllowedModelMimeTypes.Contains(of?.File?.MimeType));
+        if (model != null)
+        {
+            try
+            {
+                // Resolve relative path
+                var relativePath = model.File.FilePath;
 
+                // Navigate to the correct base path
+                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..","Artix.API","src", "Presentation", "Artix.API.WebService"));
+                var filePath = Path.Combine(basePath, relativePath);
+
+                _logger.LogInformation("Resolved file path for 3D model: {FilePath}", filePath);
+
+                if (File.Exists(filePath))
+                {
+                    model3DBase64 = Convert.ToBase64String(File.ReadAllBytes(filePath));
+                    _logger.LogInformation("Successfully read 3D model file: {FilePath}", filePath);
+                }
+                else
+                {
+                    _logger.LogWarning("3D model file not found at path: {FilePath}", filePath);
+                }
+            }
+            catch (IOException ex)
+            {
+                _logger.LogWarning(ex, "Failed to read 3D model file at path {FilePath} for object {ObjectId}",
+                    model.File?.FilePath, dto.Id);
+            }
+        }
+
+        // Process image file
+        string imageBase64 = null;
+        var image = query.ObjectImages?.FirstOrDefault(of => AllowedImageMimeTypes.Contains(of?.File?.MimeType));
+        if (image != null)
+        {
+            try
+            {
+                var filePath = image.File.FilePath.StartsWith("~/")
+                    ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, image.File.FilePath.Substring(2))
+                    : image.File.FilePath;
+
+                if (File.Exists(filePath))
+                {
+                    imageBase64 = Convert.ToBase64String(File.ReadAllBytes(filePath));
+                    _logger.LogInformation("Successfully read image file: {FilePath}", filePath);
+                }
+                else
+                {
+                    _logger.LogWarning("Image file not found at path: {FilePath}", filePath);
+                }
+            }
+            catch (IOException ex)
+            {
+                _logger.LogWarning(ex, "Failed to read image file at path {FilePath} for object {ObjectId}",
+                    image.File?.FilePath, dto.Id);
+            }
+        }
+
+        // Map related entities to DTOs
+        var objectTypes = query.ObjectTypes
+            .Select(ot => new TypeDto(
+                Id: ot.Type.BusinessId,
+                Name: ot.Type.Name,
+                Description: ot.Type.Description))
+            .ToList();
+
+        var historicalPeriods = query.ObjectHistoricalPeriods
+            .Select(ohp => new HistoricalPeriodDto(
+                Id: ohp.HistoricalPeriod.BusinessId,
+                Name: ohp.HistoricalPeriod.Name,
+                Description: ohp.HistoricalPeriod.Description,
+                StartDate: ohp.HistoricalPeriod.StartDate,
+                EndDate: ohp.HistoricalPeriod.EndDate))
+            .ToList();
+
+        // Return DTO
         return new ObjectDetailsByIdAdminDto(
-            Id: query.Object.BusinessId,
-            Name: query.Object.Name,
-            GeneralInformation: query.Object.GeneralInformation,
-            SpecialInformation: query.Object.SpecialInformation,
-            Version: query.Object.Version,
-            Tier: query.Object.Tier,
-            IsSpecial: query.Object.IsSpecial,
-            IsHidden: query.Object.IsHidden,
-            ObjectSaleType: query.Object.ObjectSaleType,
-            CreatedAt: query.Object.CreatedAt,
+            Id: query.BusinessId,
+            Name: query.Name,
+            GeneralInformation: query.GeneralInformation,
+            SpecialInformation: query.SpecialInformation,
+            Version: query.Version,
+            Tier: query.Tier,
+            IsSpecial: query.IsSpecial,
+            IsHidden: query.IsHidden,
+            ObjectSaleType: query.ObjectSaleType,
+            CreatedAt: query.CreatedAt,
             ImageBase64: imageBase64,
             Model3DBase64: model3DBase64,
-            ObjectTypes: typesList,
-            HistoricalPeriods: historicalPeriodsList
-        );
+            ObjectTypes: objectTypes,
+            HistoricalPeriods: historicalPeriods);
     }
+
+// Static MIME type collections
+    private static readonly HashSet<string> AllowedModelMimeTypes = new() { "model/obj", "model/gltf-binary" };
+
+    private static readonly HashSet<string> AllowedImageMimeTypes = new() { "image/jpeg", "image/png", "image/webp" };
 }

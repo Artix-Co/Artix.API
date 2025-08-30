@@ -14,8 +14,8 @@ public class File : AggregateRoot
     public long? UploadedBy { get; set; }
 
 
-    private readonly List<Object3DModel> _object3DModels = new();
-    public virtual IReadOnlyCollection<Object3DModel> Object3DModels => _object3DModels.AsReadOnly();
+    private readonly List<ObjectModel> _objectModels = new();
+    public virtual IReadOnlyCollection<ObjectModel> ObjectModels => _objectModels.AsReadOnly();
 
     
     private readonly List<ObjectImage> _objectImages = new();

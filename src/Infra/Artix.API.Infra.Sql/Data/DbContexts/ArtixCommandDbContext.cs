@@ -66,7 +66,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<Type> Types { get; set; }
     public DbSet<File> Files { get; set; }
     public DbSet<Object> Objects { get; set; }
-    public DbSet<Object3DModel> Object3DModels { get; set; }
+    public DbSet<ObjectModel> Object3DModels { get; set; }
     public DbSet<ObjectImage> ObjectImages { get; set; }
     public DbSet<ObjectType> ObjectTypes { get; set; }
     public DbSet<HistoricalPeriod> HistoricalPeriods { get; set; }

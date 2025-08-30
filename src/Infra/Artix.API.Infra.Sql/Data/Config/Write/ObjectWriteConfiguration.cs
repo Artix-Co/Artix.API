@@ -54,7 +54,7 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .HasForeignKey(ohp => ohp.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        entity.HasMany(o => o.Object3DModels)
+        entity.HasMany(o => o.ObjectModels)
             .WithOne(ot => ot.Object)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);

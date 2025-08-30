@@ -4,11 +4,11 @@ using Artix.API.Core.Domain.Entities.Object;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class Object3DModelReadConfiguration : IEntityTypeConfiguration<Object3DModel>
+internal sealed class ObjectModelReadConfiguration : IEntityTypeConfiguration<ObjectModel>
 {
-    public void Configure(EntityTypeBuilder<Object3DModel> entity)
+    public void Configure(EntityTypeBuilder<ObjectModel> entity)
     {
-        entity.ToTable("Object3DModels");
+        entity.ToTable("ObjectModels");
 
         entity.HasKey(of => new { of.FileId, of.ObjectId });
 
@@ -16,12 +16,12 @@ internal sealed class Object3DModelReadConfiguration : IEntityTypeConfiguration<
         entity.Property(of => of.ObjectId).IsRequired();
 
         entity.HasOne(of => of.File)
-            .WithMany(f => f.Object3DModels)
+            .WithMany(f => f.ObjectModels)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasOne(of => of.Object)
-            .WithMany(o => o.Object3DModels)
+            .WithMany(o => o.ObjectModels)
             .HasForeignKey(of => of.ObjectId)
             .OnDelete(DeleteBehavior.Restrict);
 

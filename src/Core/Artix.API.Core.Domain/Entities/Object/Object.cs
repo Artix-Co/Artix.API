@@ -22,8 +22,8 @@ public class Object : AggregateRoot
     public ObjectSaleType ObjectSaleType { get; private set; }
 
 
-    private readonly List<Object3DModel> _object3DModels = new();
-    public virtual IReadOnlyCollection<Object3DModel> Object3DModels => this._object3DModels.AsReadOnly();
+    private readonly List<ObjectModel> _objectModels = new();
+    public virtual IReadOnlyCollection<ObjectModel> ObjectModels => this._objectModels.AsReadOnly();
 
 
     private readonly List<ObjectImage> _objectImages = new();
@@ -399,13 +399,13 @@ public class Object : AggregateRoot
         if (!allowedMimeTypes.Contains(file.MimeType))
             throw DomainException.InvalidValue(nameof(file.MimeType));
 
-        var existingModel = this._object3DModels
+        var existingModel = this._objectModels
             .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
 
         if (existingModel is not null)
-            this._object3DModels.Remove(existingModel);
+            this._objectModels.Remove(existingModel);
 
-        this._object3DModels.Add(Object3DModel.Create(this, file));
+        this._objectModels.Add(ObjectModel.Create(this, file));
     }
 
 
@@ -429,22 +429,22 @@ public class Object : AggregateRoot
 
     public void Remove3DModel()
     {
-        var existingModel = this._object3DModels.FirstOrDefault(of => Is3DModel(of.File));
+        var existingModel = this._objectModels.FirstOrDefault(of => Is3DModel(of.File));
 
         if (existingModel is not null)
-            this._object3DModels.Remove(existingModel);
+            this._objectModels.Remove(existingModel);
     }
 
     public File? Get3DModel()
     {
-        return this._object3DModels
+        return this._objectModels
             .FirstOrDefault(of => Is3DModel(of.File))
             ?.File;
     }
 
     public bool Has3DModel()
     {
-        return this._object3DModels.Exists(of => Is3DModel(of.File));
+        return this._objectModels.Exists(of => Is3DModel(of.File));
     }
 
     private static bool Is3DModel(File file)

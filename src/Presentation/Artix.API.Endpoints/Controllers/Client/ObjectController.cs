@@ -4,7 +4,7 @@ using Common;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Commands.AddToUserCollection;
 using Core.Contract.Features.Objects.Commands.Scan;
-using Core.Contract.Features.Objects.Commands.Upgrade;
+
 using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
 using Core.Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
 using Core.Contract.Primitives.Models;
@@ -45,14 +45,7 @@ public sealed class ObjectController : ClientBaseController
         return this.Ok(result);
     }
 
-    [Authorize]
-    [HttpPatch("upgrade")]
-    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpgradeObject([FromBody] UpgradeObjectCommand command)
-    {
-        var result = await this._mediator.Send(command);
-        return this.Ok(result);
-    }
+  
 
     [Authorize]
     [HttpPost("add-to-collection")]

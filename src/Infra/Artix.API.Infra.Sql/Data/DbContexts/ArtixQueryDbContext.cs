@@ -56,7 +56,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<Type> Types { get; set; }
     public DbSet<File> Files { get; set; }
     public DbSet<Object> Objects { get; set; }
-    public DbSet<Object3DModel> Object3DModels { get; set; }
+    public DbSet<ObjectModel> Object3DModels { get; set; }
     public DbSet<ObjectImage> ObjectImages { get; set; }
     public DbSet<OTP> OTPs { get; set; }
     public DbSet<ObjectType> ObjectTypes { get; set; }
@@ -75,6 +75,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
         base.OnConfiguring(optionsBuilder);
     }
 
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
