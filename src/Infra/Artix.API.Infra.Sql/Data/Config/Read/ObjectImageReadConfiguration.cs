@@ -15,7 +15,7 @@ internal sealed class ObjectImageReadConfiguration : IEntityTypeConfiguration<Ob
         entity.Property(of => of.FileId).IsRequired();
         entity.Property(of => of.ObjectId).IsRequired();
 
-        entity.HasOne(of => of.File)
+        entity.HasOne(of => of.FileEntity)
             .WithMany(f => f.ObjectImages)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -26,9 +26,9 @@ internal sealed class ObjectImageReadConfiguration : IEntityTypeConfiguration<Ob
             .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasIndex(of => of.FileId)
-            .HasDatabaseName("IX_ObjectFiles_FileId");
+            .HasDatabaseName("IX_ObjectImageFiles_FileId");
 
         entity.HasIndex(of => of.ObjectId)
-            .HasDatabaseName("IX_ObjectFiles_ObjectId");
+            .HasDatabaseName("IX_ObjectImageFiles_ObjectId");
     }
 }

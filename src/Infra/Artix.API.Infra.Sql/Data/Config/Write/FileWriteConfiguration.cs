@@ -4,9 +4,9 @@ using Core.Domain.Entities.File;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class FileWriteConfiguration : BaseEntityConfiguration<File>
+internal sealed class FileWriteConfiguration : BaseEntityConfiguration<FileEntity>
 {
-    public override void Configure(EntityTypeBuilder<File> entity)
+    public override void Configure(EntityTypeBuilder<FileEntity> entity)
     {
         base.Configure(entity);
 
@@ -34,23 +34,23 @@ internal sealed class FileWriteConfiguration : BaseEntityConfiguration<File>
         
         
         entity.HasMany(f => f.ObjectModels)
-            .WithOne(of => of.File)
+            .WithOne(of => of.FileEntity)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
         
         entity.HasMany(f => f.ObjectImages)
-            .WithOne(of => of.File)
+            .WithOne(of => of.FileEntity)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(f => f.MuseumImages)
-            .WithOne(of => of.File)
+            .WithOne(of => of.FileEntity)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
         
               
         entity.HasMany(f => f.VoiceTrackFiles)
-            .WithOne(of => of.File)
+            .WithOne(of => of.FileEntity)
             .HasForeignKey(of => of.VoiceTrackId)
             .OnDelete(DeleteBehavior.Cascade);
     }

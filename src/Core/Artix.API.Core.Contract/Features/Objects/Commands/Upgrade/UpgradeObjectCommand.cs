@@ -12,5 +12,10 @@ public sealed record UpgradeObjectCommand(
     string? Model3DFileDataBase64,
     string? Model3DFileName,
     string? Model3DFileMimeType,
+    
+    
+    string? ImageFileDataBase64,
+    string? ImageFileName,
+    string? ImageFileMimeType,
     string? HistoricalPeriod
 ) : ICommand;

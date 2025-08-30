@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
 using Interfaces;
 using Microsoft.Extensions.Options;
-using File = Core.Domain.Entities.File.File;
 
 public class FileService : IFileService
 {
@@ -14,11 +13,11 @@ public class FileService : IFileService
 
     public FileService(IOptions<FileSettings> options)
     {
-        _fileStoragePath =  options.Value.StoragePath;
+        _fileStoragePath = options.Value.StoragePath;
         Directory.CreateDirectory(_fileStoragePath);
     }
 
-    public async Task<File> UploadFileAsync(IFormFile file, long? uploadedBy,
+    public async Task<string> UploadFileAsync(IFormFile file, long? uploadedBy,
         string[] allowedMimeTypes = null)
     {
         if (file == null || file.Length == 0)
@@ -36,14 +35,10 @@ public class FileService : IFileService
         {
             await file.CopyToAsync(stream);
         }
-
-
-        var fileEntity = File.Create(fileName, filePath, file.Length, file.ContentType, uploadedBy);
-
-        return fileEntity;
+        return filePath;
     }
 
-    public async Task<File> UploadFileFromBytesAsync(byte[] fileData, string fileName, string mimeType,
+    public async Task<string> UploadFileFromBytesAsync(byte[] fileData, string fileName, string mimeType,
         long? uploadedBy, string[] allowedMimeTypes = null)
     {
         // TODO: use layer exception
@@ -64,10 +59,8 @@ public class FileService : IFileService
         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(fileName)}";
         var filePath = Path.Combine(_fileStoragePath, uniqueFileName);
 
-        await System.IO.File.WriteAllBytesAsync(filePath, fileData);
+        await File.WriteAllBytesAsync(filePath, fileData);
 
-        var fileEntity = File.Create(fileName, filePath, fileData.Length, mimeType, uploadedBy);
-
-        return fileEntity;
+        return filePath;
     }
 }

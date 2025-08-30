@@ -38,14 +38,14 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var query = _queryDbContext.Museums
             .Include(o => o.MuseumImages)
-            .ThenInclude(of => of.File)
+            .ThenInclude(of => of.FileEntity)
             .AsSplitQuery();
 
         var imageBase64 = query
             .SelectMany(m => m.MuseumImages)
-            .Where(of => of.File.MimeType == "jpg" || of.File.MimeType == "png" || of.File.MimeType == "jpeg" ||
-                         of.File.MimeType == "webp")
-            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.File.FilePath)))
+            .Where(of => of.FileEntity.MimeType == "jpg" || of.FileEntity.MimeType == "png" || of.FileEntity.MimeType == "jpeg" ||
+                         of.FileEntity.MimeType == "webp")
+            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.FileEntity.FilePath)))
             .FirstOrDefault();
 
 

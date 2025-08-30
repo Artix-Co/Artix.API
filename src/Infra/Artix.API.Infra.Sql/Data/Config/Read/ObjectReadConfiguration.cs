@@ -53,18 +53,17 @@ internal sealed class ObjectReadConfiguration : BaseEntityConfiguration<Object>
             .WithOne(ohp => ohp.Object)
             .HasForeignKey(ohp => ohp.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
+        // Fixed relationships
         entity.HasMany(o => o.ObjectModels)
             .WithOne(ot => ot.Object)
-            .HasForeignKey(of => of.FileId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        
-        entity.HasMany(o => o.ObjectImages)
-            .WithOne(ot => ot.Object)
-            .HasForeignKey(of => of.FileId)
+            .HasForeignKey(ot => ot.ObjectId) // Correct foreign key
             .OnDelete(DeleteBehavior.Cascade);
 
+        entity.HasMany(o => o.ObjectImages)
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(ot => ot.ObjectId) // Correct foreign key
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes
         entity.HasIndex(o => o.Name)

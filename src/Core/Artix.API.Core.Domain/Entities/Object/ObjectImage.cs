@@ -9,24 +9,21 @@ public class ObjectImage
     public virtual Object Object { get; private set; }
 
     public long FileId { get; private set; }
-    public virtual File File { get; private set; }
-    
-    
-    protected ObjectImage() { }
+    public virtual FileEntity FileEntity { get; private set; }
 
-    private ObjectImage(Object obj, File file)
+
+    protected ObjectImage()
     {
-        if (obj == null)
-            throw DomainException.InvalidValue(nameof(obj));
-        if (file == null)
-            throw DomainException.InvalidValue(nameof(file));
-
-        this.ObjectId = obj.Id;
-        this.FileId = file.Id;
     }
-    
-    public static ObjectImage Create(Object obj, File file)
+
+    private ObjectImage(long objectId, long fileId)
     {
-        return new ObjectImage(obj, file);
+        this.ObjectId = objectId;
+        this.FileId = fileId;
+    }
+
+    public static ObjectImage Create(long objectId, long fileId)
+    {
+        return new ObjectImage(objectId, fileId);
     }
 }

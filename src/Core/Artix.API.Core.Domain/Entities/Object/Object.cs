@@ -83,7 +83,7 @@ public class Object : AggregateRoot
         this._objectHistoricalPeriods = objectHistoricalPeriods;
         this.ObjectSaleType = objectSaleType;
     }
-    
+
     private Object(
         string name,
         string? qrCode,
@@ -253,7 +253,6 @@ public class Object : AggregateRoot
     }
 
 
-
     public static Object Create(
         string name,
         string qrCode,
@@ -390,68 +389,43 @@ public class Object : AggregateRoot
     }
 
 
-    public void Assign3DModel(File file, string[] allowedMimeTypes)
+    public void Assign3DModel(long fileId, string[] allowedMimeTypes)
     {
-        if (file is null)
-            throw DomainException.InvalidValue(nameof(file));
-
-
-        if (!allowedMimeTypes.Contains(file.MimeType))
-            throw DomainException.InvalidValue(nameof(file.MimeType));
-
-        var existingModel = this._objectModels
-            .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
-
-        if (existingModel is not null)
-            this._objectModels.Remove(existingModel);
-
-        this._objectModels.Add(ObjectModel.Create(this, file));
+        var objectModel = ObjectModel.Create(this.Id, fileId);
+        this._objectModels.Add(objectModel);
     }
 
-
-    public void AssignImage(File file, string[] allowedMimeTypes)
+    public void AssignImage(long fileId, string[] allowedMimeTypes)
     {
-        if (file is null)
-            throw DomainException.InvalidValue(nameof(file));
-
-
-        if (!allowedMimeTypes.Contains(file.MimeType))
-            throw DomainException.InvalidValue(nameof(file.MimeType));
-
-        var existingModel = this._objectImages
-            .FirstOrDefault(of => allowedMimeTypes.Contains(of.File.MimeType));
-
-        if (existingModel is not null)
-            this._objectImages.Remove(existingModel);
-
-        this._objectImages.Add(ObjectImage.Create(this, file));
+        var objectImage = ObjectImage.Create(this.Id, fileId);
+        this._objectImages.Add(objectImage);
     }
 
     public void Remove3DModel()
     {
-        var existingModel = this._objectModels.FirstOrDefault(of => Is3DModel(of.File));
+        var existingModel = this._objectModels.FirstOrDefault(of => Is3DModel(of.FileEntity));
 
         if (existingModel is not null)
             this._objectModels.Remove(existingModel);
     }
 
-    public File? Get3DModel()
+    public FileEntity? Get3DModel()
     {
         return this._objectModels
-            .FirstOrDefault(of => Is3DModel(of.File))
-            ?.File;
+            .FirstOrDefault(of => Is3DModel(of.FileEntity))
+            ?.FileEntity;
     }
 
     public bool Has3DModel()
     {
-        return this._objectModels.Exists(of => Is3DModel(of.File));
+        return this._objectModels.Exists(of => Is3DModel(of.FileEntity));
     }
 
-    private static bool Is3DModel(File file)
+    private static bool Is3DModel(FileEntity fileEntity)
     {
         var allowedMimeTypes = new[] { "model/gltf-binary", "model/obj", "model/gltf+json" };
 
-        return allowedMimeTypes.Contains(file.MimeType);
+        return allowedMimeTypes.Contains(fileEntity.MimeType);
     }
 
     public void FirstTimeUserScan(long userId)

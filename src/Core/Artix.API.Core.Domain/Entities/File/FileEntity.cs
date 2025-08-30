@@ -5,7 +5,7 @@ using Museum;
 using Object;
 using Voice;
 
-public class File : AggregateRoot
+public class FileEntity : AggregateRoot
 {
     public string FileName { get; set; }
     public string FilePath { get; set; }
@@ -31,12 +31,12 @@ public class File : AggregateRoot
     public virtual IReadOnlyCollection<VoiceTrackFile> VoiceTrackFiles => this._voiceTrackFiles.AsReadOnly();
 
 
-    protected File()
+    protected FileEntity()
     {
     }
 
 
-    private File(string filename, string filePath, long fileSize, string? mimeType, long? uploadedBy)
+    private FileEntity(string filename, string filePath, long fileSize, string? mimeType, long? uploadedBy)
     {
         this.FileName = filename;
         this.FilePath = filePath;
@@ -47,9 +47,9 @@ public class File : AggregateRoot
 
 
  
-    public static File Create(string filename, string filePath, long fileSize, string? mimeType, long? uploadedBy)
+    public static FileEntity Create(string filename, string filePath, long fileSize, string? mimeType, long? uploadedBy)
     {
-        return new File(filename, filePath, fileSize, mimeType, uploadedBy);
+        return new FileEntity(filename, filePath, fileSize, mimeType, uploadedBy);
     }
 
     

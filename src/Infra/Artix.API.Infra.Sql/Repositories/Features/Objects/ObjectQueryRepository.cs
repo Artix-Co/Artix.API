@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
+using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
 using Core.Contract.Features.Objects.Queries.GetAllObjectsAdmins;
@@ -13,16 +14,22 @@ using Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Primitives;
 
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
+    private readonly string[] _allowed3DMimeTypes;
+    private readonly string[] _allowedImageMimeTypes;
     private readonly ILogger<ObjectQueryRepository> _logger;
 
-    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger)
+    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger,
+        IOptions<FileSettings> options)
         : base(queryDbContext)
     {
-        _logger = logger;
+        this._logger = logger;
+        this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
+        this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 
 
@@ -36,12 +43,12 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             {
                 Object = new { o.BusinessId, o.Name, o.GeneralInformation, o.SpecialInformation },
                 Model3D = o.ObjectModels
-                    .Where(of => of.File.MimeType == "model/obj" || of.File.MimeType == "model/gltf-binary")
-                    .Select(of => new { of.File.FilePath })
+                    .Where(of => of.FileEntity.MimeType == "model/obj" || of.FileEntity.MimeType == "model/gltf-binary")
+                    .Select(of => new { of.FileEntity.FilePath })
                     .FirstOrDefault(),
                 Image = o.ObjectImages
-                    .Where(of => of.File.MimeType == "jpg/png" || of.File.MimeType == "jpeg/webp")
-                    .Select(of => new { of.File.FilePath })
+                    .Where(of => of.FileEntity.MimeType == "jpg/png" || of.FileEntity.MimeType == "jpeg/webp")
+                    .Select(of => new { of.FileEntity.FilePath })
                     .FirstOrDefault(),
                 HistoricalPeriods = o.ObjectHistoricalPeriods
                     .Select(ohp => new HistoricalPeriodDto(
@@ -220,9 +227,9 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         // Fetch data from database
         var query = await _queryDbContext.Objects
             .Include(o => o.ObjectModels)
-            .ThenInclude(of => of.File)
+            .ThenInclude(of => of.FileEntity)
             .Include(o => o.ObjectImages)
-            .ThenInclude(of => of.File)
+            .ThenInclude(of => of.FileEntity)
             .Include(o => o.ObjectHistoricalPeriods)
             .ThenInclude(ohp => ohp.HistoricalPeriod)
             .Include(o => o.ObjectTypes)
@@ -243,7 +250,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             {
                 _logger.LogInformation(
                     "Model: ObjectId={ObjectId}, FileId={FileId}, MimeType={MimeType}, FilePath={FilePath}",
-                    object3DModel.ObjectId, object3DModel.FileId, object3DModel.File?.MimeType, object3DModel.File?.FilePath);
+                    object3DModel.ObjectId, object3DModel.FileId, object3DModel.FileEntity?.MimeType,
+                    object3DModel.FileEntity?.FilePath);
             }
         }
         else
@@ -251,19 +259,20 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             _logger.LogWarning("No Object3DModels found for BusinessId: {BusinessId}", dto.Id);
         }
 
-        // Process 3D model file
+        
         // Process 3D model file
         string model3DBase64 = null;
-        var model = query.ObjectModels?.FirstOrDefault(of => AllowedModelMimeTypes.Contains(of?.File?.MimeType));
+        var model = query.ObjectModels?.FirstOrDefault(of => this._allowed3DMimeTypes.Contains(of?.FileEntity?.MimeType));
         if (model != null)
         {
             try
             {
                 // Resolve relative path
-                var relativePath = model.File.FilePath;
+                var relativePath = model.FileEntity.FilePath;
 
                 // Navigate to the correct base path
-                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..","Artix.API","src", "Presentation", "Artix.API.WebService"));
+                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..",
+                    "Artix.API", "src", "Presentation", "Artix.API.WebService"));
                 var filePath = Path.Combine(basePath, relativePath);
 
                 _logger.LogInformation("Resolved file path for 3D model: {FilePath}", filePath);
@@ -281,20 +290,26 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             catch (IOException ex)
             {
                 _logger.LogWarning(ex, "Failed to read 3D model file at path {FilePath} for object {ObjectId}",
-                    model.File?.FilePath, dto.Id);
+                    model.FileEntity?.FilePath, dto.Id);
             }
         }
 
         // Process image file
         string imageBase64 = null;
-        var image = query.ObjectImages?.FirstOrDefault(of => AllowedImageMimeTypes.Contains(of?.File?.MimeType));
+        var image = query.ObjectImages?.FirstOrDefault(of => this._allowedImageMimeTypes.Contains(of?.FileEntity?.MimeType));
         if (image != null)
         {
             try
             {
-                var filePath = image.File.FilePath.StartsWith("~/")
-                    ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, image.File.FilePath.Substring(2))
-                    : image.File.FilePath;
+                // Resolve relative path
+                var relativePath = image.FileEntity.FilePath;
+
+                // Navigate to the correct base path
+                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..",
+                    "Artix.API", "src", "Presentation", "Artix.API.WebService"));
+                var filePath = Path.Combine(basePath, relativePath);
+
+                _logger.LogInformation("Resolved file path for image: {FilePath}", filePath);
 
                 if (File.Exists(filePath))
                 {
@@ -309,7 +324,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             catch (IOException ex)
             {
                 _logger.LogWarning(ex, "Failed to read image file at path {FilePath} for object {ObjectId}",
-                    image.File?.FilePath, dto.Id);
+                    image.FileEntity?.FilePath, dto.Id);
             }
         }
 
@@ -347,9 +362,4 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             ObjectTypes: objectTypes,
             HistoricalPeriods: historicalPeriods);
     }
-
-// Static MIME type collections
-    private static readonly HashSet<string> AllowedModelMimeTypes = new() { "model/obj", "model/gltf-binary" };
-
-    private static readonly HashSet<string> AllowedImageMimeTypes = new() { "image/jpeg", "image/png", "image/webp" };
 }

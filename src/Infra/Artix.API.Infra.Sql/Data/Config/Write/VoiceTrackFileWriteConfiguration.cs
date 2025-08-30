@@ -14,7 +14,7 @@ internal sealed class VoiceTrackFileWriteConfiguration : IEntityTypeConfiguratio
         entity.Property(vtf => vtf.FileId).IsRequired();
         entity.Property(vtf => vtf.VoiceTrackId).IsRequired();
 
-        entity.HasOne(vtf => vtf.File)
+        entity.HasOne(vtf => vtf.FileEntity)
             .WithMany(f => f.VoiceTrackFiles)
             .HasForeignKey(vtf => vtf.FileId)
             .OnDelete(DeleteBehavior.Restrict);

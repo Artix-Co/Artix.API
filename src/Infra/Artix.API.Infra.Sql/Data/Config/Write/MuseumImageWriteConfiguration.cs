@@ -15,7 +15,7 @@ internal sealed class MuseumImageWriteConfiguration : IEntityTypeConfiguration<M
         entity.Property(of => of.FileId).IsRequired();
         entity.Property(of => of.MuseumId).IsRequired();
 
-        entity.HasOne(of => of.File)
+        entity.HasOne(of => of.FileEntity)
             .WithMany(f => f.MuseumImages)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Restrict);
