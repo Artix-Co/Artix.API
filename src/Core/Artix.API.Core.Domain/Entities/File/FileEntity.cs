@@ -3,6 +3,7 @@
 using Common;
 using Museum;
 using Object;
+using User;
 using Voice;
 
 public class FileEntity : AggregateRoot
@@ -20,6 +21,10 @@ public class FileEntity : AggregateRoot
     
     private readonly List<ObjectImage> _objectImages = new();
     public virtual IReadOnlyCollection<ObjectImage> ObjectImages => this._objectImages.AsReadOnly();
+    
+    
+    private readonly List<UserImage> _userImages = new();
+    public virtual IReadOnlyCollection<UserImage> UserImages => this._userImages.AsReadOnly();
     
     
     private readonly List<MuseumImage> _museumImages = new();

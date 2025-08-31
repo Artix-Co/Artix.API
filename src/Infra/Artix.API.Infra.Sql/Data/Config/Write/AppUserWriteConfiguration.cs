@@ -8,14 +8,11 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 {
     public void Configure(EntityTypeBuilder<AppUser> entity)
     {
-        
         entity.Property(e => e.DisplayName)
             .HasMaxLength(100)
             .IsRequired(false);
 
-        entity.Property(e => e.AvatarUrl)
-            .HasMaxLength(2000)
-            .IsRequired(false);
+ 
 
         entity.Property(e => e.IsPro)
             .IsRequired()
@@ -48,7 +45,10 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
         entity.HasMany(e => e.UserXps)
             .WithOne(e => e.User);
 
-       
+        entity.HasMany(o => o.UserImages)
+            .WithOne(ui => ui.AppUser)
+            .HasForeignKey(ui => ui.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
 
         entity.HasIndex(e => e.DisplayName)

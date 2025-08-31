@@ -11,6 +11,7 @@ using Core.Domain.Entities.Object;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
+using File.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -22,12 +23,14 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
     private readonly ILogger<ObjectQueryRepository> _logger;
+    private readonly IFileService _fileService;
 
     public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger,
-        IOptions<FileSettings> options)
+        IOptions<FileSettings> options, IFileService fileService)
         : base(queryDbContext)
     {
         this._logger = logger;
+        this._fileService = fileService;
         this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
@@ -259,72 +262,38 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             _logger.LogWarning("No Object3DModels found for BusinessId: {BusinessId}", dto.Id);
         }
 
-        
+
         // Process 3D model file
-        string model3DBase64 = null;
-        var model = query.ObjectModels?.FirstOrDefault(of => this._allowed3DMimeTypes.Contains(of?.FileEntity?.MimeType));
+        string model3DBase64 = "";
+        var model = query.Get3DModel(this._allowed3DMimeTypes);
         if (model != null)
         {
             try
             {
-                // Resolve relative path
-                var relativePath = model.FileEntity.FilePath;
-
-                // Navigate to the correct base path
-                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..",
-                    "Artix.API", "src", "Presentation", "Artix.API.WebService"));
-                var filePath = Path.Combine(basePath, relativePath);
-
-                _logger.LogInformation("Resolved file path for 3D model: {FilePath}", filePath);
-
-                if (File.Exists(filePath))
-                {
-                    model3DBase64 = Convert.ToBase64String(File.ReadAllBytes(filePath));
-                    _logger.LogInformation("Successfully read 3D model file: {FilePath}", filePath);
-                }
-                else
-                {
-                    _logger.LogWarning("3D model file not found at path: {FilePath}", filePath);
-                }
+                var relativePath = model.FilePath;
+                model3DBase64 = this._fileService.GetFileBase64String(relativePath);
             }
             catch (IOException ex)
             {
                 _logger.LogWarning(ex, "Failed to read 3D model file at path {FilePath} for object {ObjectId}",
-                    model.FileEntity?.FilePath, dto.Id);
+                    model?.FilePath, dto.Id);
             }
         }
 
         // Process image file
-        string imageBase64 = null;
-        var image = query.ObjectImages?.FirstOrDefault(of => this._allowedImageMimeTypes.Contains(of?.FileEntity?.MimeType));
+        string imageBase64 = "";
+        var image = query.GetImage(this._allowedImageMimeTypes);
         if (image != null)
         {
             try
             {
-                // Resolve relative path
-                var relativePath = image.FileEntity.FilePath;
-
-                // Navigate to the correct base path
-                var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..",
-                    "Artix.API", "src", "Presentation", "Artix.API.WebService"));
-                var filePath = Path.Combine(basePath, relativePath);
-
-                _logger.LogInformation("Resolved file path for image: {FilePath}", filePath);
-
-                if (File.Exists(filePath))
-                {
-                    imageBase64 = Convert.ToBase64String(File.ReadAllBytes(filePath));
-                    _logger.LogInformation("Successfully read image file: {FilePath}", filePath);
-                }
-                else
-                {
-                    _logger.LogWarning("Image file not found at path: {FilePath}", filePath);
-                }
+                var relativePath = image.FilePath;
+                imageBase64 = this._fileService.GetFileBase64String(relativePath);
             }
             catch (IOException ex)
             {
                 _logger.LogWarning(ex, "Failed to read image file at path {FilePath} for object {ObjectId}",
-                    image.FileEntity?.FilePath, dto.Id);
+                    image?.FilePath, dto.Id);
             }
         }
 

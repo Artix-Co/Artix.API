@@ -8,4 +8,6 @@ public interface IFileService
 
     Task<string> UploadFileFromBytesAsync(byte[] fileData, string fileName, string mimeType, long? uploadedBy,
         string[] allowedMimeTypes = null);
+
+    string GetFileBase64String(string filPath);
 }

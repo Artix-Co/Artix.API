@@ -12,10 +12,7 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
         entity.Property(e => e.DisplayName)
             .HasMaxLength(100)
             .IsRequired(false);
-
-        entity.Property(e => e.AvatarUrl)
-            .HasMaxLength(2000)
-            .IsRequired(false);
+ 
 
         entity.Property(e => e.IsPro)
             .IsRequired()

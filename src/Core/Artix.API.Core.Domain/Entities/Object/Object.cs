@@ -401,32 +401,26 @@ public class Object : AggregateRoot
         this._objectImages.Add(objectImage);
     }
 
-    public void Remove3DModel()
+    public void Remove3DModel(string[] allowedMimeTypes)
     {
-        var existingModel = this._objectModels.FirstOrDefault(of => Is3DModel(of.FileEntity));
+        var existingModel = this._objectModels.FirstOrDefault(oi => allowedMimeTypes.Contains(oi.FileEntity.MimeType));
 
         if (existingModel is not null)
             this._objectModels.Remove(existingModel);
     }
 
-    public FileEntity? Get3DModel()
+    public FileEntity? Get3DModel(string[] allowedMimeTypes)
     {
-        return this._objectModels
-            .FirstOrDefault(of => Is3DModel(of.FileEntity))
-            ?.FileEntity;
+        return this._objectModels.FirstOrDefault(oi => allowedMimeTypes.Contains(oi.FileEntity.MimeType))?.FileEntity;
     }
 
-    public bool Has3DModel()
+ 
+    public FileEntity? GetImage(string[] allowedMimeTypes)
     {
-        return this._objectModels.Exists(of => Is3DModel(of.FileEntity));
+        return this._objectImages.FirstOrDefault(oi => allowedMimeTypes.Contains(oi.FileEntity.MimeType))?.FileEntity;
     }
 
-    private static bool Is3DModel(FileEntity fileEntity)
-    {
-        var allowedMimeTypes = new[] { "model/gltf-binary", "model/obj", "model/gltf+json" };
-
-        return allowedMimeTypes.Contains(fileEntity.MimeType);
-    }
+  
 
     public void FirstTimeUserScan(long userId)
     {

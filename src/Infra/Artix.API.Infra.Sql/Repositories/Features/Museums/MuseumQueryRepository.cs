@@ -21,6 +21,7 @@ using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Primitives;
+using File = System.IO.File;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {

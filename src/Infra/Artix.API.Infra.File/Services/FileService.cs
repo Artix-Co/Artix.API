@@ -35,6 +35,7 @@ public class FileService : IFileService
         {
             await file.CopyToAsync(stream);
         }
+
         return filePath;
     }
 
@@ -62,5 +63,27 @@ public class FileService : IFileService
         await File.WriteAllBytesAsync(filePath, fileData);
 
         return filePath;
+    }
+
+    public string GetFileBase64String(string filPath)
+    {
+        var fileBase64 = "";
+
+        // Resolve relative path
+        var relativePath = filPath;
+
+        // Navigate to the correct base path
+        var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..",
+            "Artix.API", "src", "Presentation", "Artix.API.WebService"));
+        var filePath = Path.Combine(basePath, relativePath);
+
+
+        if (File.Exists(filePath))
+        {
+            fileBase64 = Convert.ToBase64String(File.ReadAllBytes(filePath));
+        }
+
+
+        return fileBase64;
     }
 }

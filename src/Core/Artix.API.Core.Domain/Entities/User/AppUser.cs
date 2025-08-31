@@ -1,12 +1,12 @@
 ﻿namespace Artix.API.Core.Domain.Entities.User;
 
 using Collection;
+using File;
 using Microsoft.AspNetCore.Identity;
 
 public class AppUser : IdentityUser<long>
 {
     public string? DisplayName { get; set; }
-    public string? AvatarUrl { get; private set; }
     public bool IsPro { get; set; } = false;
     public bool IsVerified { get; set; } = false;
 
@@ -19,6 +19,7 @@ public class AppUser : IdentityUser<long>
     private readonly List<UserObject> _userObjects = [];
     private readonly List<UserSeasonProgress> _userSeasonProgresses = [];
     private readonly List<UserStrike> _userStrikes = [];
+    private readonly List<UserImage> _userImages = [];
 
     private readonly List<UserXp> _userXps = [];
 
@@ -33,10 +34,12 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
     public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
     public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
+    public virtual IReadOnlyCollection<UserImage> UserImages => this._userImages.AsReadOnly();
 
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
     public virtual ICollection<AppUserToken> Tokens { get; set; }
     public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
+
 
     public class AppUserBuilder
     {
@@ -79,15 +82,54 @@ public class AppUser : IdentityUser<long>
             return this;
         }
 
-
+        public AppUserBuilder WithProfileImage(long fileId, string[] allowedMimeTypes)
+        {
+            _user.AssignProfileImage(fileId, allowedMimeTypes);
+            return this;
+        }
         public AppUser Build() => _user;
     }
 
+    public void AssignProfileImage(long fileId, string[] allowedMimeTypes)
+    {
+        var userImage = UserImage.Create(this.Id, fileId);
+        this._userImages.Add(userImage);
+    }
+    
+    
+    public void RemoveProfileImage()
+    {
+        var existingModel = this._userImages.FirstOrDefault(of => Is3DModel(of.FileEntity));
 
-    internal void UpdateProfile(string? displayName, string? avatarUrl, bool isPro = false)
+        if (existingModel is not null)
+            this._userImages.Remove(existingModel);
+    }
+
+    public FileEntity? GetProfileImage()
+    {
+        return this._userImages
+            .FirstOrDefault(of => Is3DModel(of.FileEntity))
+            ?.FileEntity;
+    }
+    
+ 
+    public bool HasProfileImage()
+    {
+        return this._userImages.Exists(of => Is3DModel(of.FileEntity));
+    }
+
+    private static bool Is3DModel(FileEntity fileEntity)
+    {
+        var allowedMimeTypes =
+            new[] { "image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp", "image/tiff" };
+
+        return allowedMimeTypes.Contains(fileEntity.MimeType);
+    }
+
+
+    internal void UpdateProfile(string? displayName, bool isPro = false)
     {
         DisplayName = displayName;
-        AvatarUrl = avatarUrl;
         IsPro = isPro;
     }
 
@@ -96,7 +138,7 @@ public class AppUser : IdentityUser<long>
     {
         _friendshipFriends.Add(friendship);
     }
-    
+
     public void AddUserXp(UserXp userXp)
     {
         if (userXp == null)
@@ -109,7 +151,8 @@ public class AppUser : IdentityUser<long>
     {
         if (seasonProgress == null)
             throw new ArgumentNullException(nameof(seasonProgress));
-        if (!_userSeasonProgresses.Any(sp => sp.UserId == seasonProgress.UserId && sp.SeasonId == seasonProgress.SeasonId))
+        if (!_userSeasonProgresses.Any(sp =>
+                sp.UserId == seasonProgress.UserId && sp.SeasonId == seasonProgress.SeasonId))
             _userSeasonProgresses.Add(seasonProgress);
     }
 }

@@ -38,8 +38,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         _objectCommandRepository = objectCommandRepository;
         _fileService = fileService;
         _fileCommandRepository = fileCommandRepository;
-        _allowed3DMimeTypes = options.Value.Allowed3DMimeTypes ?? Array.Empty<string>();
-        _allowedImageMimeTypes = options.Value.AllowedImageMimeTypes ?? Array.Empty<string>();
+        _allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
+        _allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
         _logger = logger;
         _unitOfWork = unitOfWork;
     }
