@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Identity;
 public class AppUser : IdentityUser<long>
 {
     public string? DisplayName { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     public bool IsPro { get; set; } = false;
     public bool IsVerified { get; set; } = false;
 
