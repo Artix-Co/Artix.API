@@ -24,7 +24,7 @@ internal sealed class
     public override async Task<Result<ObjectDetailsByIdAdminDto>> Handle(GetObjectDetailsByIdAdminQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await this._objectQueryRepository.GetAllObjectDetailsByIdAdminAsync(query, cancellationToken);
+        var result = await this._objectQueryRepository.GetObjectDetailsByIdAdminAsync(query, cancellationToken);
         return Result<ObjectDetailsByIdAdminDto>.Success(result);
     }
 }

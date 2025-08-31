@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
+using System.Data;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
@@ -182,6 +183,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                 x.Object.Name,
                 x.Object.GeneralInformation,
                 x.Object.SpecialInformation,
+                x.Object.ObjectSaleType,
                 x.Object.Version
             })
             .Select(g => new
@@ -190,6 +192,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                 g.Key.Name,
                 g.Key.GeneralInformation,
                 g.Key.SpecialInformation,
+                g.Key.ObjectSaleType,
                 MuseumNames = g.SelectMany(m => m.Museums.Select(museum => museum.Name)).Distinct(),
                 g.Key.Version
             })
@@ -202,6 +205,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             item.GeneralInformation,
             item.SpecialInformation,
             string.Join(", ", item.MuseumNames.Where(name => !string.IsNullOrEmpty(name))),
+            item.ObjectSaleType,
             item.Version
         )).ToList();
 
@@ -215,7 +219,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     }
 
 
-    public async Task<ObjectDetailsByIdAdminDto> GetAllObjectDetailsByIdAdminAsync(
+    public async Task<ObjectDetailsByIdAdminDto> GetObjectDetailsByIdAdminAsync(
         GetObjectDetailsByIdAdminQuery dto, CancellationToken cancellationToken = default)
     {
         // Validate input

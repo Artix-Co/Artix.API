@@ -16,6 +16,6 @@ public interface IObjectQueryRepository : IQueryRepository<Object>
         CancellationToken cancellationToken = default);
     
     
-    Task<ObjectDetailsByIdAdminDto> GetAllObjectDetailsByIdAdminAsync(GetObjectDetailsByIdAdminQuery query,
+    Task<ObjectDetailsByIdAdminDto> GetObjectDetailsByIdAdminAsync(GetObjectDetailsByIdAdminQuery query,
         CancellationToken cancellationToken = default);
 }
