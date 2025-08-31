@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Core.Contract.Features.Users.Commands.Modify;
-using Core.Contract.Features.Users.Queries.GetUserProfile;
 using Core.Contract.Primitives.Models;
 using Common;
+using Core.Contract.Features.Users.Queries.GetClientUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,8 +17,8 @@ public sealed class UserController : ClientBaseController
 
     [Authorize]
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(Result<UserProfileDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
+    [ProducesResponseType(typeof(Result<ClientUserProfileDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetClientUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

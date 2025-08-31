@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.VerifyOTPAuth;
 
+using System.Security.Claims;
 using Contract.Features.OTPs.Commands;
 using Contract.Features.OTPs.Queries;
 using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
@@ -103,13 +104,24 @@ internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQu
                 throw new ApplicationException("Role assignment failed: " +
                                                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 
-            // Add ClientType claim for Emerald
-            var claimResult =
-                await _userManager.AddClaimAsync(newUser, new System.Security.Claims.Claim("ClientType", CLAIM));
+            // Add Claims for Client
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, newUser.DisplayName ?? newUser.UserName),
+                new Claim(ClaimTypes.Email, newUser.Email ?? string.Empty),
+                new Claim(ClaimTypes.MobilePhone, newUser.PhoneNumber ?? string.Empty),
+                new Claim(ClaimTypes.Role, ROLE), // برای اطمینان از وجود نقش Client
+                new Claim("ClientType", CLAIM), // Claim اصلی فعلی حفظ می‌شود
+                new Claim("permission", "read:client"), // دسترسی محدود کلاینت
+                new Claim("permission", "view:profile"), // دسترسی به پروفایل
+                new Claim("permission_group", "client_group"), // گروه دسترسی کلاینت‌ها
+                new Claim("group", "client_team"), // گروه تیمی کلاینت‌ها
+                new Claim("group_permission", "client_team_read") // دسترسی گروهی کلاینت‌ها
+            };
+            var claimResult = await _userManager.AddClaimsAsync(newUser, claims);
             if (!claimResult.Succeeded)
                 throw new ApplicationException("Claim assignment failed: " +
                                                string.Join(", ", claimResult.Errors.Select(e => e.Description)));
-
             // Record login history
             await _userLoginHistoryService.RecordLoginAsync(
                 newUser,

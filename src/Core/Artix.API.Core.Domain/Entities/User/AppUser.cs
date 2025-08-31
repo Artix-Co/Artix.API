@@ -39,6 +39,7 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<UserXp> UserXps => _userXps.AsReadOnly();
     public virtual ICollection<AppUserToken> Tokens { get; set; }
     public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
+    public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
 
 
     public class AppUserBuilder
@@ -87,6 +88,7 @@ public class AppUser : IdentityUser<long>
             _user.AssignProfileImage(fileId, allowedMimeTypes);
             return this;
         }
+
         public AppUser Build() => _user;
     }
 
@@ -95,8 +97,8 @@ public class AppUser : IdentityUser<long>
         var userImage = UserImage.Create(this.Id, fileId);
         this._userImages.Add(userImage);
     }
-    
-    
+
+
     public void RemoveProfileImage()
     {
         var existingModel = this._userImages.FirstOrDefault(of => Is3DModel(of.FileEntity));
@@ -111,8 +113,8 @@ public class AppUser : IdentityUser<long>
             .FirstOrDefault(of => Is3DModel(of.FileEntity))
             ?.FileEntity;
     }
-    
- 
+
+
     public bool HasProfileImage()
     {
         return this._userImages.Exists(of => Is3DModel(of.FileEntity));
