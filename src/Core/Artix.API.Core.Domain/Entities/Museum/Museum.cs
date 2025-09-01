@@ -90,4 +90,10 @@ public class Museum : AggregateRoot
 
     public Object? FindObject(Guid objectBusinessId) => MuseumObjects.Select(mo => mo.Object)
         .FirstOrDefault(o => o.BusinessId == objectBusinessId);
+
+    public void AssignImage(long fileId, string[] allowedImageMimeTypes)
+    {
+        var objectImage = MuseumImage.Create(this.Id, fileId);
+        this._museumImages.Add(objectImage);
+    }
 }

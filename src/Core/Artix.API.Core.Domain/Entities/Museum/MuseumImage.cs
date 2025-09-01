@@ -10,23 +10,20 @@ public class MuseumImage
 
     public long FileId { get; private set; }
     public virtual FileEntity FileEntity { get; private set; }
-    
-    
-    protected MuseumImage() { }
 
-    private MuseumImage(Museum museum, FileEntity fileEntity)
+
+    protected MuseumImage()
     {
-        if (museum == null)
-            throw DomainException.InvalidValue(nameof(museum));
-        if (fileEntity == null)
-            throw DomainException.InvalidValue(nameof(fileEntity));
-
-        this.MuseumId = museum.Id;
-        this.FileId = fileEntity.Id;
     }
-    
-    public static MuseumImage Create(Museum museum, FileEntity fileEntity)
+
+    private MuseumImage(long museumId, long fileId)
     {
-        return new MuseumImage(museum, fileEntity);
+        this.MuseumId = museumId;
+        this.FileId = fileId;
+    }
+
+    public static MuseumImage Create(long museumId, long fileId)
+    {
+        return new MuseumImage(museumId, fileId);
     }
 }
