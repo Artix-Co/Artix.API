@@ -91,9 +91,18 @@ public class Museum : AggregateRoot
     public Object? FindObject(Guid objectBusinessId) => MuseumObjects.Select(mo => mo.Object)
         .FirstOrDefault(o => o.BusinessId == objectBusinessId);
 
-    public void AssignImage(long fileId, string[] allowedImageMimeTypes)
+   
+    
+    public void AssignImage(long fileId, string[] allowedMimeTypes)
     {
-        var objectImage = MuseumImage.Create(this.Id, fileId);
-        this._museumImages.Add(objectImage);
+        var existing = _museumImages.FirstOrDefault(i => i.MuseumId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateFile(fileId, allowedMimeTypes);
+            return;
+        }
+
+        var museumImage = MuseumImage.Create(Id, fileId);
+        _museumImages.Add(museumImage);
     }
 }

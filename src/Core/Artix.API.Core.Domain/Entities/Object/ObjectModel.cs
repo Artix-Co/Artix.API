@@ -22,8 +22,10 @@ public class ObjectModel
         this.FileId = fileId;
     }
 
-    public static ObjectModel Create(long objectId, long fileId)
+    public static ObjectModel Create(long objectId, long fileId) => new(objectId, fileId);
+
+    public void UpdateFile(long fileId, string[] allowedMimeTypes)
     {
-        return new ObjectModel(objectId, fileId);
+        FileId = fileId;
     }
 }

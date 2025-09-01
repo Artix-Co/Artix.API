@@ -275,7 +275,7 @@ public class Object : AggregateRoot
             isSpecial,
             isHidden,
             objectSalesType
-           );
+        );
     }
 
     public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)
@@ -395,14 +395,28 @@ public class Object : AggregateRoot
 
     public void Assign3DModel(long fileId, string[] allowedMimeTypes)
     {
-        var objectModel = ObjectModel.Create(this.Id, fileId);
-        this._objectModels.Add(objectModel);
+        var existing = _objectModels.FirstOrDefault(m => m.ObjectId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateFile(fileId, allowedMimeTypes);
+            return;
+        }
+
+        var objectModel = ObjectModel.Create(Id, fileId);
+        _objectModels.Add(objectModel);
     }
 
     public void AssignImage(long fileId, string[] allowedMimeTypes)
     {
-        var objectImage = ObjectImage.Create(this.Id, fileId);
-        this._objectImages.Add(objectImage);
+        var existing = _objectImages.FirstOrDefault(i => i.ObjectId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateFile(fileId, allowedMimeTypes);
+            return;
+        }
+
+        var objectImage = ObjectImage.Create(Id, fileId);
+        _objectImages.Add(objectImage);
     }
 
     public void Remove3DModel(string[] allowedMimeTypes)

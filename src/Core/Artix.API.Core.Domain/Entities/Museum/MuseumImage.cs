@@ -26,4 +26,9 @@ public class MuseumImage
     {
         return new MuseumImage(museumId, fileId);
     }
+
+    public void UpdateFile(long fileId, string[] allowedMimeTypes)
+    {
+        FileId = fileId;
+    }
 }
