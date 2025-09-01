@@ -261,8 +261,11 @@ public class Object : AggregateRoot
         int? version = null,
         int? tier = null,
         bool isSpecial = false,
-        bool isHidden = false)
+        bool isHidden = false,
+        ObjectSaleType? objectSaleType = null
+    )
     {
+        var objectSalesType = objectSaleType ?? ObjectSaleType.Free;
         return new Object(name,
             qrCode,
             generalInformation,
@@ -271,7 +274,8 @@ public class Object : AggregateRoot
             tier,
             isSpecial,
             isHidden,
-            ObjectSaleType.Free);
+            objectSalesType
+           );
     }
 
     public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)
@@ -414,13 +418,12 @@ public class Object : AggregateRoot
         return this._objectModels.FirstOrDefault(oi => allowedMimeTypes.Contains(oi.FileEntity.MimeType))?.FileEntity;
     }
 
- 
+
     public FileEntity? GetImage(string[] allowedMimeTypes)
     {
         return this._objectImages.FirstOrDefault(oi => allowedMimeTypes.Contains(oi.FileEntity.MimeType))?.FileEntity;
     }
 
-  
 
     public void FirstTimeUserScan(long userId)
     {

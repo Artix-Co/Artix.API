@@ -1,12 +1,12 @@
 ﻿namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
+using Core.Contract.Features.Objects.Commands.CreateAdmin;
 using Core.Contract.Features.Objects.Queries.GetAllObjectsAdmins;
 using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdAdmins;
 using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
 using Core.Contract.Primitives.Models;
 using MediatR;
- 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Core.Contract.Features.Objects.Commands.Upgrade;
@@ -42,6 +42,15 @@ public sealed class ObjectController : AdminBaseController
     public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailsByIdAdminQuery adminQuery)
     {
         var result = await this._mediator.Send(adminQuery);
+        return this.Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("add-new")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    public async Task<IActionResult> AddNewObjectAsync([FromBody] CreateNewObjectAdminCommand command)
+    {
+        var result = await this._mediator.Send(command);
         return this.Ok(result);
     }
 }
