@@ -27,7 +27,7 @@ public sealed class MuseumController : AdminBaseController
 
     [Authorize]
     [HttpPost("add-new")]
-    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddNewMuseumAsync([FromBody] CreateNewMuseumAdminCommand command)
     {
         var result = await this._mediator.Send(command);
