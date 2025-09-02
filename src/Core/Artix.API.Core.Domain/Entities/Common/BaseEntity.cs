@@ -9,7 +9,7 @@ public class BaseEntity
     public long Id { get; protected set; } 
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; protected set; }
-    public bool IsDeleted { get; protected set; } = false;
+    public bool IsDeleted { get; protected set; }
     public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
     
     

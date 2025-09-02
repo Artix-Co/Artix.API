@@ -44,7 +44,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var imageBase64 = query
             .SelectMany(m => m.MuseumImages)
-            .Where(of => of.FileEntity.MimeType == "jpg" || of.FileEntity.MimeType == "png" || of.FileEntity.MimeType == "jpeg" ||
+            .Where(of => of.FileEntity.MimeType == "jpg" || of.FileEntity.MimeType == "png" ||
+                         of.FileEntity.MimeType == "jpeg" ||
                          of.FileEntity.MimeType == "webp")
             .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.FileEntity.FilePath)))
             .FirstOrDefault();
@@ -107,7 +108,6 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var objects = _queryDbContext.MuseumObjects
             .AsEnumerable()
-            .OrderBy(museumObject => museumObject.Name)
             .Join(
                 _queryDbContext.Objects,
                 mo => mo.ObjectId,
@@ -295,71 +295,71 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         );
     }
 
-public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(
-    GetAllMuseumsAdminQuery dto,
-    CancellationToken cancellationToken = default)
-{
-    var pageNumber = Math.Max(dto.PageNumber, 1);
-    var pageSize = Math.Max(dto.PageSize, 1);
-
-    var query = _queryDbContext.Museums
-        .AsQueryable(); 
-
-    if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
+    public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(
+        GetAllMuseumsAdminQuery dto,
+        CancellationToken cancellationToken = default)
     {
-        var searchTerm = dto.GlobalSearch.ToLower();
-        query = query.Where(m =>
-            m.Name.ToLower().Contains(searchTerm) ||
-            m.Description.ToLower().Contains(searchTerm));
-    }
+        var pageNumber = Math.Max(dto.PageNumber, 1);
+        var pageSize = Math.Max(dto.PageSize, 1);
 
-    if (dto.FilterByActive.HasValue)
-    {
-        query = query.Where(m => m.IsActive == dto.FilterByActive.Value);
-    }
+        var query = _queryDbContext.Museums
+            .AsQueryable();
 
-    if (!string.IsNullOrWhiteSpace(dto.SortBy))
-    {
-        query = dto.SortBy.ToLower() switch
+        if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
         {
-            "name" => dto.SortDirection == SortDirection.Asc
-                ? query.OrderBy(m => m.Name)
-                : query.OrderByDescending(m => m.Name),
-            "createdat" => dto.SortDirection == SortDirection.Asc
-                ? query.OrderBy(m => m.CreatedAt)
-                : query.OrderByDescending(m => m.CreatedAt),
-            "isactive" => dto.SortDirection == SortDirection.Asc
-                ? query.OrderBy(m => m.IsActive)
-                : query.OrderByDescending(m => m.IsActive),
-            _ => query.OrderBy(m => m.CreatedAt)
-        };
+            var searchTerm = dto.GlobalSearch.ToLower();
+            query = query.Where(m =>
+                m.Name.ToLower().Contains(searchTerm) ||
+                m.Description.ToLower().Contains(searchTerm));
+        }
+
+        if (dto.FilterByActive.HasValue)
+        {
+            query = query.Where(m => m.IsActive == dto.FilterByActive.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.SortBy))
+        {
+            query = dto.SortBy.ToLower() switch
+            {
+                "name" => dto.SortDirection == SortDirection.Asc
+                    ? query.OrderBy(m => m.Name)
+                    : query.OrderByDescending(m => m.Name),
+                "createdat" => dto.SortDirection == SortDirection.Asc
+                    ? query.OrderBy(m => m.CreatedAt)
+                    : query.OrderByDescending(m => m.CreatedAt),
+                "isactive" => dto.SortDirection == SortDirection.Asc
+                    ? query.OrderBy(m => m.IsActive)
+                    : query.OrderByDescending(m => m.IsActive),
+                _ => query.OrderBy(m => m.CreatedAt)
+            };
+        }
+        else
+        {
+            query = query.OrderBy(m => m.CreatedAt);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        query = query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize);
+
+        var pagedItems = await query
+            .Select(m => new AllMuseumsAdminDto(
+                m.BusinessId,
+                m.Name,
+                m.Description,
+                m.CreatedAt,
+                m.IsActive))
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedResult<AllMuseumsAdminDto>(
+            Items: pagedItems,
+            TotalCount: totalCount,
+            PageNumber: pageNumber,
+            Draw: true,
+            PageSize: pageSize
+        );
     }
-    else
-    {
-        query = query.OrderBy(m => m.CreatedAt);
-    }
-
-    var totalCount = await query.CountAsync(cancellationToken);
-
-    query = query
-        .Skip((pageNumber - 1) * pageSize)
-        .Take(pageSize);
-
-    var pagedItems = await query
-        .Select(m => new AllMuseumsAdminDto(
-            m.BusinessId,
-            m.Name,
-            m.Description,
-            m.CreatedAt,
-            m.IsActive))
-        .ToListAsync(cancellationToken);
-
-    return new PaginatedResult<AllMuseumsAdminDto>(
-        Items: pagedItems,
-        TotalCount: totalCount,
-        PageNumber: pageNumber,
-        Draw: true,
-        PageSize: pageSize
-    );
-}
 }

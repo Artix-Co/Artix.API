@@ -1,10 +1,8 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Museum;
 
-using Common;
-using Exceptions;
 using Object;
 
-public class MuseumObject : BaseEntity
+public class MuseumObject
 {
     public long MuseumId { get; private set; }
     public virtual Museum Museum { get; private set; }
@@ -12,62 +10,24 @@ public class MuseumObject : BaseEntity
     public long ObjectId { get; private set; }
     public virtual Object Object { get; private set; }
 
-    public string Name { get; private set; }
-    public string QRCode { get; private set; }
-    public bool IsSpecial { get; private set; }
-    public bool IsHidden { get; private set; }
 
-    protected MuseumObject() { }
-
-    private MuseumObject(Object obj, Museum museum, string qrCode, bool isSpecial, bool isHidden)
+    protected MuseumObject()
     {
-        if (obj == null)
-            throw DomainException.InvalidValue(nameof(obj));
-        if (museum == null)
-            throw DomainException.InvalidValue(nameof(museum));
-
-        ValidateName(obj.Name);
-        ValidateQRCode(qrCode);
-
-        Object = obj;
-        ObjectId = obj.Id;
-        Museum = museum;
-        MuseumId = museum.Id;
-        Name = obj.Name;
-        QRCode = qrCode;
-        IsSpecial = isSpecial;
-        IsHidden = isHidden;
     }
 
-    public static MuseumObject Create(Object obj, Museum museum, string qrCode, bool isSpecial = false, bool isHidden = false)
+    private MuseumObject(long objectId, long museumId)
     {
-        return new MuseumObject(obj, museum, qrCode, isSpecial, isHidden);
+        ObjectId = objectId;
+        MuseumId = museumId;
     }
 
-    public void UpdateDetails(string? qrCode, bool? isSpecial = null, bool? isHidden = null)
+    public static MuseumObject Create(long objectId, long museumId)
     {
-        if (qrCode != null)
-        {
-            ValidateQRCode(qrCode);
-            QRCode = qrCode;
-        }
-
-        if (isSpecial.HasValue)
-            IsSpecial = isSpecial.Value;
-
-        if (isHidden.HasValue)
-            IsHidden = isHidden.Value;
+        return new MuseumObject(objectId, museumId);
     }
 
-    private void ValidateName(string name)
+    public void UpdateMuseum(long museumId)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw DomainException.InvalidValue(nameof(name));
-    }
-
-    private void ValidateQRCode(string qrCode)
-    {
-        if (string.IsNullOrWhiteSpace(qrCode))
-            throw DomainException.InvalidValue(nameof(qrCode));
+        MuseumId = museumId;
     }
 }

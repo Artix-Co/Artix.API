@@ -4,6 +4,7 @@ using Common;
 using Events;
 using Exceptions;
 using Object;
+using Object.Enums;
 
 public class Museum : AggregateRoot
 {
@@ -62,16 +63,35 @@ public class Museum : AggregateRoot
         IsActive = false;
     }
 
-    public void AddObject(Object obj, string qrCode, bool isSpecial = false, bool isHidden = false)
+    public void AddObject(
+        string name,
+        string? qrCode,
+        string? generalInformation = null,
+        string? specialInformation = null,
+        int? version = null,
+        int? tier = null,
+        bool isSpecial = false,
+        bool isHidden = false,
+        ObjectSaleType? objectSaleType = null
+    )
     {
         if (!IsActive)
             throw DomainException.InvalidOperation("Cannot add objects to an inactive museum.");
-        if (obj == null)
-            throw DomainException.InvalidValue(nameof(obj));
-        if (_museumObjects.Any(o => o.ObjectId == obj.Id))
-            throw DomainException.InvalidOperation("Object already exists in the museum.");
 
-        var museumObject = MuseumObject.Create(obj, this, qrCode, isSpecial, isHidden);
+
+        var @object = Object.Create(name,
+            qrCode,
+            generalInformation,
+            specialInformation,
+            version,
+            tier,
+            isSpecial,
+            isHidden,
+            objectSaleType);
+
+        var museumObject = MuseumObject.Create(@object.Id, this.Id);
+
+
         _museumObjects.Add(museumObject);
     }
 
@@ -91,8 +111,7 @@ public class Museum : AggregateRoot
     public Object? FindObject(Guid objectBusinessId) => MuseumObjects.Select(mo => mo.Object)
         .FirstOrDefault(o => o.BusinessId == objectBusinessId);
 
-   
-    
+
     public void AssignImage(long fileId, string[] allowedMimeTypes)
     {
         var existing = _museumImages.FirstOrDefault(i => i.MuseumId == Id);

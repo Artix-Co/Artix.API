@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.Object;
+using Core.Domain.Entities.Object.Enums;
 using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
 using Core.Domain.ValueObjects;
@@ -18,46 +19,51 @@ using DbContexts;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager,
-        RoleManager<AppRole> roleManager)
+    private const int USER_SEED_COUNT = 7;
+    private const int MUSEUM_SEED_COUNT = 7;
+    private const int CATEGORY_SEED_COUNT = 7;
+    private const int OBJECT_SEED_COUNT = 3;
+    private const int HISTORICAL_PERIOD_SEED_COUNT = 3;
+    private const int APP_VERSION_SEED_COUNT = 4;
+
+    public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
     {
-        // Check if database is already seeded
-        if (await IsDatabaseSeededAsync(context))
-        {
-            return; // Skip seeding if any table has data
-        }
-
-        const int USER_SEED_COUNT = 7;
-        const int MUSEUM_SEED_COUNT = 7;
-        const int CATEGORY_SEED_COUNT = 7;
-
         if (context == null) throw new ArgumentNullException(nameof(context));
 
-
-        #region Seed Users | Roles | Claims and Friendship
-
-        
-        var roles = Enum.GetNames(typeof(Role)).ToList();
-        foreach (var role in roles)
+        // Check if database is already seeded
+        if (await context.Users.AnyAsync())
         {
-            var roleExists = await roleManager.RoleExistsAsync(role);
-            if (!roleExists)
-            {
-                var roleCreateResult = await roleManager.CreateAsync(new AppRole(role));
-                if (!roleCreateResult.Succeeded)
-                    throw new ApplicationException("Failed to create role: " +
-                                                   string.Join(", ",
-                                                       roleCreateResult.Errors.Select(e => e.Description)));
-            }
+            return; // Skip seeding if any users exist
         }
 
-        // Define client types for claims
+        var roles = Enum.GetNames(typeof(Role)).ToList();
         var clientTypes = Enum.GetNames(typeof(ClientType)).ToList();
-
         var users = new List<AppUser>();
+        var friendships = new List<Friendship>();
+        var categories = new List<Type>();
+        var historicalPeriods = new List<HistoricalPeriod>();
+        var museums = new List<Museum>();
+        var objects = new List<Object>();
+        var objectTypes = new List<ObjectType>();
+        var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
+        var appVersions = new List<AppVersion>();
+
+        #region Seed Roles
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                var roleResult = await roleManager.CreateAsync(new AppRole(role));
+                if (!roleResult.Succeeded)
+                    throw new ApplicationException($"Failed to create role {role}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+            }
+        }
+        #endregion
+
+        #region Seed Users and Friendships
         for (int i = 0; i < USER_SEED_COUNT; i++)
         {
-            var newUser = new AppUser
+            var user = new AppUser
             {
                 UserName = $"username{i}",
                 Email = $"username{i}@gmail.com",
@@ -65,216 +71,120 @@ public static class DataSeeder
                 DisplayName = $"Fake User {i}"
             };
 
-            var createResult = await userManager.CreateAsync(newUser, "Heli@ghar771379");
+            var createResult = await userManager.CreateAsync(user, "Heli@ghar771379");
             if (!createResult.Succeeded)
-                throw new ApplicationException("User creation failed: " +
-                                               string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                throw new ApplicationException($"User creation failed for {user.UserName}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
 
-            // Assign roles and claims based on index (for seeding variety)
-            if (i == 0) // Example: First user as Admin
-            {
-                var roleResult = await userManager.AddToRoleAsync(newUser, "Admin");
-                if (!roleResult.Succeeded)
-                    throw new ApplicationException("Role assignment failed: " +
-                                                   string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-            }
-            else // Others as Client with specific ClientType claim
-            {
-                var roleResult = await userManager.AddToRoleAsync(newUser, "Client");
-                if (!roleResult.Succeeded)
-                    throw new ApplicationException("Role assignment failed: " +
-                                                   string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+            var role = i == 0 ? "Admin" : "Client";
+            var roleResult = await userManager.AddToRoleAsync(user, role);
+            if (!roleResult.Succeeded)
+                throw new ApplicationException($"Role assignment failed for {user.UserName}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
 
-                // Cycle through client types for variety
+            if (i != 0)
+            {
                 var clientType = clientTypes[i % clientTypes.Count];
-                var claimResult = await userManager.AddClaimAsync(newUser,
-                    new System.Security.Claims.Claim("ClientType", clientType));
+                var claimResult = await userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClientType", clientType));
                 if (!claimResult.Succeeded)
-                    throw new ApplicationException("Claim assignment failed: " +
-                                                   string.Join(", ", claimResult.Errors.Select(e => e.Description)));
+                    throw new ApplicationException($"Claim assignment failed for {user.UserName}: {string.Join(", ", claimResult.Errors.Select(e => e.Description))}");
             }
 
-            users.Add(newUser);
+            users.Add(user);
         }
 
-        var friendships = new List<Friendship>();
-        foreach (var oddUser in users.Where(u => u.Id % 2 != 0))
+        // Create friendships efficiently
+        for (int i = 0; i < users.Count; i += 2)
         {
-            foreach (var evenUser in users.Where(u => u.Id % 2 == 0))
+            if (i + 1 < users.Count)
             {
-                friendships.Add(Friendship.Create(oddUser, evenUser));
-                friendships.Add(Friendship.Create(evenUser, oddUser));
+                var user1 = users[i];
+                var user2 = users[i + 1];
+                friendships.Add(Friendship.Create(user1, user2));
+                friendships.Add(Friendship.Create(user2, user1));
             }
         }
-
-        foreach (var friendship in friendships)
-        {
-            if (!await context.Friendships.AnyAsync(f =>
-                    f.UserId == friendship.UserId && f.FriendId == friendship.FriendId))
-            {
-                context.Friendships.Add(friendship);
-            }
-        }
-
+        context.Friendships.AddRange(friendships);
         #endregion
 
         #region Seed Categories
-
-        var categories = new List<Type>();
         for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
         {
-            var category = Type.Create($"Fake category {i}", $"Fake description category {i}");
-            categories.Add(category);
+            categories.Add(Type.Create($"Fake category {i}", $"Fake description category {i}"));
         }
-
         context.Types.AddRange(categories);
-        // Save to generate Category IDs
-
         #endregion
 
-        #region Seed HistoricalPeriods
-
-        var historicalPeriods = new List<HistoricalPeriod>
+        #region Seed Historical Periods
+        historicalPeriods.AddRange(new[]
         {
-            HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire (100–400 AD)",
-                new HistoricalDate(100, 1, 1), new HistoricalDate(400, 12, 31)),
-            HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period (1300–1600 AD)",
-                new HistoricalDate(1300, 1, 1), new HistoricalDate(1600, 12, 31)),
-            HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)",
-                new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
-        };
-
-        context.HistoricalPeriods.AddRange(historicalPeriods);
-        // Save to generate HistoricalPeriod IDs
-
+            HistoricalPeriod.Create("Roman Era", "Artifacts from the Roman Empire (100–400 AD)", new HistoricalDate(100, 1, 1), new HistoricalDate(400, 12, 31)),
+            HistoricalPeriod.Create("Renaissance", "Art from the Renaissance period (1300–1600 AD)", new HistoricalDate(1300, 1, 1), new HistoricalDate(1600, 12, 31)),
+            HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)", new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
+        });
+        context.HistoricalPeriods.AddRange(historicalPeriods.Take(HISTORICAL_PERIOD_SEED_COUNT));
         #endregion
 
         #region Seed Museums
-
-        var museums = new List<Museum>();
         for (int i = 0; i < MUSEUM_SEED_COUNT; i++)
         {
-            var museum = Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true);
-            museums.Add(museum);
+            museums.Add(Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true));
         }
-
         context.Museums.AddRange(museums);
-        // Save to generate Museum IDs
-
         #endregion
 
         #region Seed Objects
-
-        var objects = new List<Object>
+        objects.AddRange(new[]
         {
-            Object.Create(
-                name: "Ancient Vase",
-                qrCode: "QR_VASE_001",
-                generalInformation: "A vase from the Roman era",
-                specialInformation: "Made of clay with intricate designs",
-                version: 1,
-                tier: 2,
-                isSpecial: true,
-                isHidden: false
-            ),
-            Object.Create(
-                name: "Mona Lisa",
-                qrCode: "QR_MONA_001",
-                generalInformation: "Famous painting by Leonardo da Vinci",
-                specialInformation: "Iconic portrait with a mysterious smile",
-                version: 1,
-                tier: 3,
-                isSpecial: true,
-                isHidden: false
-            ),
-            Object.Create(
-                name: "Bronze Statue",
-                qrCode: "QR_STATUE_001",
-                generalInformation: "A statue from the Greek period",
-                specialInformation: "Depicts a warrior in battle pose",
-                version: 1,
-                tier: 1,
-                isSpecial: false,
-                isHidden: true
-            )
-        };
-
+            Object.Create("Ancient Vase", "QR_VASE_001", "A vase from the Roman era", "Made of clay with intricate designs", 1, 2, true, false, ObjectSaleType.Free),
+            Object.Create("Mona Lisa", "QR_MONA_001", "Famous painting by Leonardo da Vinci", "Iconic portrait with a mysterious smile", 1, 3, true, false, ObjectSaleType.Tokenized),
+            Object.Create("Bronze Statue", "QR_STATUE_001", "A statue from the Greek period", "Depicts a warrior in battle pose", 1, 1, false, true, ObjectSaleType.MemberShip)
+        });
+        objects = objects.Take(OBJECT_SEED_COUNT).ToList();
         context.Objects.AddRange(objects);
-        // Save to generate Object IDs
-
         #endregion
 
         #region Seed ObjectTypes
-
-        var objectTypes = new List<ObjectType>();
         for (int i = 0; i < objects.Count; i++)
         {
-            var objectType = ObjectType.Create(objects[i], categories[i % categories.Count]);
-            objectTypes.Add(objectType);
+            objectTypes.Add(ObjectType.Create(objects[i], categories[i % categories.Count]));
         }
-
         context.ObjectTypes.AddRange(objectTypes);
-        // Save to generate ObjectType relationships
-
         #endregion
 
         #region Seed ObjectHistoricalPeriods
-
-        var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
         for (int i = 0; i < objects.Count; i++)
         {
-            var objectHistoricalPeriod =
-                ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]);
-            objectHistoricalPeriods.Add(objectHistoricalPeriod);
+            objectHistoricalPeriods.Add(ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]));
         }
-
         context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
-        // Save to generate ObjectHistoricalPeriod relationships
-
         #endregion
 
         #region Seed MuseumObjects
+        // برای جلوگیری از خطا، ابتدا موزه‌ها و آبجکت‌ها را ذخیره می‌کنیم تا Idهای واقعی تولید شوند
+        await context.SaveChangesAsync();
 
-        var museumObjects = new List<MuseumObject>();
         for (int i = 0; i < objects.Count; i++)
         {
-            var museum = museums[i % museums.Count]; // Assign each object to one museum
-            var museumObject = MuseumObject.Create(
-                obj: objects[i],
-                museum: museum,
-                qrCode: objects[i].QrCode,
-                isSpecial: objects[i].IsSpecial,
-                isHidden: objects[i].IsHidden
-            );
-            museumObjects.Add(museumObject);
-            museum.AddObject(objects[i], museumObject.QRCode, museumObject.IsSpecial, museumObject.IsHidden);
+            var museum = museums[i % museums.Count];
+            objects[i].AssignMuseum(museum.Id);
         }
 
-        context.MuseumObjects.AddRange(museumObjects);
-        // Save MuseumObjects
-
+        // ذخیره تغییرات نهایی (شامل روابط)
+        await context.SaveChangesAsync();
         #endregion
 
-        #region Seed Version
-
-        var appVersions = new List<AppVersion>
+        #region Seed AppVersions
+        appVersions.AddRange(new[]
         {
             AppVersion.Create(1, 0, 0, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 1, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 2, true, false, "First Version On Development Environment"),
-            AppVersion.Create(1, 0, 3, true, true, "First Version On Development Environment") // Only supported version
-        };
-
-        context.AppVersions.AddRange(appVersions);
-        await context.SaveChangesAsync();
-
+            AppVersion.Create(1, 0, 3, true, true, "First Version On Development Environment")
+        });
+        context.AppVersions.AddRange(appVersions.Take(APP_VERSION_SEED_COUNT));
         #endregion
-    }
 
-    private static async Task<bool> IsDatabaseSeededAsync(ArtixCommandDbContext context)
-    {
-        return await context.Users.AnyAsync() ||
-               await context.Museums.AnyAsync() ||
-               await context.Objects.AnyAsync();
+        #region Final Save for remaining entities
+        await context.SaveChangesAsync();
+        #endregion
     }
 }

@@ -40,6 +40,10 @@ public class Object : AggregateRoot
         this._objectHistoricalPeriods.AsReadOnly();
 
 
+    private readonly List<MuseumObject> _museumObjects = new();
+    public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
+
+
     private readonly List<UserObject> _userObjects = new();
     public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
 
@@ -255,7 +259,7 @@ public class Object : AggregateRoot
 
     public static Object Create(
         string name,
-        string qrCode,
+        string? qrCode,
         string? generalInformation = null,
         string? specialInformation = null,
         int? version = null,
@@ -459,5 +463,18 @@ public class Object : AggregateRoot
         userObject.Upgrade();
         RaiseDomainEvent(new RepeatUserScanEvent(BusinessId, userObject.UserId, userObject.ObjectId,
             userObject.ScanCount, true));
+    }
+
+    public void AssignMuseum(long museumId)
+    {
+        var existing = this._museumObjects.FirstOrDefault(m => m.ObjectId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateMuseum(museumId);
+            return;
+        }
+
+        var museumObject = MuseumObject.Create(Id, museumId);
+        _museumObjects.Add(museumObject);
     }
 }

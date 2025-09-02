@@ -28,7 +28,8 @@ internal sealed class MuseumReadConfiguration : BaseEntityConfiguration<Museum>
         entity
             .HasMany(m => m.MuseumObjects)
             .WithOne(mo => mo.Museum)
-            .HasForeignKey(mo => mo.MuseumId);
+            .HasForeignKey(mo => mo.MuseumId)
+            .OnDelete(DeleteBehavior.Cascade);
 
 
         entity.HasIndex(e => e.Name)

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
 {
-    public void Configure(EntityTypeBuilder<Museum> entity)
+    public override void Configure(EntityTypeBuilder<Museum> entity)
     {
         base.Configure(entity);
 
@@ -24,12 +24,11 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
             .IsRequired()
             .HasDefaultValue(true);
 
-
         entity
             .HasMany(m => m.MuseumObjects)
             .WithOne(mo => mo.Museum)
-            .HasForeignKey(mo => mo.MuseumId);
-
+            .HasForeignKey(mo => mo.MuseumId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasIndex(e => e.Name)
             .HasDatabaseName("IX_Museums_Name")

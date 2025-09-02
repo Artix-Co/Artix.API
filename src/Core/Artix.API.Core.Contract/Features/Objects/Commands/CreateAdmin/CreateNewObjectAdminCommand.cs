@@ -20,5 +20,7 @@ public sealed record CreateNewObjectAdminCommand(
     
     string? ImageFileDataBase64,
     string? ImageFileName,
-    string? ImageFileMimeType
+    string? ImageFileMimeType,
+    
+    Guid MuseumId
 ) : ICommand;

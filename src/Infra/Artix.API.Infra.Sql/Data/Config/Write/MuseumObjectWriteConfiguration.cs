@@ -4,20 +4,16 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class MuseumObjectWriteConfiguration : BaseEntityConfiguration<MuseumObject>
+internal sealed class MuseumObjectWriteConfiguration : IEntityTypeConfiguration<MuseumObject>
 {
-    public override void Configure(EntityTypeBuilder<MuseumObject> entity)
+    public void Configure(EntityTypeBuilder<MuseumObject> entity)
     {
-        base.Configure(entity);
-
         entity.ToTable("MuseumObjects");
 
-        // Properties
-        entity.Property(mo => mo.MuseumId)
-            .IsRequired();
+        entity.HasKey(of => new { of.MuseumId, of.ObjectId });
 
-        entity.Property(mo => mo.ObjectId)
-            .IsRequired();
+        entity.Property(of => of.MuseumId).IsRequired();
+        entity.Property(of => of.ObjectId).IsRequired();
 
         // Relationships
         entity
@@ -28,17 +24,14 @@ internal sealed class MuseumObjectWriteConfiguration : BaseEntityConfiguration<M
 
         entity
             .HasOne(mo => mo.Object)
-            .WithMany() // No navigation property in Object for MuseumObjects
+            .WithMany()
             .HasForeignKey(mo => mo.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
         entity.HasIndex(mo => mo.MuseumId)
-            .HasDatabaseName("IX_MuseumObjects_MuseumId");
+            .HasDatabaseName("IX_MuseumObject_MuseumId");
 
-        // TODO: uncomment it when production, i commented it to seeding db with redundant object
-        // entity.HasIndex(mo => mo.ObjectId)
-        //     .HasDatabaseName("IX_MuseumObjects_ObjectId")
-        //     .IsUnique(); // Assuming each Object can be linked to only one Museum
+        entity.HasIndex(mo => mo.ObjectId)
+            .HasDatabaseName("IX_MuseumObject_ObjectId");
     }
 }

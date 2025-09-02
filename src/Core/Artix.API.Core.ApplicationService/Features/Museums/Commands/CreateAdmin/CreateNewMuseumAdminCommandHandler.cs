@@ -7,6 +7,7 @@ using Contract.Features.Museums.Commands.CreateAdmin;
 using Domain.Entities.File;
 using Domain.Entities.Museum;
 using Domain.Entities.User;
+using DomainService.Interfaces.FileProcessing;
 using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,22 +19,17 @@ internal sealed class CreateNewMuseumAdminCommandHandler : CommandHandlerBase<Cr
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly string[] _allowedImageMimeTypes;
-    private readonly IFileCommandRepository _fileCommandRepository;
-    private readonly IFileService _fileService;
-    private readonly ILogger<CreateNewMuseumAdminCommandHandler> _logger;
+    private readonly IFileProcessingService _fileProcessingService;
 
     public CreateNewMuseumAdminCommandHandler(IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IMuseumCommandRepository museumCommandRepository,
-        IOptions<FileSettings> options, IFileCommandRepository fileCommandRepository, IFileService fileService,
-        ILogger<CreateNewMuseumAdminCommandHandler> logger) : base(
+        IOptions<FileSettings> options, IFileProcessingService fileProcessingService) : base(
         httpContextAccessor,
         userManager)
     {
         this._museumCommandRepository = museumCommandRepository;
+        this._fileProcessingService = fileProcessingService;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
-        this._fileCommandRepository = fileCommandRepository;
-        this._fileService = fileService;
-        this._logger = logger;
     }
 
     public override async Task<Guid> Handle(CreateNewMuseumAdminCommand command, CancellationToken cancellationToken)
@@ -41,58 +37,17 @@ internal sealed class CreateNewMuseumAdminCommandHandler : CommandHandlerBase<Cr
         var user = await GetCurrentUserAsync(cancellationToken);
         var museum = Museum.Create(command.Name, command.Description);
 
-        if (!string.IsNullOrWhiteSpace(command.ImageFileDataBase64) &&
-            !string.IsNullOrWhiteSpace(command.ImageFileName) &&
-            !string.IsNullOrWhiteSpace(command.ImageFileMimeType))
-        {
-            _logger.LogInformation("Processing image upload for {FileName}", command.ImageFileName);
 
-            if (!_allowedImageMimeTypes.Contains(command.ImageFileMimeType))
-            {
-                _logger.LogError("Invalid MIME type for image: {MimeType}", command.ImageFileMimeType);
-                throw new Exception($"Invalid MIME type for image: {command.ImageFileMimeType}");
-            }
-
-            byte[] imageFileData;
-            try
-            {
-                var base64String = command.ImageFileDataBase64;
-                if (base64String.StartsWith("data:"))
-                {
-                    base64String = base64String[(base64String.IndexOf(',') + 1)..];
-                }
-
-                imageFileData = Convert.FromBase64String(base64String);
-            }
-            catch (FormatException ex)
-            {
-                _logger.LogError(ex, "Invalid Base64 for image: {FileName}", command.ImageFileName);
-                throw new Exception($"Invalid Base64 string for ImageFileData: {ex.Message}");
-            }
-
-            var filePath = await _fileService.UploadFileFromBytesAsync(
-                imageFileData,
-                command.ImageFileName,
-                command.ImageFileMimeType,
-                user.Id,
-                _allowedImageMimeTypes);
-
-            var imageFile = FileEntity.Create(command.ImageFileName, filePath, imageFileData.Length,
-                command.ImageFileMimeType, user.Id);
-
-            if (imageFile == null)
-            {
-                _logger.LogError("Failed to create image file: {FileName}", command.ImageFileName);
-                throw new Exception("Failed to create image file.");
-            }
-
-            await _fileCommandRepository.InsertAsync(imageFile, cancellationToken);
-
-            _logger.LogInformation("Image file inserted: FileId={FileId}, FileName={FileName}", imageFile.Id,
-                command.ImageFileName);
-
-            museum.AssignImage(imageFile.Id, _allowedImageMimeTypes);
-        }
+        await _fileProcessingService.ProcessFileUploadAsync(
+            fileDataBase64: command.ImageFileDataBase64,
+            fileName: command.ImageFileName,
+            mimeType: command.ImageFileMimeType,
+            userId: user.Id,
+            allowedMimeTypes: _allowedImageMimeTypes,
+            assignFileAction: (obj, fileId, mimeTypes) => obj.AssignImage(fileId, mimeTypes),
+            entity: museum,
+            fileTypeDescription: "Image",
+            cancellationToken: cancellationToken);
 
         await this._museumCommandRepository.InsertAsync(museum, cancellationToken);
 

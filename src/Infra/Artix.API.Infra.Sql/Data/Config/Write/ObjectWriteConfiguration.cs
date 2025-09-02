@@ -65,6 +65,11 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .HasForeignKey(ot => ot.ObjectId) // Correct foreign key
             .OnDelete(DeleteBehavior.Cascade);
 
+        entity.HasMany(o => o.MuseumObjects)
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(ot => ot.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         // Indexes
         entity.HasIndex(o => o.Name)
             .HasDatabaseName("IX_Objects_Name");
