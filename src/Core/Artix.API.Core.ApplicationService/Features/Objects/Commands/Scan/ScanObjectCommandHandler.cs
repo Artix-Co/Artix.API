@@ -43,7 +43,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         if (@object == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
 
-        var userObject = user.UserObjects.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
+        var userObject = user.UserScans.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
 
         if (userObject == null)
         {

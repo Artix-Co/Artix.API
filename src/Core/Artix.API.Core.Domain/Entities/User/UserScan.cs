@@ -2,9 +2,8 @@
 
 using Common;
 using Object;
-using Object.Events;
 
-public class UserObject : BaseEntity
+public class UserScan : BaseEntity
 {
     public long UserId { get; private set; }
     public virtual AppUser User { get; private set; }
@@ -17,11 +16,11 @@ public class UserObject : BaseEntity
     public bool IsUpgraded { get; private set; }
     public bool InCollection { get; private set; }
 
-    protected UserObject()
+    protected UserScan()
     {
     }
 
-    private UserObject(long userId, long objectId)
+    private UserScan(long userId, long objectId)
     {
         UserId = userId;
         ObjectId = objectId;
@@ -31,9 +30,9 @@ public class UserObject : BaseEntity
         AcquiredAt = null;
     }
 
-    public static UserObject Create(long userId, long objectId)
+    public static UserScan Create(long userId, long objectId)
     {
-        return new UserObject(userId, objectId);
+        return new UserScan(userId, objectId);
     }
 
     public void AssignToUser(DateTime acquiredAt)

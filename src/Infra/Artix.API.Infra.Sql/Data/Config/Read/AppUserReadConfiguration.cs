@@ -32,7 +32,7 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
         entity.HasMany(e => e.UserMuseumKeys)
             .WithOne(e => e.User);
 
-        entity.HasMany(e => e.UserObjects)
+        entity.HasMany(e => e.UserScans)
             .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserSeasonProgresses)

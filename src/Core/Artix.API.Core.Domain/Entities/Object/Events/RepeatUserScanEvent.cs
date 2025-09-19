@@ -3,7 +3,8 @@
 using DomainEvents;
 
 public record RepeatUserScanEvent(
-    Guid BusinessId,
+    Guid ObjectBusinessId,
+    Guid UserBusinessId,
     long UserId,
     long ObjectId,
     int ScanCount,

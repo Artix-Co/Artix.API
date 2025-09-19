@@ -12,8 +12,9 @@ public class UserStrike : BaseEntity
     public int StrikeCount { get; private set; }
     public DateTime LastInteraction { get; private set; }
 
-    
- 
+    public bool IsActive { get; set; }
+    public int FuelCount { get; set; }
+
 
     public void IncrementStrike()
     {

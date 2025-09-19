@@ -184,7 +184,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             (from umk in _queryDbContext.UserMuseumKeys
                 where umk.MuseumId == museum.Id && umk.UserId == dto.UserId
                 join u in _queryDbContext.Users on umk.UserId equals u.Id
-                select new MuseumKeyStatusDto(dto.MuseumId, true, umk.AcquiredAt, null))
+                select new MuseumKeyStatusDto(dto.MuseumId, true, umk.UnlockedAt, null))
             .FirstOrDefaultAsync(cancellationToken);
 
 

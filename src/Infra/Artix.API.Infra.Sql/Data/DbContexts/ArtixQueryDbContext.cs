@@ -9,6 +9,7 @@ using Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.OTP;
+using Core.Domain.Entities.Tier;
 using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;
 using Microsoft.AspNetCore.Identity;
@@ -44,7 +45,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
-    public DbSet<UserObject> UserObjects { get; set; }
+    public DbSet<UserScan> UserObjects { get; set; }
     public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
     public DbSet<UserStrike> UserStrikes { get; set; }
     
@@ -65,6 +66,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<VoiceTrackFile> VoiceTrackFiles { get; set; }
     public DbSet<VoiceTrack> VoiceTracks { get; set; }
     public DbSet<AppVersion> AppVersions { get; set; }
+    public DbSet<TierConfig> TierConfigs { get; set; }
 
     #endregion
 

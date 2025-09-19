@@ -18,7 +18,7 @@ internal sealed class UserMuseumKeyReadConfiguration : BaseEntityConfiguration<U
         entity.Property(e => e.MuseumId)
             .IsRequired();
 
-        entity.Property(e => e.AcquiredAt)
+        entity.Property(e => e.UnlockedAt)
             .IsRequired(false);
 
         entity.HasOne(e => e.User)
@@ -44,7 +44,7 @@ internal sealed class UserMuseumKeyReadConfiguration : BaseEntityConfiguration<U
         entity.HasIndex(e => e.MuseumId)
             .HasDatabaseName("IX_UserMuseumKeys_MuseumId");
 
-        entity.HasIndex(e => e.AcquiredAt)
-            .HasDatabaseName("IX_UserMuseumKeys_AcquiredAt");
+        entity.HasIndex(e => e.UnlockedAt)
+            .HasDatabaseName("IX_UserMuseumKeys_UnlockedAt");
     }
 }

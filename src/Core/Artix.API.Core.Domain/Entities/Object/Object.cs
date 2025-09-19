@@ -44,8 +44,8 @@ public class Object : AggregateRoot
     public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
 
 
-    private readonly List<UserObject> _userObjects = new();
-    public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
+    private readonly List<UserScan> _userScans = new();
+    public virtual IReadOnlyCollection<UserScan> UserScans => this._userScans.AsReadOnly();
 
     // Protected constructor for EF Core
     protected Object()
@@ -445,24 +445,27 @@ public class Object : AggregateRoot
 
     public void FirstTimeUserScan(long userId)
     {
-        var userObject = UserObject.Create(userId, Id);
+        var userObject = UserScan.Create(userId, Id);
         userObject.AssignToUser(DateTime.UtcNow);
-        _userObjects.Add(userObject);
+        this._userScans.Add(userObject);
         RaiseDomainEvent(new FirstUserScanEvent(BusinessId, userId, this.Id, 1, DateTime.UtcNow, true));
     }
 
-    public void RepeatUserScan(UserObject userObject)
+    public void RepeatUserScan(UserScan userScan)
     {
         // TODO: user layer exception
-        if (userObject == null)
-            throw DomainException.InvalidValue(nameof(userObject));
+        if (userScan == null)
+            throw DomainException.InvalidValue(nameof(userScan));
 
-        if (!_userObjects.Contains(userObject))
-            _userObjects.Add(userObject);
+        if (!this._userScans.Contains(userScan))
+            this._userScans.Add(userScan);
 
-        userObject.Upgrade();
-        RaiseDomainEvent(new RepeatUserScanEvent(BusinessId, userObject.UserId, userObject.ObjectId,
-            userObject.ScanCount, true));
+        userScan.Upgrade();
+        RaiseDomainEvent(new RepeatUserScanEvent(BusinessId,
+            userScan.User.BusinessId,
+            userScan.UserId,
+            userScan.ObjectId,
+            userScan.ScanCount, true));
     }
 
     public void AssignMuseum(long museumId)

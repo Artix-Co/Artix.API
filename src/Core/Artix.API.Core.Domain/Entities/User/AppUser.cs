@@ -18,7 +18,7 @@ public class AppUser : IdentityUser<long>
     private readonly List<Friendship> _friendshipFriends = [];
     private readonly List<UserJournalEntry> _userJournalEntries = [];
     private readonly List<UserMuseumKey> _userMuseumKeys = [];
-    private readonly List<UserObject> _userObjects = [];
+    private readonly List<UserScan> _userScans = [];
     private readonly List<UserSeasonProgress> _userSeasonProgresses = [];
     private readonly List<UserStrike> _userStrikes = [];
     private readonly List<UserImage> _userImages = [];
@@ -33,7 +33,7 @@ public class AppUser : IdentityUser<long>
     public virtual IReadOnlyCollection<Friendship> FriendshipFriends => _friendshipFriends.AsReadOnly();
     public virtual IReadOnlyCollection<UserJournalEntry> UserJournalEntries => _userJournalEntries.AsReadOnly();
     public virtual IReadOnlyCollection<UserMuseumKey> UserMuseumKeys => _userMuseumKeys.AsReadOnly();
-    public virtual IReadOnlyCollection<UserObject> UserObjects => _userObjects.AsReadOnly();
+    public virtual IReadOnlyCollection<UserScan> UserScans => this._userScans.AsReadOnly();
     public virtual IReadOnlyCollection<UserSeasonProgress> UserSeasonProgresses => _userSeasonProgresses.AsReadOnly();
     public virtual IReadOnlyCollection<UserStrike> UserStrikes => _userStrikes.AsReadOnly();
     public virtual IReadOnlyCollection<UserImage> UserImages => this._userImages.AsReadOnly();
@@ -159,4 +159,6 @@ public class AppUser : IdentityUser<long>
                 sp.UserId == seasonProgress.UserId && sp.SeasonId == seasonProgress.SeasonId))
             _userSeasonProgresses.Add(seasonProgress);
     }
+    
+    
 }

@@ -4,9 +4,9 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserObjectReadConfiguration : BaseEntityConfiguration<UserObject> 
+internal sealed class UserObjectReadConfiguration : BaseEntityConfiguration<UserScan> 
 {
-    public void Configure(EntityTypeBuilder<UserObject> entity)
+    public void Configure(EntityTypeBuilder<UserScan> entity)
     {
         base.Configure(entity);
 
@@ -34,7 +34,7 @@ internal sealed class UserObjectReadConfiguration : BaseEntityConfiguration<User
             .HasDefaultValue(false);
 
         entity.HasOne(e => e.User)
-            .WithMany(u => u.UserObjects)
+            .WithMany(u => u.UserScans)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
