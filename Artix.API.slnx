@@ -16,6 +16,10 @@
     <Project Path="src\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj" Type="Classic C#" />
     <Project Path="src\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" Type="Classic C#" />
   </Folder>
+  <Folder Name="/src/Orchestration/">
+    <Project Path="src\Orchestration\Artix.API.Orchestration.AppHost\Artix.API.Orchestration.AppHost.csproj" Type="Classic C#" />
+    <Project Path="src\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/src/Presentation/">
     <Project Path="src\Presentation\Artix.API.Endpoints\Artix.API.Endpoints.csproj" Type="Classic C#" />
     <Project Path="src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj" Type="Classic C#" />

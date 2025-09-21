@@ -1,9 +1,8 @@
-﻿namespace Artix.ServiceDefaults;
+﻿namespace Artix.API.Orchestration.ServiceDefaults;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
 public static class DependencyInjection
