@@ -1,6 +1,7 @@
-bin/
-obj/
+**/bin/
+**/obj/
+**/node_modules/
+**/.git/
+**/.vscode/
 *.md
-.gitignore
-tests/
-*.log
+test/

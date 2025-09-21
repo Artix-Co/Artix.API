@@ -4,14 +4,15 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost"  Version="9.2.1"/>
-    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.2.1" />
-    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0-rc.2.617" />
-    <PackageReference Include="AspNetCore.HealthChecks.RabbitMQ" Version="9.0.0-rc.2.617" />
-    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0-rc.2.617" />
+    <PackageReference Include="Aspire.Hosting.AppHost"/>
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery"/>
+    <PackageReference Include="AspNetCore.HealthChecks.Redis"/>
+    <PackageReference Include="AspNetCore.HealthChecks.RabbitMQ"/>
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer"/>
   </ItemGroup>
 </Project>
 

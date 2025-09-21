@@ -9,15 +9,11 @@ WORKDIR /src
 # کپی فایل‌های solution و پروژه‌ها
 COPY ["Artix.API.sln", "."]
 COPY ["Directory.Packages.props", "."]
-COPY ["src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj", "src/Presentation/Artix.API.WebService/"]
-COPY ["Artix.ServiceDefaults/Artix.ServiceDefaults.csproj", "Artix.ServiceDefaults/"]
-COPY ["Artix.AppHost/Artix.AppHost.csproj", "Artix.AppHost/"]
+
 
 
 COPY ["src/", "src/"]
 #COPY ["tests/", "tests/"]
-COPY ["Artix.ServiceDefaults/", "Artix.ServiceDefaults/"]
-COPY ["Artix.AppHost/", "Artix.AppHost/"]
 
 # Restore پروژه‌ها
 RUN dotnet restore "Artix.API.sln"

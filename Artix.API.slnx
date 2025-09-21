@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="Directory.Packages.props" />
+    <File Path="Dockerfile" />
+    <File Path="docker-compose.yaml" />
+    <File Path="nginx.conf" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">
@@ -20,9 +23,6 @@
     <Project Path="src\Orchestration\Artix.API.Orchestration.AppHost\Artix.API.Orchestration.AppHost.csproj" Type="Classic C#" />
     <Project Path="src\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/src/Presentation/">
-    <Project Path="src\Presentation\Artix.API.Endpoints\Artix.API.Endpoints.csproj" Type="Classic C#" />
-    <Project Path="src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj" Type="Classic C#" />
-  </Folder>
+
   <Folder Name="/test/" />
 </Solution>

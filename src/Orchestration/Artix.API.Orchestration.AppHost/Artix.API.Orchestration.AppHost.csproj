@@ -8,16 +8,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>b49e7f48-2fdb-423a-87a8-a34888ba7296</UserSecretsId>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.1"/>
-    <PackageReference Include="Aspire.Hosting" Version="9.2.1"/>
-    <PackageReference Include="Aspire.Hosting.Redis" Version="9.2.1"/>
-    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.2.1"/>
-    <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.2.1" />
+    <PackageReference Include="Aspire.Hosting.AppHost"/>
+    <PackageReference Include="Aspire.Hosting"/>
+    <PackageReference Include="Aspire.Hosting.Redis"/>
+    <PackageReference Include="Aspire.Hosting.RabbitMQ"/>
+    <PackageReference Include="Aspire.Hosting.SqlServer"/>
   </ItemGroup>
-  
+
 
   <ItemGroup>
     <ProjectReference Include="..\src\Presentation\Artix.API.WebService\Artix.API.WebService.csproj"/>

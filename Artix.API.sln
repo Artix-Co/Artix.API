@@ -44,11 +44,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Identity", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.RabbitMQ", "src\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj", "{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.AppHost", "Artix.AppHost\Artix.AppHost.csproj", "{B3C2CEA7-E1BF-4E31-BE90-E772991AA9BD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.ServiceDefaults", "Artix.ServiceDefaults\Artix.ServiceDefaults.csproj", "{E05BF439-342D-4C39-BA06-4C8578EEF522}"
-EndProject
+
+
+
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F8E42C2A-C16E-4614-BBB2-C0D821A821B8}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orchestration", "Orchestration", "{D0EE9402-F432-480C-B36C-8DA566DFD830}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Orchestration.ServiceDefaults", "src\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj", "{841A7F89-E730-4277-910E-75D8562E670C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Orchestration.AppHost", "src\Orchestration\Artix.API.Orchestration.AppHost\Artix.API.Orchestration.AppHost.csproj", "{46B25215-9EDB-4FB0-A5D4-F519FBF50E68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +78,9 @@ Global
 		{0AA5B346-664C-482C-8DAD-CB99B826E688} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 		{AF2C0A87-ED2C-4AFC-B5F5-993327ACE08D} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
 		{3A9889BE-1EB2-4A33-B1BA-B6DAD16A7657} = {0A235300-A218-47C8-B48A-E00C2452DC7A}
+		{D0EE9402-F432-480C-B36C-8DA566DFD830} = {F4DE7FB0-DCAA-4384-9881-6F525B134F09}
+		{841A7F89-E730-4277-910E-75D8562E670C} = {D0EE9402-F432-480C-B36C-8DA566DFD830}
+		{46B25215-9EDB-4FB0-A5D4-F519FBF50E68} = {D0EE9402-F432-480C-B36C-8DA566DFD830}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6796302F-F731-4823-A529-E25355C88DB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -124,5 +135,13 @@ Global
 		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E05BF439-342D-4C39-BA06-4C8578EEF522}.Release|Any CPU.Build.0 = Release|Any CPU
+		{841A7F89-E730-4277-910E-75D8562E670C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{841A7F89-E730-4277-910E-75D8562E670C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{841A7F89-E730-4277-910E-75D8562E670C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{841A7F89-E730-4277-910E-75D8562E670C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46B25215-9EDB-4FB0-A5D4-F519FBF50E68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46B25215-9EDB-4FB0-A5D4-F519FBF50E68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46B25215-9EDB-4FB0-A5D4-F519FBF50E68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46B25215-9EDB-4FB0-A5D4-F519FBF50E68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
