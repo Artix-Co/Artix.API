@@ -1,37 +1,34 @@
-﻿namespace Artix.API.Core.ApplicationService.EventHandlers.Object;
+namespace Artix.API.Core.ApplicationService.Features.Objects.Events;
 
-using Primitives;
-using Artix.API.Core.Contract.Features.Notifications.Commands.AddUserNotification;
+using Contract.Features.Notifications.Commands.AddUserNotification;
 using Domain.Entities.Notification.Enums;
-using Artix.API.Core.Domain.Entities.Object.Events;
+using Domain.Entities.Object.Events;
 using DomainService.Interfaces.Notification;
-using DomainService.Interfaces.TierCalculator;
 using DomainService.Interfaces.XPRules;
+using Primitives;
 
-internal sealed class RepeatUserScanEventHandler : NotificationHandlerBase<RepeatUserScanEvent>
+internal sealed class FirstUserScanEventHandler : NotificationHandlerBase<FirstUserScanEvent>
 {
     private readonly INotificationServiceProvider _notificationServiceProvider;
     private readonly IXpRulesService _xpRulesService;
 
-
-    public RepeatUserScanEventHandler(INotificationServiceProvider notificationServiceProvider,
-        IXpRulesService xpRulesService, ITierCalculatorService tierCalculatorService)
+    public FirstUserScanEventHandler(INotificationServiceProvider notificationServiceProvider,
+        IXpRulesService xpRulesService)
     {
         this._notificationServiceProvider = notificationServiceProvider;
         this._xpRulesService = xpRulesService;
     }
 
-    protected override async Task HandleEventAsync(RepeatUserScanEvent domainEvent,
+    protected override async Task HandleEventAsync(FirstUserScanEvent domainEvent,
         CancellationToken cancellationToken)
     {
-        await this._xpRulesService.CalculateXpForRepeatScanAsync(domainEvent.UserId, domainEvent.ObjectBusinessId,
+        await this._xpRulesService.CalculateXpForFirstScanAsync(domainEvent.UserId, domainEvent.BusinessId,
             cancellationToken: cancellationToken);
-
         var userNotification = new AddUserNotificationCommand
         (
             domainEvent.UserId,
             "notification from service provider",
-            "you scanned an obj is repeated!",
+            "you scanned an obj for the first time!",
             NotificationType.InApp,
             null
         );
