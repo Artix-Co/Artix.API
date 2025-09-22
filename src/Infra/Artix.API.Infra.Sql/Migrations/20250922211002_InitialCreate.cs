@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Artix.API.Infra.Sql.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -253,6 +253,34 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TierConfigs",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MinScanCount = table.Column<int>(type: "int", nullable: false),
+                    RequiredUpgraded = table.Column<bool>(type: "bit", nullable: true),
+                    RequiredInCollection = table.Column<bool>(type: "bit", nullable: true),
+                    MinDaysSinceAcquired = table.Column<int>(type: "int", nullable: true),
+                    RequiredSpecial = table.Column<bool>(type: "bit", nullable: true),
+                    RequiredSaleType = table.Column<int>(type: "int", nullable: true),
+                    RequiredMembershipType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequiredActiveStreak = table.Column<bool>(type: "bit", nullable: true),
+                    RequiredCoOpKey = table.Column<bool>(type: "bit", nullable: true),
+                    TierLevel = table.Column<int>(type: "int", nullable: false),
+                    Multiplier = table.Column<double>(type: "float", nullable: false),
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TierConfigs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Types",
                 columns: table => new
                 {
@@ -463,6 +491,8 @@ namespace Artix.API.Infra.Sql.Migrations
                     StrikeStart = table.Column<DateTime>(type: "datetime2", nullable: false),
                     StrikeCount = table.Column<int>(type: "int", nullable: false),
                     LastInteraction = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    FuelCount = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -560,7 +590,10 @@ namespace Artix.API.Infra.Sql.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     MuseumId = table.Column<long>(type: "bigint", nullable: false),
-                    AcquiredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsUnlocked = table.Column<bool>(type: "bit", nullable: false),
+                    UnlockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ShareCount = table.Column<int>(type: "int", nullable: false),
+                    IsShared = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
@@ -613,6 +646,64 @@ namespace Artix.API.Infra.Sql.Migrations
                         name: "FK_UserNotification_Notifications_NotificationId",
                         column: x => x.NotificationId,
                         principalTable: "Notifications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JournalEntries",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ObjectId = table.Column<long>(type: "bigint", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SketchUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JournalEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JournalEntries_Objects_ObjectId",
+                        column: x => x.ObjectId,
+                        principalTable: "Objects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MarketplaceItems",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PricePoints = table.Column<int>(type: "int", nullable: true),
+                    ListedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsSold = table.Column<bool>(type: "bit", nullable: true),
+                    ObjectId = table.Column<long>(type: "bigint", nullable: true),
+                    SellerId = table.Column<long>(type: "bigint", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MarketplaceItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MarketplaceItems_AspNetUsers_SellerId",
+                        column: x => x.SellerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_MarketplaceItems_Objects_ObjectId",
+                        column: x => x.ObjectId,
+                        principalTable: "Objects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -714,7 +805,7 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserObjects",
+                name: "UserScans",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -732,15 +823,15 @@ namespace Artix.API.Infra.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserObjects", x => x.Id);
+                    table.PrimaryKey("PK_UserScans", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserObjects_AspNetUsers_UserId",
+                        name: "FK_UserScans_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserObjects_Objects_ObjectId",
+                        name: "FK_UserScans_Objects_ObjectId",
                         column: x => x.ObjectId,
                         principalTable: "Objects",
                         principalColumn: "Id",
@@ -887,91 +978,6 @@ namespace Artix.API.Infra.Sql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "JournalEntries",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ObjectId = table.Column<long>(type: "bigint", nullable: false),
-                    ObjectMuseumId = table.Column<long>(type: "bigint", nullable: false),
-                    ObjectId1 = table.Column<long>(type: "bigint", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SketchUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_JournalEntries", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_JournalEntries_MuseumObjects_ObjectMuseumId_ObjectId1",
-                        columns: x => new { x.ObjectMuseumId, x.ObjectId1 },
-                        principalTable: "MuseumObjects",
-                        principalColumns: new[] { "MuseumId", "ObjectId" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MarketplaceItems",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PricePoints = table.Column<int>(type: "int", nullable: true),
-                    ListedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    IsSold = table.Column<bool>(type: "bit", nullable: true),
-                    ObjectId = table.Column<long>(type: "bigint", nullable: true),
-                    ObjectMuseumId = table.Column<long>(type: "bigint", nullable: true),
-                    ObjectId1 = table.Column<long>(type: "bigint", nullable: true),
-                    SellerId = table.Column<long>(type: "bigint", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MarketplaceItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MarketplaceItems_AspNetUsers_SellerId",
-                        column: x => x.SellerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_MarketplaceItems_MuseumObjects_ObjectMuseumId_ObjectId1",
-                        columns: x => new { x.ObjectMuseumId, x.ObjectId1 },
-                        principalTable: "MuseumObjects",
-                        principalColumns: new[] { "MuseumId", "ObjectId" });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VoiceTrackFiles",
-                columns: table => new
-                {
-                    FileId = table.Column<long>(type: "bigint", nullable: false),
-                    VoiceTrackId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VoiceTrackFiles", x => new { x.FileId, x.VoiceTrackId });
-                    table.ForeignKey(
-                        name: "FK_VoiceTrackFiles_Files_FileId",
-                        column: x => x.FileId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_VoiceTrackFiles_VoiceTracks_FileId",
-                        column: x => x.FileId,
-                        principalTable: "VoiceTracks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserJournalEntries",
                 columns: table => new
                 {
@@ -998,6 +1004,30 @@ namespace Artix.API.Infra.Sql.Migrations
                         name: "FK_UserJournalEntries_JournalEntries_JournalEntryId",
                         column: x => x.JournalEntryId,
                         principalTable: "JournalEntries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VoiceTrackFiles",
+                columns: table => new
+                {
+                    FileId = table.Column<long>(type: "bigint", nullable: false),
+                    VoiceTrackId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VoiceTrackFiles", x => new { x.FileId, x.VoiceTrackId });
+                    table.ForeignKey(
+                        name: "FK_VoiceTrackFiles_Files_FileId",
+                        column: x => x.FileId,
+                        principalTable: "Files",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_VoiceTrackFiles_VoiceTracks_FileId",
+                        column: x => x.FileId,
+                        principalTable: "VoiceTracks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1093,14 +1123,14 @@ namespace Artix.API.Infra.Sql.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JournalEntries_ObjectMuseumId_ObjectId1",
+                name: "IX_JournalEntries_ObjectId",
                 table: "JournalEntries",
-                columns: new[] { "ObjectMuseumId", "ObjectId1" });
+                column: "ObjectId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MarketplaceItems_ObjectMuseumId_ObjectId1",
+                name: "IX_MarketplaceItems_ObjectId",
                 table: "MarketplaceItems",
-                columns: new[] { "ObjectMuseumId", "ObjectId1" });
+                column: "ObjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MarketplaceItems_SellerId",
@@ -1246,13 +1276,13 @@ namespace Artix.API.Infra.Sql.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserObjects_ObjectId",
-                table: "UserObjects",
+                name: "IX_UserScans_ObjectId",
+                table: "UserScans",
                 column: "ObjectId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserObjects_UserId",
-                table: "UserObjects",
+                name: "IX_UserScans_UserId",
+                table: "UserScans",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -1340,6 +1370,9 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "MuseumImages");
 
             migrationBuilder.DropTable(
+                name: "MuseumObjects");
+
+            migrationBuilder.DropTable(
                 name: "ObjectHistoricalPeriods");
 
             migrationBuilder.DropTable(
@@ -1361,6 +1394,9 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "SeasonTasks");
 
             migrationBuilder.DropTable(
+                name: "TierConfigs");
+
+            migrationBuilder.DropTable(
                 name: "UserImages");
 
             migrationBuilder.DropTable(
@@ -1376,7 +1412,7 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "UserNotification");
 
             migrationBuilder.DropTable(
-                name: "UserObjects");
+                name: "UserScans");
 
             migrationBuilder.DropTable(
                 name: "UserSeasonProgresses");
@@ -1406,6 +1442,9 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "JournalEntries");
 
             migrationBuilder.DropTable(
+                name: "Museums");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
@@ -1418,16 +1457,10 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "MuseumObjects");
+                name: "Objects");
 
             migrationBuilder.DropTable(
                 name: "Seasons");
-
-            migrationBuilder.DropTable(
-                name: "Museums");
-
-            migrationBuilder.DropTable(
-                name: "Objects");
         }
     }
 }

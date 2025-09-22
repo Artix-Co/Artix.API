@@ -4,13 +4,13 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserObjectWriteConfiguration : BaseEntityConfiguration<UserScan> 
+internal sealed class UserScanWriteConfiguration : BaseEntityConfiguration<UserScan> 
 {
     public void Configure(EntityTypeBuilder<UserScan> entity)
     {
         base.Configure(entity);
 
-        entity.ToTable("UserObjects");
+        entity.ToTable("UserScans");
 
         entity.Property(e => e.UserId)
             .IsRequired();
@@ -43,25 +43,25 @@ internal sealed class UserObjectWriteConfiguration : BaseEntityConfiguration<Use
             .HasForeignKey(e => e.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.HasCheckConstraint("CK_UserObjects_ScanCount_NonNegative",
+        entity.HasCheckConstraint("CK_UserScans_ScanCount_NonNegative",
             "[ScanCount] >= 0"); // Ensure ScanCount is non-negative
-        entity.HasCheckConstraint("CK_UserObjects_UserId_NotEqual_ObjectId",
+        entity.HasCheckConstraint("CK_UserScans_UserId_NotEqual_ObjectId",
             "[UserId] != [ObjectId]"); // Prevent invalid relationships
 
         entity.HasIndex(e => new { e.UserId, e.ObjectId })
-            .HasDatabaseName("IX_UserObjects_UserId_ObjectId")
+            .HasDatabaseName("IX_UserScans_UserId_ObjectId")
             .IsUnique();
 
         entity.HasIndex(e => e.UserId)
-            .HasDatabaseName("IX_UserObjects_UserId");
+            .HasDatabaseName("IX_UserScans_UserId");
 
         entity.HasIndex(e => e.ObjectId)
-            .HasDatabaseName("IX_UserObjects_ObjectId");
+            .HasDatabaseName("IX_UserScans_ObjectId");
 
         entity.HasIndex(e => e.AcquiredAt)
-            .HasDatabaseName("IX_UserObjects_AcquiredAt");
+            .HasDatabaseName("IX_UserScans_AcquiredAt");
 
         entity.HasIndex(e => e.InCollection)
-            .HasDatabaseName("IX_UserObjects_InCollection");
+            .HasDatabaseName("IX_UserScans_InCollection");
     }
 }

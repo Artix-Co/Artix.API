@@ -3,6 +3,7 @@ namespace Artix.API.Infra.Sql;
 using Core.Contract.Primitives.Repositories;
 using Data;
 using Data.DbContexts;
+using Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +29,10 @@ public static class DependencyInjection
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
             );
-
+        
+        
+        services.AddSingleton<IChangeInterceptor, TimestampInterceptor>();
+        services.AddSingleton<IChangeInterceptor, DomainEventInterceptor>();
         services.AddScoped(typeof(ICommandRepository<>), typeof(CommandRepository<>));
         services.AddScoped(typeof(IQueryRepository<>), typeof(QueryRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

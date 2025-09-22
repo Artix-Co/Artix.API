@@ -22,7 +22,8 @@ internal sealed class FirstUserScanEventHandler : NotificationHandlerBase<FirstU
     protected override async Task HandleEventAsync(FirstUserScanEvent domainEvent,
         CancellationToken cancellationToken)
     {
-        await this._xpRulesService.CalculateXpForFirstScanAsync(domainEvent.UserId, domainEvent.BusinessId);
+        await this._xpRulesService.CalculateXpForFirstScanAsync(domainEvent.UserId, domainEvent.BusinessId,
+            cancellationToken: cancellationToken);
         var userNotification = new AddUserNotificationCommand
         (
             domainEvent.UserId,

@@ -70,6 +70,16 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .HasForeignKey(ot => ot.ObjectId)
             .OnDelete(DeleteBehavior.Cascade);
         
+        entity.HasMany(o => o.JournalEntries)
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(ot => ot.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        entity.HasMany(o => o.MarketplaceItems)
+            .WithOne(ot => ot.Object)
+            .HasForeignKey(ot => ot.ObjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         // Indexes
         entity.HasIndex(o => o.Name)
             .HasDatabaseName("IX_Objects_Name");

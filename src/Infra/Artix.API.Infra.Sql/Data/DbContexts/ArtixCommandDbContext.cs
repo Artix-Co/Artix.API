@@ -12,9 +12,11 @@ using Core.Domain.Entities.File;
 using Core.Domain.Entities.Notification;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.OTP;
+using Core.Domain.Entities.Tier;
 using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;
 using Core.Domain.Persistence;
+using Interceptors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +31,14 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     AppUserToken>
 
 {
-    public ArtixCommandDbContext(DbContextOptions<ArtixCommandDbContext> options)
+    private readonly IEnumerable<IChangeInterceptor> _interceptors;
+
+    public ArtixCommandDbContext(
+        DbContextOptions<ArtixCommandDbContext> options,
+        IEnumerable<IChangeInterceptor> interceptors)
         : base(options)
     {
+        _interceptors = interceptors;
     }
 
     #region DbSets
@@ -51,7 +58,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
-    public DbSet<UserScan> UserObjects { get; set; }
+    public DbSet<UserScan> UserScans { get; set; }
     public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
     public DbSet<UserStrike> UserStrikes { get; set; }
 
@@ -76,9 +83,9 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<AppVersion> AppVersions { get; set; }
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<TierConfig> TierConfigs { get; set; }
 
     #endregion
-
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -93,69 +100,21 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
             type => type.Name.EndsWith("WriteConfiguration"));
     }
 
-
     public override int SaveChanges()
     {
-        UpdateTimestamps();
-        ProcessDomainEvents();
+        foreach (var interceptor in _interceptors)
+        {
+            interceptor.BeforeSaveChanges(this);
+        }
         return base.SaveChanges();
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        UpdateTimestamps();
-        ProcessDomainEvents();
+        foreach (var interceptor in _interceptors)
+        {
+            await interceptor.BeforeSaveChangesAsync(this, cancellationToken);
+        }
         return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    private void UpdateTimestamps()
-    {
-        var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is BaseEntity && (e.State == EntityState.Added || e.State == EntityState.Modified));
-
-        foreach (var entityEntry in entries)
-        {
-            var entity = (BaseEntity)entityEntry.Entity;
-
-            if (entityEntry.State == EntityState.Added)
-            {
-                entityEntry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
-            }
-            else if (entityEntry.State == EntityState.Modified)
-            {
-                entityEntry.Property(nameof(BaseEntity.ModifiedAt)).CurrentValue = DateTime.UtcNow;
-                entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
-            }
-        }
-    }
-
-    private void ProcessDomainEvents()
-    {
-        var aggregates = ChangeTracker.Entries<AggregateRoot>()
-            .Where(e => e.Entity.DomainEvents.Any())
-            .Select(e => e.Entity)
-            .ToList();
-
-
-        foreach (var aggregate in aggregates)
-        {
-            foreach (var @event in aggregate.DomainEvents)
-            {
-                var outboxMessage = new OutboxMessage
-                {
-                    Type = @event.GetType().AssemblyQualifiedName!,
-                    Data = JsonConvert.SerializeObject(@event, new JsonSerializerSettings
-                    {
-                        TypeNameHandling = TypeNameHandling.Auto,
-                        Formatting = Formatting.Indented
-                    }),
-                    Status = "Pending",
-                    CreatedAt = DateTime.UtcNow
-                };
-                OutboxMessages.Add(outboxMessage);
-            }
-
-            aggregate.ClearDomainEvents();
-        }
     }
 }

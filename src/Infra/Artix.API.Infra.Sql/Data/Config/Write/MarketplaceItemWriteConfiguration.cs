@@ -23,14 +23,7 @@ internal sealed class MarketplaceItemWriteConfiguration : BaseEntityConfiguratio
 
         entity.Property(e => e.IsSold)
             .IsRequired(false);
-
-        entity.Property(e => e.ObjectId)
-            .IsRequired(false);
-
-        entity.Property(e => e.SellerId)
-            .IsRequired(false);
-
-
+        
         entity.HasOne(e => e.Object)
             .WithMany()
             .HasForeignKey(e => e.ObjectId)

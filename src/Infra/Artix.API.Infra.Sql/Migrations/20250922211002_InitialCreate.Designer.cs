@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Artix.API.Infra.Sql.Migrations
 {
     [DbContext(typeof(ArtixCommandDbContext))]
-    [Migration("20250902084946_Init")]
-    partial class Init
+    [Migration("20250922211002_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -164,12 +164,6 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<long>("ObjectId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ObjectId1")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ObjectMuseumId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("SketchUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -178,7 +172,7 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ObjectMuseumId", "ObjectId1");
+                    b.HasIndex("ObjectId");
 
                     b.ToTable("JournalEntries");
                 });
@@ -739,6 +733,69 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.ToTable("SeasonTasks");
                 });
 
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Tier.TierConfig", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("smalldatetime");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("MinDaysSinceAcquired")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinScanCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("smalldatetime");
+
+                    b.Property<double>("Multiplier")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("RequiredActiveStreak")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("RequiredCoOpKey")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("RequiredInCollection")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RequiredMembershipType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RequiredSaleType")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("RequiredSpecial")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("RequiredUpgraded")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("TierLevel")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TierConfigs");
+                });
+
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.AppRole", b =>
                 {
                     b.Property<long>("Id")
@@ -951,12 +1008,6 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<long?>("ObjectId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ObjectId1")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ObjectMuseumId")
-                        .HasColumnType("bigint");
-
                     b.Property<int?>("PricePoints")
                         .HasColumnType("int");
 
@@ -965,9 +1016,9 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SellerId");
+                    b.HasIndex("ObjectId");
 
-                    b.HasIndex("ObjectMuseumId", "ObjectId1");
+                    b.HasIndex("SellerId");
 
                     b.ToTable("MarketplaceItems");
                 });
@@ -1077,9 +1128,6 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime?>("AcquiredAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1091,11 +1139,23 @@ namespace Artix.API.Infra.Sql.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsShared")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUnlocked")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("smalldatetime");
 
                     b.Property<long>("MuseumId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("ShareCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UnlockedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
@@ -1109,7 +1169,7 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.ToTable("UserMuseumKeys");
                 });
 
-            modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserObject", b =>
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserScan", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -1155,7 +1215,7 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserObjects");
+                    b.ToTable("UserScans");
                 });
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserSeasonProgress", b =>
@@ -1214,6 +1274,12 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("smalldatetime");
+
+                    b.Property<int>("FuelCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -1553,9 +1619,9 @@ namespace Artix.API.Infra.Sql.Migrations
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.JournalEntry.JournalEntry", b =>
                 {
-                    b.HasOne("Artix.API.Core.Domain.Entities.Museum.MuseumObject", "Object")
-                        .WithMany()
-                        .HasForeignKey("ObjectMuseumId", "ObjectId1")
+                    b.HasOne("Artix.API.Core.Domain.Entities.Object.Object", "Object")
+                        .WithMany("JournalEntries")
+                        .HasForeignKey("ObjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1736,13 +1802,14 @@ namespace Artix.API.Infra.Sql.Migrations
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.MarketplaceItem", b =>
                 {
+                    b.HasOne("Artix.API.Core.Domain.Entities.Object.Object", "Object")
+                        .WithMany("MarketplaceItems")
+                        .HasForeignKey("ObjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Artix.API.Core.Domain.Entities.User.AppUser", "Seller")
                         .WithMany("MarketplaceItems")
                         .HasForeignKey("SellerId");
-
-                    b.HasOne("Artix.API.Core.Domain.Entities.Museum.MuseumObject", "Object")
-                        .WithMany()
-                        .HasForeignKey("ObjectMuseumId", "ObjectId1");
 
                     b.Navigation("Object");
 
@@ -1817,16 +1884,16 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserObject", b =>
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserScan", b =>
                 {
                     b.HasOne("Artix.API.Core.Domain.Entities.Object.Object", "Object")
-                        .WithMany("UserObjects")
+                        .WithMany("UserScans")
                         .HasForeignKey("ObjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Artix.API.Core.Domain.Entities.User.AppUser", "User")
-                        .WithMany("UserObjects")
+                        .WithMany("UserScans")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1998,6 +2065,10 @@ namespace Artix.API.Infra.Sql.Migrations
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Object.Object", b =>
                 {
+                    b.Navigation("JournalEntries");
+
+                    b.Navigation("MarketplaceItems");
+
                     b.Navigation("MuseumObjects");
 
                     b.Navigation("ObjectHistoricalPeriods");
@@ -2008,7 +2079,7 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Navigation("ObjectTypes");
 
-                    b.Navigation("UserObjects");
+                    b.Navigation("UserScans");
                 });
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Object.Type", b =>
@@ -2039,7 +2110,7 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Navigation("UserMuseumKeys");
 
-                    b.Navigation("UserObjects");
+                    b.Navigation("UserScans");
 
                     b.Navigation("UserSeasonProgresses");
 

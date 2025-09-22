@@ -6,7 +6,7 @@ using Interfaces.TierCalculator;
 using Interfaces.XPRules;
 using Microsoft.AspNetCore.Identity;
 
-internal sealed class XpRulesService : IXpRulesService
+public sealed class XpRulesService : IXpRulesService
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly UserManager<AppUser> _userManager;

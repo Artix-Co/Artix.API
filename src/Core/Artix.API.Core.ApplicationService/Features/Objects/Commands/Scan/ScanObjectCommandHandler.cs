@@ -43,16 +43,18 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         if (@object == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
 
-        var userObject = user.UserScans.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
-
-        if (userObject == null)
-        {
-            @object.FirstTimeUserScan(user.Id);
-        }
-        else
-        {
-            @object.RepeatUserScan(userObject);
-        }
+        // var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
+        //
+        // if (userScan == null)
+        // {
+        //     @object.FirstTimeUserScan(user.Id);
+        // }
+        // else
+        // {
+        //     @object.RepeatUserScan(userScan);
+        // }
+        
+        user.ProcessScan(@object);
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
         

@@ -12,8 +12,7 @@ internal sealed class JournalEntryWriteConfiguration : BaseEntityConfiguration<J
 
         entity.ToTable("JournalEntries");
 
-        entity.Property(e => e.ObjectId)
-            .IsRequired();
+  
 
         entity.Property(e => e.Title)
             .HasMaxLength(100)

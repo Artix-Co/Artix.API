@@ -12,20 +12,20 @@ internal sealed class RepeatUserScanEventHandler : NotificationHandlerBase<Repea
 {
     private readonly INotificationServiceProvider _notificationServiceProvider;
     private readonly IXpRulesService _xpRulesService;
-    private readonly ITierCalculatorService _tierCalculatorService;
+
 
     public RepeatUserScanEventHandler(INotificationServiceProvider notificationServiceProvider,
         IXpRulesService xpRulesService, ITierCalculatorService tierCalculatorService)
     {
         this._notificationServiceProvider = notificationServiceProvider;
         this._xpRulesService = xpRulesService;
-        this._tierCalculatorService = tierCalculatorService;
     }
 
     protected override async Task HandleEventAsync(RepeatUserScanEvent domainEvent,
         CancellationToken cancellationToken)
     {
-        await this._xpRulesService.CalculateXpForRepeatScanAsync(domainEvent.UserId, domainEvent.ObjectBusinessId);
+        await this._xpRulesService.CalculateXpForRepeatScanAsync(domainEvent.UserId, domainEvent.ObjectBusinessId,
+            cancellationToken: cancellationToken);
 
         var userNotification = new AddUserNotificationCommand
         (

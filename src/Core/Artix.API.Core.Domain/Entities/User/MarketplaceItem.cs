@@ -2,6 +2,7 @@
 
 using Artix.API.Core.Domain.Entities.Common;
 using Artix.API.Core.Domain.Entities.Museum;
+using Object;
 
 public class MarketplaceItem : BaseEntity
 {
@@ -13,7 +14,7 @@ public class MarketplaceItem : BaseEntity
 
 
     public long? ObjectId { get; set; }
-    public virtual MuseumObject? Object { get; set; }
+    public virtual Object? Object { get; set; }
 
 
     public long? SellerId { get; set; }

@@ -3,12 +3,13 @@
 
 using Common;
 using Museum;
+using Object;
 using User;
 
 public class JournalEntry : AggregateRoot
 {
     public long ObjectId { get; set; }
-    public virtual MuseumObject Object { get; set; }
+    public virtual Object Object { get; set; }
 
 
     public string? Title { get; set; }

@@ -3,6 +3,7 @@
 using Collection;
 using File;
 using Microsoft.AspNetCore.Identity;
+using Object;
 
 public class AppUser : IdentityUser<long>
 {
@@ -159,6 +160,18 @@ public class AppUser : IdentityUser<long>
                 sp.UserId == seasonProgress.UserId && sp.SeasonId == seasonProgress.SeasonId))
             _userSeasonProgresses.Add(seasonProgress);
     }
-    
-    
+
+    public void ProcessScan(Object @object)
+    {
+        var userScan = this._userScans.FirstOrDefault(uo => uo.UserId == this.Id && uo.ObjectId == @object.Id);
+
+        if (userScan == null)
+        {
+            @object.FirstTimeUserScan(this.Id);
+        }
+        else
+        {
+            @object.RepeatUserScan(userScan);
+        }
+    }
 }

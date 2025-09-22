@@ -45,7 +45,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }
-    public DbSet<UserScan> UserObjects { get; set; }
+    public DbSet<UserScan> UserScans { get; set; }
     public DbSet<UserSeasonProgress> UserSeasonProgresses { get; set; }
     public DbSet<UserStrike> UserStrikes { get; set; }
     

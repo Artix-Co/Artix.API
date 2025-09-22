@@ -7,6 +7,7 @@ using File;
 using Events;
 using User;
 using Exceptions;
+using JournalEntry;
 using Museum;
 
 public class Object : AggregateRoot
@@ -44,8 +45,18 @@ public class Object : AggregateRoot
     public virtual IReadOnlyCollection<MuseumObject> MuseumObjects => _museumObjects.AsReadOnly();
 
 
+    private readonly List<JournalEntry> _journalEntries = new();
+    public virtual IReadOnlyCollection<JournalEntry> JournalEntries => _journalEntries.AsReadOnly();
+    
+    
+
+    private readonly List<MarketplaceItem> _marketplaceItems = new();
+    public virtual IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
+
+
     private readonly List<UserScan> _userScans = new();
     public virtual IReadOnlyCollection<UserScan> UserScans => this._userScans.AsReadOnly();
+ 
 
     // Protected constructor for EF Core
     protected Object()

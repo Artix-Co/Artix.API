@@ -1,67 +1,54 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Elastic.Serilog.Sinks" Version="8.12.3"/>
-    <PackageVersion Include="Elasticsearch.Net" Version="7.17.5"/>
-    <PackageVersion Include="EFCore.BulkExtensions" Version="8.1.2"/>
-    <PackageVersion Include="FluentValidation" Version="11.11.0"/>
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0"/>
-    <PackageVersion Include="MediatR" Version="12.4.1"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication" Version="2.3.0"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2"/>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1"/>
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.1"/>
-    <PackageVersion Include="NEST" Version="7.17.5"/>
-    <PackageVersion Include="Scrutor" Version="6.0.1"/>
-    <PackageVersion Include="Serilog" Version="4.2.0"/>
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3"/>
-    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0"/>
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.1-dev-02317"/>
-    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0"/>
-    <PackageVersion Include="Serilog.Sinks.Elasticsearch" Version="10.0.0"/>
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
-    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0"/>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.1"/>
-    <PackageVersion Include="RabbitMQ.Client" Version="7.1.2"/>
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR" Version="1.2.0"/>
-    <PackageVersion Include="RedLock.net" Version="2.3.2"/>
-    <PackageVersion Include="StackExchange.Redis" Version="2.8.58"/>
-
-
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.2.1"/>
-    <PackageVersion Include="Aspire.Hosting" Version="9.2.1"/>
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.2.1"/>
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.2.1"/>
+    <PackageVersion Include="Elastic.Serilog.Sinks" Version="8.12.3" />
+    <PackageVersion Include="Elasticsearch.Net" Version="7.17.5" />
+    <PackageVersion Include="EFCore.BulkExtensions" Version="8.1.2" />
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageVersion Include="MediatR" Version="12.4.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.1" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="NEST" Version="7.17.5" />
+    <PackageVersion Include="NUnit" Version="4.4.0" />
+    <PackageVersion Include="Scrutor" Version="6.0.1" />
+    <PackageVersion Include="Serilog" Version="4.2.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.1-dev-02317" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.1" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.1.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageVersion Include="RedLock.net" Version="2.3.2" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.8.58" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.2.1" />
+    <PackageVersion Include="Aspire.Hosting" Version="9.2.1" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.2.1" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.2.1" />
     <PackageVersion Include="Aspire.Hosting.SqlServer" Version="9.2.1" />
-
-    
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.2.1" />
     <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0-rc.2.617" />
     <PackageVersion Include="AspNetCore.HealthChecks.RabbitMQ" Version="9.0.0-rc.2.617" />
     <PackageVersion Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0-rc.2.617" />
-
-
-
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="RestSharp" Version="112.1.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4"/>
-
-
-    
-    
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.7.0" />
-
-    
-    
-    
-    
   </ItemGroup>
 </Project>
