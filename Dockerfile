@@ -13,7 +13,7 @@ COPY ["Directory.Packages.props", "."]
 
 
 COPY ["src/", "src/"]
-#COPY ["tests/", "tests/"]
+COPY ["tests/", "tests/"]
 
 # Restore پروژه‌ها
 RUN dotnet restore "Artix.API.sln"
