@@ -10,7 +10,6 @@ using Core.Domain.Entities.Museum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,6 @@ using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Primitives;
-using File = System.IO.File;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
@@ -37,7 +35,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
- 
+
 
         var museums = MuseumQueries.GetAllMuseumsClientQuery(_queryDbContext, dto);
 
@@ -58,123 +56,38 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         return objects;
     }
 
-    public async Task<MuseumDetailsByIdDto> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto,
-        CancellationToken cancellationToken = default)
+    public MuseumDetailsByIdDto GetDetailsById(GetMuseumDetailsByIdQuery dto)
     {
         _logger.LogInformation("Fetching museum with ID: {MuseumId}", dto.Id);
 
-        var museum = await _queryDbContext.Museums
-            .Where(m => m.BusinessId == dto.Id)
-            .GroupJoin(_queryDbContext.MuseumObjects,
-                m => m.Id,
-                mo => mo.MuseumId,
-                (m, moGroup) => new
-                {
-                    Museum = m,
-                    MuseumObjects = moGroup,
-                    JournalEntryCount = _queryDbContext.JournalEntries
-                        .Count(je => moGroup.Any(mo => mo.ObjectId == je.ObjectId))
-                })
-            .Select(x => new MuseumDetailsByIdDto(x.Museum.BusinessId, x.Museum.Name, x.Museum.Description,
-                x.Museum.CreatedAt, x.Museum.IsActive, x.MuseumObjects.Count(), x.JournalEntryCount))
-            .FirstOrDefaultAsync(cancellationToken);
+        var museum = MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id);
 
         if (museum == null)
         {
             throw InfrastructureNotFoundException.ForEntity(nameof(Museum), dto.Id);
         }
 
-
         return museum;
     }
 
-     public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+    public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching objects with query: {@Query}", dto);
 
-        var query = _queryDbContext.Objects.AsQueryable();
+        var objects = MuseumQueries.GetAllObjectsQuery(
+            _queryDbContext,
+            dto.NameFilter,
+            dto.PageNumber,
+            dto.PageSize
+        ).ToList().AsReadOnly();
 
-        if (!string.IsNullOrWhiteSpace(dto.NameFilter))
-            query = query.Where(o => o.Name.Contains(dto.NameFilter));
-
-        if (dto.MuseumId.HasValue)
-            query = from o in query
-                join mo in _queryDbContext.MuseumObjects on o.Id equals mo.ObjectId
-                join m in _queryDbContext.Museums on mo.MuseumId equals m.Id
-                where m.BusinessId == dto.MuseumId.Value
-                select o;
-
-        if (dto.CategoryIds != null)
-            query = query.Where(o => _queryDbContext.ObjectTypes
-                .Any(ot => ot.ObjectId == o.Id && dto.CategoryIds.Contains(ot.TypeId)));
-
-        if (dto.IsSpecial.HasValue)
-            query = query.Where(o => o.IsSpecial == dto.IsSpecial.Value);
-
-        if (dto.IsHidden.HasValue)
-            query = query.Where(o => o.IsHidden == dto.IsHidden.Value);
-
-        if (dto.Tier.HasValue)
-            query = query.Where(o => o.Tier == dto.Tier.Value);
-
-        if (dto.Version.HasValue)
-            query = query.Where(o => o.Version == dto.Version.Value);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        query = dto.SortBy?.ToLowerInvariant() switch
-        {
-            "createdat" => dto.SortDescending
-                ? query.OrderByDescending(o => o.CreatedAt)
-                : query.OrderBy(o => o.CreatedAt),
-            "tier" => dto.SortDescending
-                ? query.OrderByDescending(o => o.Tier ?? int.MaxValue)
-                : query.OrderBy(o => o.Tier ?? int.MaxValue),
-            _ => dto.SortDescending ? query.OrderByDescending(o => o.Name) : query.OrderBy(o => o.Name)
-        };
-
-        var pagedObjects = query
-            .Skip((dto.PageNumber - 1) * dto.PageSize)
-            .Take(dto.PageSize)
-            .Select(o => new AllObjectDto
-            (
-                o.BusinessId,
-                o.Name,
-                o.GeneralInformation,
-                (from mo in _queryDbContext.MuseumObjects
-                    join m in _queryDbContext.Museums on mo.MuseumId equals m.Id
-                    where mo.ObjectId == o.Id
-                    select m.BusinessId).FirstOrDefault(),
-                o.QrCode,
-                o.IsSpecial,
-                o.IsHidden,
-                o.Tier,
-                o.Version,
-                o.CreatedAt,
-                _queryDbContext.ObjectTypes
-                    .Where(ot => ot.ObjectId == o.Id)
-                    .Join(_queryDbContext.Types,
-                        ot => ot.TypeId,
-                        t => t.Id,
-                        (ot, t) => new TypeDto(t.BusinessId, t.Name, t.Description))
-                    .ToList(),
-                _queryDbContext.HistoricalPeriods
-                    .Where(hp => _queryDbContext.ObjectHistoricalPeriods
-                        .Any(ohp => ohp.ObjectId == o.Id && ohp.HistoricalPeriodId == hp.Id))
-                    .Select(hp => new HistoricalPeriodDto
-                    (
-                        hp.BusinessId,
-                        hp.Name,
-                        hp.Description,
-                        hp.StartDate,
-                        hp.EndDate
-                    )).ToList()
-            ))
-            .ToList();
+        var totalCount = await _queryDbContext.Objects
+            .Where(o => string.IsNullOrWhiteSpace(dto.NameFilter) || o.Name.Contains(dto.NameFilter))
+            .CountAsync(cancellationToken);
 
         return new PaginatedResult<AllObjectDto>(
-            pagedObjects,
+            objects,
             totalCount,
             dto.PageNumber,
             true,
@@ -245,8 +158,6 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             dto.MuseumId, dto.UserId);
         return keyStatus;
     }
-
-
 
 
     public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(

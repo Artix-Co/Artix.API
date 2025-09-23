@@ -28,18 +28,20 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDeta
         this._museumCache = museumCache;
     }
 
-    public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query,
+        CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 
-        var result = await this._museumQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
+        var result = this._museumQueryRepository.GetDetailsById(query);
 
         if (result == null)
         {
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        await this._museumCache.AddToRecentAsync(user.Id.ToString(), RecentMuseumDto.Create(result.BusinessId, result.Name!));
+        await this._museumCache.AddToRecentAsync(user.Id.ToString(),
+            RecentMuseumDto.Create(result.BusinessId, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return Result<MuseumDetailsByIdDto>.Success(result);
     }

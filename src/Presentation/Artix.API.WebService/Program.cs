@@ -78,7 +78,7 @@ app.UseCustomMiddlewares(app.Environment);
 Log.Logger.Information("Application started!");
 
 
-if (environment.IsDevelopment())
+if (true)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
