@@ -42,17 +42,6 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         var @object = museum.FindObject(command.ObjectId);
         if (@object == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
-
-        // var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == user.Id && uo.ObjectId == @object.Id);
-        //
-        // if (userScan == null)
-        // {
-        //     @object.FirstTimeUserScan(user.Id);
-        // }
-        // else
-        // {
-        //     @object.RepeatUserScan(userScan);
-        // }
         
         user.ProcessScan(@object);
 
