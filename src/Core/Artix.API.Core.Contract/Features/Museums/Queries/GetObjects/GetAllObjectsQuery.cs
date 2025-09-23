@@ -3,9 +3,9 @@
 using Primitives.Models;
 
 public sealed record GetAllObjectsQuery(
+    List<long>? CategoryIds,
     string? NameFilter = null,
     Guid? MuseumId = null,
-    IReadOnlyCollection<long>? CategoryIds = null,
     bool? IsSpecial = null,
     bool? IsHidden = null,
     int? Tier = null,

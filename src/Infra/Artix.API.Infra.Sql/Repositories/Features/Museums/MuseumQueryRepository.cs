@@ -218,7 +218,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 where m.BusinessId == dto.MuseumId.Value
                 select o;
 
-        if (dto.CategoryIds.Any())
+        if (dto.CategoryIds != null)
             query = query.Where(o => _queryDbContext.ObjectTypes
                 .Any(ot => ot.ObjectId == o.Id && dto.CategoryIds.Contains(ot.TypeId)));
 
