@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Core.Contract.Features.Museums.Queries.GetAllMuseumsAdmin;
 using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
+using Data.CompiledQueries.Museums;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
@@ -36,32 +37,9 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
+ 
 
-        var query = _queryDbContext.Museums
-            .Include(o => o.MuseumImages)
-            .ThenInclude(of => of.FileEntity)
-            .AsSplitQuery();
-
-        var imageBase64 = query
-            .SelectMany(m => m.MuseumImages)
-            .Where(of => of.FileEntity.MimeType == "jpg" || of.FileEntity.MimeType == "png" ||
-                         of.FileEntity.MimeType == "jpeg" ||
-                         of.FileEntity.MimeType == "webp")
-            .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.FileEntity.FilePath)))
-            .FirstOrDefault();
-
-
-        if (!string.IsNullOrWhiteSpace(dto.Name))
-        {
-            query = query.Where(m => m.Name.Contains(dto.Name));
-        }
-
-
-        var museums = query
-            .AsEnumerable()
-            .Select(m =>
-                new AllMuseumsClientDto(m.BusinessId, m.Name, imageBase64, m.Description, m.CreatedAt, m.IsActive))
-            .OrderBy(m => m.Name);
+        var museums = MuseumQueries.GetAllMuseumsClientQuery(_queryDbContext, dto);
 
         if (museums == null)
         {
@@ -71,6 +49,14 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         return museums;
     }
 
+    public IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto)
+    {
+        _logger.LogInformation("Fetching objects for museum ID: {MuseumId}", dto.MuseumId);
+
+        var objects = MuseumQueries.GetMuseumObjectsQuery(_queryDbContext, dto.MuseumId);
+
+        return objects;
+    }
 
     public async Task<MuseumDetailsByIdDto> GetDetailsByIdAsync(GetMuseumDetailsByIdQuery dto,
         CancellationToken cancellationToken = default)
@@ -102,106 +88,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         return museum;
     }
 
-    public IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto)
-    {
-        _logger.LogInformation("Fetching objects for museum ID: {MuseumId}", dto.MuseumId);
-
-        var objects = _queryDbContext.MuseumObjects
-            .AsEnumerable()
-            .Join(
-                _queryDbContext.Objects,
-                mo => mo.ObjectId,
-                o => o.Id,
-                (mo, o) => new { MuseumObject = mo, Object = o })
-            .Join(
-                _queryDbContext.Museums,
-                x => x.MuseumObject.MuseumId,
-                m => m.Id,
-                (x, m) => new { x.Object, x.MuseumObject, Museum = m })
-            .Where(x => x.Museum.BusinessId == dto.MuseumId)
-            .Select(x => new MuseumObjectDto
-            (
-                x.Object.BusinessId,
-                x.Museum.BusinessId,
-                x.Object.Name,
-                x.Object.GeneralInformation,
-                x.Object.CreatedAt
-            ));
-
-        if (objects is null)
-        {
-            throw InfrastructureNotFoundException.WithMessage("Museum objects not found!");
-        }
-
-        return objects;
-    }
-
-
-    public IEnumerable<MuseumJournalEntryDto> GetJournalEntries(GetMuseumJournalEntriesQuery dto)
-    {
-        _logger.LogInformation("Fetching journal entries for museum ID: {MuseumId}", dto.MuseumId);
-
-        var journalEntries =
-            (from m in _queryDbContext.Museums
-                where m.Id == dto.MuseumId
-                join mo in _queryDbContext.MuseumObjects on m.Id equals mo.MuseumId
-                join o in _queryDbContext.Objects on mo.ObjectId equals o.Id
-                join je in _queryDbContext.JournalEntries on o.Id equals je.ObjectId
-                join uje in _queryDbContext.UserJournalEntries on je.Id equals uje.JournalEntryId into ujeGroup
-                from uje in ujeGroup.DefaultIfEmpty()
-                join u in _queryDbContext.Users on uje.UserId equals u.Id into userGroup
-                from user in userGroup.DefaultIfEmpty()
-                select new MuseumJournalEntryDto
-                (
-                    je.BusinessId,
-                    m.BusinessId,
-                    user.BusinessId,
-                    je.Notes,
-                    je.CreatedAt,
-                    je.Title,
-                    je.SketchUrl
-                ))
-            .AsEnumerable()
-            .OrderByDescending(x => x.CreatedAt);
-
-
-        return journalEntries;
-    }
-
-    public async Task<MuseumKeyStatusDto?> GetKeyStatusAsync(GetMuseumKeyStatusQuery dto,
-        CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("Fetching key status for museum ID: {MuseumId}, user ID: {UserId}", dto.MuseumId,
-            dto.UserId);
-
-        var museum = await _queryDbContext.Museums
-            .FirstOrDefaultAsync(m => m.BusinessId == dto.MuseumId, cancellationToken);
-
-        if (museum == null)
-            return null;
-
-        var keyStatus = await
-            (from umk in _queryDbContext.UserMuseumKeys
-                where umk.MuseumId == museum.Id && umk.UserId == dto.UserId
-                join u in _queryDbContext.Users on umk.UserId equals u.Id
-                select new MuseumKeyStatusDto(dto.MuseumId, true, umk.UnlockedAt, null))
-            .FirstOrDefaultAsync(cancellationToken);
-
-
-        if (keyStatus == null)
-        {
-            _logger.LogInformation("No key found for museum ID {MuseumId} and user ID {UserId}", dto.MuseumId,
-                dto.UserId);
-            throw InfrastructureNotFoundException.ForEntity(nameof(Museum), dto.MuseumId);
-        }
-
-        _logger.LogInformation("Successfully retrieved key status for museum ID {MuseumId}, user ID {UserId}",
-            dto.MuseumId, dto.UserId);
-        return keyStatus;
-    }
-
-
-    public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+     public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching objects with query: {@Query}", dto);
@@ -294,6 +181,73 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             dto.PageSize
         );
     }
+
+
+    public IEnumerable<MuseumJournalEntryDto> GetJournalEntries(GetMuseumJournalEntriesQuery dto)
+    {
+        _logger.LogInformation("Fetching journal entries for museum ID: {MuseumId}", dto.MuseumId);
+
+        var journalEntries =
+            (from m in _queryDbContext.Museums
+                where m.Id == dto.MuseumId
+                join mo in _queryDbContext.MuseumObjects on m.Id equals mo.MuseumId
+                join o in _queryDbContext.Objects on mo.ObjectId equals o.Id
+                join je in _queryDbContext.JournalEntries on o.Id equals je.ObjectId
+                join uje in _queryDbContext.UserJournalEntries on je.Id equals uje.JournalEntryId into ujeGroup
+                from uje in ujeGroup.DefaultIfEmpty()
+                join u in _queryDbContext.Users on uje.UserId equals u.Id into userGroup
+                from user in userGroup.DefaultIfEmpty()
+                select new MuseumJournalEntryDto
+                (
+                    je.BusinessId,
+                    m.BusinessId,
+                    user.BusinessId,
+                    je.Notes,
+                    je.CreatedAt,
+                    je.Title,
+                    je.SketchUrl
+                ))
+            .AsEnumerable()
+            .OrderByDescending(x => x.CreatedAt);
+
+
+        return journalEntries;
+    }
+
+    public async Task<MuseumKeyStatusDto?> GetKeyStatusAsync(GetMuseumKeyStatusQuery dto,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Fetching key status for museum ID: {MuseumId}, user ID: {UserId}", dto.MuseumId,
+            dto.UserId);
+
+        var museum = await _queryDbContext.Museums
+            .FirstOrDefaultAsync(m => m.BusinessId == dto.MuseumId, cancellationToken);
+
+        if (museum == null)
+            return null;
+
+        var keyStatus = await
+            (from umk in _queryDbContext.UserMuseumKeys
+                where umk.MuseumId == museum.Id && umk.UserId == dto.UserId
+                join u in _queryDbContext.Users on umk.UserId equals u.Id
+                select new MuseumKeyStatusDto(dto.MuseumId, true, umk.UnlockedAt, null))
+            .FirstOrDefaultAsync(cancellationToken);
+
+
+        if (keyStatus == null)
+        {
+            _logger.LogInformation("No key found for museum ID {MuseumId} and user ID {UserId}", dto.MuseumId,
+                dto.UserId);
+            throw InfrastructureNotFoundException.ForEntity(nameof(Museum), dto.MuseumId);
+        }
+
+        _logger.LogInformation("Successfully retrieved key status for museum ID {MuseumId}, user ID {UserId}",
+            dto.MuseumId, dto.UserId);
+        return keyStatus;
+    }
+
+
+
 
     public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(
         GetAllMuseumsAdminQuery dto,
