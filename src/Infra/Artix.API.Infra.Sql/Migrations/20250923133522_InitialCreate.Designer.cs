@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Artix.API.Infra.Sql.Migrations
 {
     [DbContext(typeof(ArtixCommandDbContext))]
-    [Migration("20250923083238_InitialCreate")]
+    [Migration("20250923133522_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
