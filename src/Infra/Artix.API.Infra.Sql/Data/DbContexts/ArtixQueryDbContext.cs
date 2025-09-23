@@ -81,8 +81,8 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly(),
-            type => type.Name.EndsWith("ReadConfiguration"));
+        var assembly = Assembly.GetExecutingAssembly();
+        modelBuilder.ApplyConfigurationsFromAssembly(assembly, 
+            t => t.Name.EndsWith("WriteConfiguration"));
     }
 }
