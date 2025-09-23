@@ -11,12 +11,14 @@ using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
 using Core.DomainService;
 using Endpoints;
+using Extensions;
 using Filters;
 using Infra.File;
 using Infra.Identity;
 using Infra.RabbitMQ;
 using Infra.Redis;
 using Infra.Sql;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
 using Nest;
@@ -94,7 +96,12 @@ public static class HostingExtension
 
         services.AddDomainServiceServices();
 
-        services.AddControllers();
+       services.AddControllers(options =>
+        {
+            options.Conventions.Add(new RouteTokenTransformerConvention(
+                new LowercaseParameterTransformer()));
+        });
+
 
         services.AddSwaggerGen(options =>
         {
