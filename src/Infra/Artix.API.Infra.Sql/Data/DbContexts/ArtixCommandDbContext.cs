@@ -96,23 +96,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
         var assembly = Assembly.GetExecutingAssembly();
-        var configTypes = assembly.GetTypes()
-            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>)) && !t.IsInterface && !t.IsAbstract)
-            .ToList();
-
-        Console.WriteLine($"Found {configTypes.Count} configurations:");
-        foreach (var type in configTypes)
-        {
-            Console.WriteLine(type.FullName);
-        }
-
-        if (configTypes.Count == 0)
-        {
-            throw new Exception("No configurations found at all! Check project inclusion and interfaces.");
-        }
-
         modelBuilder.ApplyConfigurationsFromAssembly(assembly, 
             t => t.Name.EndsWith("WriteConfiguration"));
     }
