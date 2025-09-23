@@ -240,7 +240,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .Include(o => o.ObjectHistoricalPeriods)
             .ThenInclude(ohp => ohp.HistoricalPeriod)
             .Include(o => o.ObjectTypes)
-            .ThenInclude(ot => ot.Type)
+            .ThenInclude(ot => ot.Category)
             .FirstOrDefaultAsync(o => o.BusinessId == dto.Id, cancellationToken);
 
         if (query == null)
@@ -304,9 +304,9 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         // Map related entities to DTOs
         var objectTypes = query.ObjectTypes
             .Select(ot => new TypeDto(
-                Id: ot.Type.BusinessId,
-                Name: ot.Type.Name,
-                Description: ot.Type.Description))
+                Id: ot.Category.BusinessId,
+                Name: ot.Category.Name,
+                Description: ot.Category.Description))
             .ToList();
 
         var historicalPeriods = query.ObjectHistoricalPeriods

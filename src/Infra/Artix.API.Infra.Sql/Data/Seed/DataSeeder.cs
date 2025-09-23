@@ -1,6 +1,5 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Seed;
 
-using Type = Core.Domain.Entities.Object.Type;
 using Object = Core.Domain.Entities.Object.Object;
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
@@ -12,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.Object.Enums;
-using Core.Domain.Entities.Tier;
+using Core.Domain.Entities.TierConfig;
 using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
 using Core.Domain.ValueObjects;
@@ -42,7 +41,7 @@ public static class DataSeeder
         var clientTypes = Enum.GetNames(typeof(ClientType)).ToList();
         var users = new List<AppUser>();
         var friendships = new List<Friendship>();
-        var categories = new List<Type>();
+        var categories = new List<Category>();
         var historicalPeriods = new List<HistoricalPeriod>();
         var museums = new List<Museum>();
         var objects = new List<Object>();
@@ -122,7 +121,7 @@ public static class DataSeeder
 
         for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
         {
-            categories.Add(Type.Create($"Fake category {i}", $"Fake description category {i}"));
+            categories.Add(Category.Create($"Fake category {i}", $"Fake description category {i}"));
         }
 
         context.Types.AddRange(categories);

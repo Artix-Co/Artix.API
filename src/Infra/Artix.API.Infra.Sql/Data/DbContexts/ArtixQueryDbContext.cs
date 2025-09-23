@@ -9,7 +9,7 @@ using Core.Domain.Entities.User;
 using Core.Domain.Entities.File;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.OTP;
-using Core.Domain.Entities.Tier;
+using Core.Domain.Entities.TierConfig;
 using Core.Domain.Entities.Version;
 using Core.Domain.Entities.Voice;
 using Microsoft.AspNetCore.Identity;
@@ -54,7 +54,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<Museum> Museums { get; set; }
     public DbSet<MuseumObject> MuseumObjects { get; set; }
     public DbSet<MuseumImage> MuseumImages { get; set; }
-    public DbSet<Type> Types { get; set; }
+    public DbSet<Category> Types { get; set; }
     public DbSet<FileEntity> Files { get; set; }
     public DbSet<Object> Objects { get; set; }
     public DbSet<ObjectModel> Object3DModels { get; set; }

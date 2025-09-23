@@ -2,7 +2,7 @@
 
 using Core.Contract.Features.Tiers.Queries;
 using Core.Contract.Features.Tiers.Queries.GetAll;
-using Core.Domain.Entities.Tier;
+using Core.Domain.Entities.TierConfig;
 using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Primitives;

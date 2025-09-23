@@ -1,12 +1,12 @@
-﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
+﻿namespace Artix.API.Infra.Sql.Data.Config.Write.Museum;
 
 using Artix.API.Core.Domain.Entities.Museum;
+using Artix.API.Core.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Write;
-using Write.Museum;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-internal sealed class HistoricalPeriodReadConfiguration : BaseEntityConfiguration<HistoricalPeriod>
+internal sealed class HistoricalPeriodWriteConfiguration : BaseEntityConfiguration<HistoricalPeriod>
 {
     public override void Configure(EntityTypeBuilder<HistoricalPeriod> entity)
     {
@@ -43,5 +43,26 @@ internal sealed class HistoricalPeriodReadConfiguration : BaseEntityConfiguratio
         entity.HasIndex(hp => hp.Name)
             .HasDatabaseName("IX_HistoricalPeriods_Name")
             .IsUnique();
+    }
+}
+
+
+ 
+// TODO: move it into utils/extensions
+public class HistoricalDateConverter : ValueConverter<HistoricalDate?, string?>
+{
+    public HistoricalDateConverter()
+        : base(
+            historicalDate => historicalDate == null
+                ? null
+                : historicalDate.Year < 0
+                    ? $"{Math.Abs(historicalDate.Year)} BC"
+                    : $"{historicalDate.Year} AD",
+            stringValue => string.IsNullOrEmpty(stringValue)
+                ? null
+                : stringValue.EndsWith("BC", StringComparison.OrdinalIgnoreCase)
+                    ? new HistoricalDate(-int.Parse(stringValue.Replace(" BC", "", StringComparison.OrdinalIgnoreCase)), 1, 1)
+                    : new HistoricalDate(int.Parse(stringValue.Replace(" AD", "", StringComparison.OrdinalIgnoreCase)), 1, 1))
+    {
     }
 }

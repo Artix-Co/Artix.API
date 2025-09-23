@@ -1,11 +1,10 @@
-﻿namespace Artix.API.Infra.Sql.Data.Config.Read;
+﻿namespace Artix.API.Infra.Sql.Data.Config.Write.Object;
 
-using Artix.API.Core.Domain.Entities.Museum;
-using Core.Domain.Entities.Object;
+using Artix.API.Core.Domain.Entities.Object;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class TypeReadConfiguration : BaseEntityConfiguration<Category>
+internal sealed class TypeWriteConfiguration : BaseEntityConfiguration<Category>
 {
     public override void Configure(EntityTypeBuilder<Category> entity)
     {

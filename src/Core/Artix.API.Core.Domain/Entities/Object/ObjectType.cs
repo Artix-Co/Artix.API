@@ -8,25 +8,25 @@ public class ObjectType
     public virtual Object Object { get; private set; }
 
     public long TypeId { get; private set; }
-    public virtual Type Type { get; private set; }
+    public virtual Category Category { get; private set; }
 
     protected ObjectType() { }
 
-    private ObjectType(Object obj, Type type)
+    private ObjectType(Object obj, Category category)
     {
         if (obj == null)
             throw DomainException.InvalidValue(nameof(obj));
-        if (type == null)
-            throw DomainException.InvalidValue(nameof(type));
+        if (category == null)
+            throw DomainException.InvalidValue(nameof(category));
 
         this.Object = obj;
         this.ObjectId = obj.Id;
-        this.Type = type;
-        this.TypeId = type.Id;
+        this.Category = category;
+        this.TypeId = category.Id;
     }
 
-    public static ObjectType Create(Object obj, Type type)
+    public static ObjectType Create(Object obj, Category category)
     {
-        return new ObjectType(obj, type);
+        return new ObjectType(obj, category);
     }
 }

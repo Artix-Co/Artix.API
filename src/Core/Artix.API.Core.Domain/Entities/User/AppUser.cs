@@ -25,8 +25,10 @@ public class AppUser : IdentityUser<long>
     private readonly List<UserImage> _userImages = [];
 
     private readonly List<UserXp> _userXps = [];
+    private readonly List<UserLoginHistory> _userLoginHistories = [];
 
     // Public read-only collections
+    public virtual IReadOnlyCollection<UserLoginHistory> UserLoginHistories => _userLoginHistories.AsReadOnly();
     public virtual IReadOnlyCollection<Collection> Collections => _collections.AsReadOnly();
     public virtual IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
 

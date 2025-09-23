@@ -344,7 +344,7 @@ public class Object : AggregateRoot
         !string.IsNullOrWhiteSpace(this.QrCode) &&
         !this.IsHidden;
 
-    public void AssignCategory(Type category)
+    public void AssignCategory(Category category)
     {
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
@@ -356,7 +356,7 @@ public class Object : AggregateRoot
         this._objectTypes.Add(link);
     }
 
-    public void RemoveCategory(Type category)
+    public void RemoveCategory(Category category)
     {
         if (category == null)
             throw DomainException.InvalidValue(nameof(category));
