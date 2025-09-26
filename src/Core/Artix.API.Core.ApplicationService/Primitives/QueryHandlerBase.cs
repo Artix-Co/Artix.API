@@ -13,7 +13,7 @@ public abstract class QueryHandlerBase<TQuery, TResponse> : IQueryHandler<TQuery
     where TQuery : IQuery<TResponse>
 {
     protected readonly IMemoryCache _cache;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AppUser> _userManager;
 
     protected QueryHandlerBase(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager)

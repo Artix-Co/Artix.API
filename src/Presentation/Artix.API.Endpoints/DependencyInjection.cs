@@ -18,7 +18,8 @@ public static class DependencyInjection
             {
                 policy.WithOrigins(allowedDomains)
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
             });
         });
     }

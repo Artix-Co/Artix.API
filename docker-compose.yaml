@@ -37,6 +37,11 @@ services:
       SA_PASSWORD: "Hello&Run1234"
       ACCEPT_EULA: "Y"
       MSSQL_PID: Express
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
     ports:
       - "1434:1433"
     volumes:
@@ -57,7 +62,7 @@ services:
       - internal_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "Heli@ghar771379", "ping"]
+      test: [ "CMD", "redis-cli", "-a", "Heli@ghar771379", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -87,6 +92,11 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
     healthcheck:
       test: curl -f http://localhost:80/ || exit 1
       interval: 10s
@@ -107,3 +117,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G

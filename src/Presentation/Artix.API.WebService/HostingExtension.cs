@@ -55,7 +55,7 @@ public static class HostingExtension
 
         // Configure Elasticsearch
         var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-
+        
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)

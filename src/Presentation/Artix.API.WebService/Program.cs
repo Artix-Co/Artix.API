@@ -36,6 +36,15 @@ builder.Services.AddArtixServices(builder.Configuration);
 builder.Host.UseSerilog();
 
 builder.AddServiceDefaults();
+
+// Configure Kestrel for high concurrency
+builder.WebHost.UseKestrel(options =>
+{
+    options.Limits.MaxConcurrentConnections = null;
+    options.Limits.MaxConcurrentUpgradedConnections = null;
+    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(65);
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+});
 var app = builder.Build();
 
 Log.Logger.Information("Application built!");
