@@ -2,6 +2,7 @@ using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
+using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,16 +51,23 @@ var app = builder.Build();
 
 Log.Logger.Information("Application built!");
 
+ 
 
+// Perform seeding for MongoDB and SQL
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+    
+    
+    var services = scope.ServiceProvider;
+    var mongoDatabase = services.GetRequiredService<IMongoDatabase>();
+    var dbContext = services.GetRequiredService<ArtixCommandDbContext>();
+    
+    await dbContext.Database.MigrateAsync();
 
-
-    await context.Database.MigrateAsync();
-    await DataSeeder.SeedAsync(context, userManager, roleManager);
+    await SqlDataSeeder.SeedAsync(dbContext, userManager, roleManager);
+    await MongoDataSeeder.SeedQuestsAsync(mongoDatabase);
 }
 
 app.UseExceptionHandler(config =>

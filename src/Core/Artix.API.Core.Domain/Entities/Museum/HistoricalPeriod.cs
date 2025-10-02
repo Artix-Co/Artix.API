@@ -3,7 +3,7 @@
 using Common;
 using Exceptions;
 using Object;
-using ValueObjects;
+using Object.ValueObjects;
 
 public class HistoricalPeriod : BaseEntity
 {

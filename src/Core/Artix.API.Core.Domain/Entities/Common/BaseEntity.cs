@@ -7,8 +7,8 @@ public class BaseEntity
 {
     [Key]
     public long Id { get; protected set; } 
-    public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
-    public DateTime? ModifiedAt { get; protected set; }
+    public DateTime CreatedAt { get;  set; } = DateTime.UtcNow;
+    public DateTime? ModifiedAt { get;  set; }
     public bool IsDeleted { get; protected set; }
     public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
     

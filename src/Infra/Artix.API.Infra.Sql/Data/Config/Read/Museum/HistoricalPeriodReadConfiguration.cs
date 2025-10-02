@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read.Museum;
 
 using Artix.API.Core.Domain.Entities.Museum;
-using Artix.API.Core.Domain.ValueObjects;
+using Core.Domain.Entities.Object.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

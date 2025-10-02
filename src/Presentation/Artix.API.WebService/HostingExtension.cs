@@ -7,6 +7,7 @@ using Core.Contract.Configs.Authentication;
 using Core.Contract.Configs.AuthenticationApi;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
+using Core.Contract.Configs.Mongo;
 using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
 using Core.DomainService;
@@ -15,6 +16,7 @@ using Extensions;
 using Filters;
 using Infra.File;
 using Infra.Identity;
+using Infra.Mongo;
 using Infra.RabbitMQ;
 using Infra.Redis;
 using Infra.Sql;
@@ -52,7 +54,7 @@ public static class HostingExtension
         services.Configure<AuthenticationApiSettings>(configuration.GetSection("AuthenticationApi"));
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
         services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
-
+        services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
         // Configure Elasticsearch
         var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
         
@@ -93,6 +95,7 @@ public static class HostingExtension
         services.AddElasticsearch(configuration);
         services.AddCorsPolicy(configuration);
         services.AddSqlServices(configuration);
+        services.AddMongoServices(configuration);
 
         services.AddDomainServiceServices();
 

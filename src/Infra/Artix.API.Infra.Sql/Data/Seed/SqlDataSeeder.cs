@@ -11,13 +11,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.Object;
 using Core.Domain.Entities.Object.Enums;
+using Core.Domain.Entities.Object.ValueObjects;
 using Core.Domain.Entities.TierConfig;
 using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
-using Core.Domain.ValueObjects;
 using DbContexts;
 
-public static class DataSeeder
+public static class SqlDataSeeder
 {
     private const int USER_SEED_COUNT = 7;
     private const int MUSEUM_SEED_COUNT = 7;

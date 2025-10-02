@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Domain.ValueObjects;
+﻿namespace Artix.API.Core.Domain.Entities.Object.ValueObjects;
 
 public class HistoricalDate
 {
