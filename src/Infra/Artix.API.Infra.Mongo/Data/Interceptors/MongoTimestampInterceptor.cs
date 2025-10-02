@@ -4,7 +4,7 @@ using Core.Domain.Entities.Common;
 
 public sealed class MongoTimestampInterceptor : IMongoInterceptor
 {
-    // Interface to define interceptor methods
+ 
   
 
     // Synchronous method for insert operations
@@ -14,7 +14,6 @@ public sealed class MongoTimestampInterceptor : IMongoInterceptor
 
         var now = DateTime.UtcNow;
         document.CreatedAt = now;
-        document.ModifiedAt = now;
     }
 
     // Synchronous method for update operations

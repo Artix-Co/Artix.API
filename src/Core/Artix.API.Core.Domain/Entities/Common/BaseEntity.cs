@@ -8,11 +8,11 @@ using MongoDB.Bson.Serialization.Attributes;
 public abstract class BaseEntity
 {
     [Key] // برای EF Core
-    public long Id { get; protected set; } // برای SQL Server
+    public long Id { get; } // برای SQL Server
 
     [BsonId] // برای MongoDB
     [BsonRepresentation(BsonType.String)] // ذخیره Guid به صورت رشته
-    public Guid BusinessId { get; protected set; }
+    public Guid BusinessId { get; }
 
     public bool IsDeleted { get; protected set; }
     public DateTime CreatedAt { get; set; }
@@ -24,7 +24,7 @@ public abstract class BaseEntity
         CreatedAt = DateTime.UtcNow;
     }
 
-    protected void MarkAsDeleted()
+    public void MarkAsDeleted()
     {
         IsDeleted = true;
         ModifiedAt = DateTime.UtcNow;

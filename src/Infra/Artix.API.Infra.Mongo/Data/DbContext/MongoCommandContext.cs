@@ -143,48 +143,53 @@ public sealed class MongoCommandContext
     }
 
     // Soft delete a document (async)
-    public async Task DeleteAsync<T>(T document, IClientSessionHandle? session = null, CancellationToken cancellationToken = default) where T : AggregateRoot
+    public async Task DeleteAsync<T>(T document, IClientSessionHandle? session = null, CancellationToken cancellationToken = default) 
+        where T : AggregateRoot
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
 
         if (document is not BaseEntity baseEntity)
-        {
             throw new InvalidOperationException($"Entity of type {typeof(T).Name} must inherit from BaseEntity");
-        }
 
-        // Apply interceptor before soft delete (treated as an update)
+        // تغییر وضعیت با استفاده از متد entity
+        baseEntity.MarkAsDeleted();
+
+        // interceptor
         await _interceptor.BeforeUpdateAsync(document, cancellationToken);
 
         var filter = Builders<T>.Filter.Eq("_id", document.BusinessId);
         var update = Builders<T>.Update
-            .Set("IsDeleted", true)
-            .Set(d => ((BaseEntity)d).ModifiedAt, baseEntity.ModifiedAt);
+            .Set(d => d.IsDeleted, baseEntity.IsDeleted)
+            .Set(d => d.ModifiedAt, baseEntity.ModifiedAt);
 
         var collection = _database.GetCollection<T>(typeof(T).Name + "s");
         await collection.UpdateOneAsync(session, filter, update, null, cancellationToken);
     }
 
-    // Soft delete a document (sync)
-    public void Delete<T>(T document, IClientSessionHandle? session = null) where T : AggregateRoot
+// Soft delete a document (sync)
+    public void Delete<T>(T document, IClientSessionHandle? session = null) 
+        where T : AggregateRoot
     {
         if (document == null) throw new ArgumentNullException(nameof(document));
 
         if (document is not BaseEntity baseEntity)
-        {
             throw new InvalidOperationException($"Entity of type {typeof(T).Name} must inherit from BaseEntity");
-        }
 
-        // Apply interceptor before soft delete (treated as an update)
+        // تغییر وضعیت با استفاده از متد entity
+        baseEntity.MarkAsDeleted();
+
+        // interceptor
         _interceptor.BeforeUpdate(document);
 
         var filter = Builders<T>.Filter.Eq("_id", document.BusinessId);
         var update = Builders<T>.Update
-            .Set("IsDeleted", true)
-            .Set(d => ((BaseEntity)d).ModifiedAt, baseEntity.ModifiedAt);
+            .Set(d => d.IsDeleted, baseEntity.IsDeleted)
+            .Set(d => d.ModifiedAt, baseEntity.ModifiedAt);
 
         var collection = _database.GetCollection<T>(typeof(T).Name + "s");
         collection.UpdateOne(session, filter, update);
     }
+
 }
 
 
