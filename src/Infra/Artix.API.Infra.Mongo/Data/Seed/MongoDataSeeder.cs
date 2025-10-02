@@ -1,21 +1,58 @@
 ﻿namespace Artix.API.Infra.Mongo.Data.Seed;
 
 using Core.Domain.Entities.Quest;
- 
-using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+ 
+
 public static class MongoDataSeeder
 {
+    public static async Task EnsureMongoMigrationAsync(IMongoDatabase database)
+    {
+
+        // چک کردن وجود مجموعه quest
+        var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
+        if (!collectionNames.Contains("quest"))
+        {
+            await database.CreateCollectionAsync("quest");
+        }
+
+        // ایجاد ایندکس‌ها
+        var collection = database.GetCollection<Quest>("quest");
+        var indexKeys = Builders<Quest>.IndexKeys
+            .Ascending("IsDeleted")
+            .Ascending("RelatedFeature")
+            .Ascending("Priority");
+
+        var indexModel = new CreateIndexModel<Quest>(indexKeys, new CreateIndexOptions
+        {
+            Name = "Quest_IsDeleted_RelatedFeature_Priority",
+            Background = true
+        });
+
+        var existingIndexes = await (await collection.Indexes.ListAsync()).ToListAsync();
+        if (!existingIndexes.Any(i => i["name"].AsString == "Quest_IsDeleted_RelatedFeature_Priority"))
+        {
+            await collection.Indexes.CreateOneAsync(indexModel);
+        }
+        else
+        {
+            throw new Exception("Index 'Quest_IsDeleted_RelatedFeature_Priority' already exists.");
+        }
+    }
+
     public static async Task SeedQuestsAsync(IMongoDatabase database)
     {
 
-        var collection = database.GetCollection<Quest>(typeof(Quest).Name.ToLowerInvariant());
+        var collection = database.GetCollection<Quest>("quest");
 
-        // چک کردن اینکه آیا collection خالیه (برای جلوگیری از seed تکراری)
+        // پاک کردن مجموعه برای جلوگیری از خطای DuplicateKey
+        await collection.DeleteManyAsync(Builders<Quest>.Filter.Empty);
+
+        // چک کردن اینکه آیا collection خالیه (برای اطمینان)
         var count = await collection.CountDocumentsAsync(Builders<Quest>.Filter.Empty);
         if (count > 0)
         {
@@ -32,8 +69,8 @@ public static class MongoDataSeeder
                 xpReward: 200,
                 bonusXp: 50,
                 tier: 1,
-                priority: 10, // اولویت بالا برای نمایش
-                deadline: DateTime.UtcNow.AddDays(30), // مهلت 30 روزه
+                priority: 10,
+                deadline: DateTime.UtcNow.AddDays(30),
                 isSeasonal: true,
                 relatedFeature: "QRHunts"
             ),
@@ -46,7 +83,7 @@ public static class MongoDataSeeder
                 bonusXp: 100,
                 tier: 2,
                 priority: 8,
-                deadline: null, // بدون مهلت
+                deadline: null,
                 isSeasonal: false,
                 relatedFeature: "LastQuiz"
             ),
@@ -72,19 +109,5 @@ public static class MongoDataSeeder
 
         // درج مستقیم Questها در MongoDB
         await collection.InsertManyAsync(quests);
-
-        // ایجاد Indexها
-        var indexKeys = Builders<Quest>.IndexKeys
-            .Ascending("IsDeleted")
-            .Ascending("RelatedFeature")
-            .Ascending("Priority");
-
-        var indexModel = new CreateIndexModel<Quest>(indexKeys, new CreateIndexOptions
-        {
-            Name = "Quest_IsDeleted_RelatedFeature_Priority",
-            Background = true // برای performance بهتر در production
-        });
-
-        await collection.Indexes.CreateOneAsync(indexModel);
     }
 }

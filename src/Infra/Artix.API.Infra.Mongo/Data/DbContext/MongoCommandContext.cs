@@ -8,12 +8,13 @@ using Core.Domain.Entities.Common;
 using Interceptors;
 
  
-public class MongoContext
+
+public sealed class MongoCommandContext
 {
     private readonly IMongoDatabase _database;
     private readonly MongoTimestampInterceptor _interceptor;
 
-    public MongoContext(IMongoDatabase database)
+    public MongoCommandContext(IMongoDatabase database)
     {
         _database = database ?? throw new ArgumentNullException(nameof(database));
         _interceptor = new MongoTimestampInterceptor();
@@ -154,7 +155,7 @@ public class MongoContext
         // Apply interceptor before soft delete (treated as an update)
         await _interceptor.BeforeUpdateAsync(document, cancellationToken);
 
-        var filter = Builders<T>.Filter.Eq("_id", document.Id);
+        var filter = Builders<T>.Filter.Eq("_id", document.BusinessId);
         var update = Builders<T>.Update
             .Set("IsDeleted", true)
             .Set(d => ((BaseEntity)d).ModifiedAt, baseEntity.ModifiedAt);
@@ -176,7 +177,7 @@ public class MongoContext
         // Apply interceptor before soft delete (treated as an update)
         _interceptor.BeforeUpdate(document);
 
-        var filter = Builders<T>.Filter.Eq("_id", document.Id);
+        var filter = Builders<T>.Filter.Eq("_id", document.BusinessId);
         var update = Builders<T>.Update
             .Set("IsDeleted", true)
             .Set(d => ((BaseEntity)d).ModifiedAt, baseEntity.ModifiedAt);
@@ -185,3 +186,7 @@ public class MongoContext
         collection.UpdateOne(session, filter, update);
     }
 }
+
+
+
+

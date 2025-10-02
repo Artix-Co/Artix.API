@@ -56,17 +56,32 @@ Log.Logger.Information("Application built!");
 // Perform seeding for MongoDB and SQL
 using (var scope = app.Services.CreateScope())
 {
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
-    
-    
     var services = scope.ServiceProvider;
     var mongoDatabase = services.GetRequiredService<IMongoDatabase>();
     var dbContext = services.GetRequiredService<ArtixCommandDbContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     
-    await dbContext.Database.MigrateAsync();
 
+    // اعمال migrationهای SQL
+    try
+    {
+        await dbContext.Database.MigrateAsync();
+        Log.Information("SQL migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to apply SQL migrations.");
+        throw;
+    }
+
+    // چک کردن و اعمال "migration" برای MongoDB
+    await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
+
+    // Seeding داده‌های SQL
     await SqlDataSeeder.SeedAsync(dbContext, userManager, roleManager);
+
+    // Seeding داده‌های MongoDB
     await MongoDataSeeder.SeedQuestsAsync(mongoDatabase);
 }
 

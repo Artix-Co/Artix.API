@@ -2,31 +2,29 @@
 
 using Core.Contract.Features.Quests.Queries;
 using Core.Domain.Entities.Quest;
+using Data.DbContext;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using Primitives;
 
 public sealed class QuestQueryRepository : MongoQueryRepository<Quest>, IQuestQueryRepository
 {
-    public QuestQueryRepository(IMongoDatabase database, ILogger<MongoQueryRepository<Quest>> logger) : base(database,
-        logger)
+    public QuestQueryRepository(MongoQueryContext queryDbContext, ILogger<MongoQueryRepository<Quest>> logger) : base(
+        queryDbContext, logger)
     {
     }
 
-    public async Task<long> GetTotalQuestsCountAsync()
+    public async Task<long> GetTotalQuestsCountAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Counting total quests");
-        var filter = Builders<Quest>.Filter.Eq("IsDeleted", false); // فقط Questهای غیرحذف‌شده
-        var count = await _collection.CountDocumentsAsync(filter);
+        var count = await this._queryDbContext.CountAsync<Quest>(cancellationToken);
         _logger.LogInformation("Total quests count: {Count}", count);
         return count;
     }
 
-    public async Task<List<Quest>> GetAllQuestsAsync()
+    public async Task<List<Quest>> GetAllQuestsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving all quests");
-        var filter = Builders<Quest>.Filter.Eq("IsDeleted", false); // فقط Questهای غیرحذف‌شده
-        var quests = await _collection.Find(filter).ToListAsync();
+        var quests = await this._queryDbContext.FindAsync<Quest>(cancellationToken);
         _logger.LogInformation("Retrieved {Count} quests", quests.Count);
         return quests;
     }

@@ -1,22 +1,29 @@
 ﻿namespace Artix.API.Core.Domain.Entities.Common;
 
+using System;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-public class BaseEntity
+public abstract class BaseEntity
 {
-    [Key]
-    public long Id { get; protected set; } 
-    public DateTime CreatedAt { get;  set; } = DateTime.UtcNow;
-    public DateTime? ModifiedAt { get;  set; }
-    public bool IsDeleted { get; protected set; }
-    public Guid BusinessId { get; protected set; } = Guid.CreateVersion7();
-    
-    
-    // برای پشتیبانی از EF Core
-    protected BaseEntity() { }
+    [Key] // برای EF Core
+    public long Id { get; protected set; } // برای SQL Server
 
-    // متدهای اختیاری برای رفتارهای مشترک
+    [BsonId] // برای MongoDB
+    [BsonRepresentation(BsonType.String)] // ذخیره Guid به صورت رشته
+    public Guid BusinessId { get; protected set; }
+
+    public bool IsDeleted { get; protected set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+
+    protected BaseEntity()
+    {
+        BusinessId = Guid.CreateVersion7(); // مقداردهی منحصربه‌فرد برای MongoDB
+        CreatedAt = DateTime.UtcNow;
+    }
+
     protected void MarkAsDeleted()
     {
         IsDeleted = true;

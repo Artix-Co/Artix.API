@@ -5,7 +5,7 @@ using Primitives.Repositories;
 
 public interface IQuestQueryRepository: IQueryRepository<Quest>
 {
-    Task<long> GetTotalQuestsCountAsync();
-    Task<List<Quest>> GetAllQuestsAsync();
+    Task<long> GetTotalQuestsCountAsync(CancellationToken cancellationToken = default);
+    Task<List<Quest>> GetAllQuestsAsync(CancellationToken cancellationToken = default);
 
 }
