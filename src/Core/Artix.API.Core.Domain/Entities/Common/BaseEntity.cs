@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 public abstract class BaseEntity
 {
     [Key] // برای EF Core
-    public long Id { get; } // برای SQL Server
+    public long Id { get; set; } // برای SQL Server
 
     [BsonId] // برای MongoDB
     [BsonRepresentation(BsonType.String)] // ذخیره Guid به صورت رشته

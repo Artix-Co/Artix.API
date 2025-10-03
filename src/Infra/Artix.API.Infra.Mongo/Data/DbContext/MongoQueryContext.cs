@@ -15,31 +15,66 @@ public sealed class MongoQueryContext
     // Get a collection by name
     public IMongoCollection<T> GetCollection<T>(string name) where T : AggregateRoot
     {
-        return _database.GetCollection<T>(name ?? throw new ArgumentNullException(nameof(name)));
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentNullException(nameof(name));
+        return _database.GetCollection<T>(name);
     }
 
-    // Find documents (async)
-    public async Task<List<T>> FindAsync<T>(CancellationToken cancellationToken = default) where T : AggregateRoot
+    // Generic find method with filter, sort, and options
+    public async Task<List<T>> FindAsync<T>(
+        FilterDefinition<T> filter,
+        SortDefinition<T>? sort = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default) where T : AggregateRoot
     {
-        var collection = _database.GetCollection<T>(typeof(T).Name + "s");
-        var filter = Builders<T>.Filter.Eq("IsDeleted", false);
-        return await collection.Find(filter).ToListAsync(cancellationToken);
+        var collection = GetCollection<T>(typeof(T).Name + "s");
+
+        // Combine with default IsDeleted filter
+        var finalFilter = Builders<T>.Filter.And(
+            filter,
+            Builders<T>.Filter.Eq(q => q.IsDeleted, false));
+
+        var findOptions = new FindOptions<T>();
+        if (sort != null)
+            findOptions.Sort = sort;
+        if (limit.HasValue)
+            findOptions.Limit = limit.Value;
+
+        return await collection.Find(finalFilter).ToListAsync(cancellationToken);
     }
 
-    // Find a single document (async)
-    public async Task<T> FindOneAsync<T>(CancellationToken cancellationToken = default) where T : AggregateRoot
+    // Find a single document
+    public async Task<T> FindOneAsync<T>(
+        FilterDefinition<T> filter,
+        SortDefinition<T>? sort = null,
+        CancellationToken cancellationToken = default) where T : AggregateRoot
     {
-        var collection = _database.GetCollection<T>(typeof(T).Name + "s");
-        var filter = Builders<T>.Filter.Eq("IsDeleted", false);
-        return await collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        var collection = GetCollection<T>(typeof(T).Name + "s");
+
+        // Combine with default IsDeleted filter
+        var finalFilter = Builders<T>.Filter.And(
+            filter,
+            Builders<T>.Filter.Eq(q => q.IsDeleted, false));
+
+        var findOptions = new FindOptions<T>();
+        if (sort != null)
+            findOptions.Sort = sort;
+
+        return await collection.Find(finalFilter).FirstOrDefaultAsync(cancellationToken);
     }
 
-    // Count documents (async)
-    public async Task<long> CountAsync<T>(CancellationToken cancellationToken = default)
-        where T : AggregateRoot
+    // Count documents
+    public async Task<long> CountAsync<T>(
+        FilterDefinition<T> filter,
+        CancellationToken cancellationToken = default) where T : AggregateRoot
     {
-        var collection = _database.GetCollection<T>(typeof(T).Name + "s");
-        var filter = Builders<T>.Filter.Eq("IsDeleted", false);
-        return await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        var collection = GetCollection<T>(typeof(T).Name + "s");
+
+        // Combine with default IsDeleted filter
+        var finalFilter = Builders<T>.Filter.And(
+            filter,
+            Builders<T>.Filter.Eq(q => q.IsDeleted, false));
+
+        return await collection.CountDocumentsAsync(finalFilter, cancellationToken: cancellationToken);
     }
 }

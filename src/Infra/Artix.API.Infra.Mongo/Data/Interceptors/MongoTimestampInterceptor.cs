@@ -1,41 +1,95 @@
 ﻿namespace Artix.API.Infra.Mongo.Data.Interceptors;
 
 using Core.Domain.Entities.Common;
+using MongoDB.Driver;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 public sealed class MongoTimestampInterceptor : IMongoInterceptor
 {
- 
-  
+    private readonly IMongoDatabase _database;
 
-    // Synchronous method for insert operations
-    public void BeforeInsert<T>(T document) where T : BaseEntity
+    public MongoTimestampInterceptor(IMongoDatabase database)
+    {
+        _database = database ?? throw new ArgumentNullException(nameof(database));
+    }
+
+    public void BeforeInsert<T>(T document) where T : AggregateRoot
     {
         if (document == null) return;
 
-        var now = DateTime.UtcNow;
-        document.CreatedAt = now;
+        // Assign auto-incrementing ID
+        document.Id = GetNextSequenceValue(typeof(T).Name);
+        document.CreatedAt = DateTime.UtcNow;
+        document.ModifiedAt = null; // Reset ModifiedAt for new documents
     }
 
-    // Synchronous method for update operations
-    public void BeforeUpdate<T>(T document) where T : BaseEntity
+    public void BeforeUpdate<T>(T document) where T : AggregateRoot
     {
         if (document == null) return;
 
         document.ModifiedAt = DateTime.UtcNow;
-        
     }
 
-    // Asynchronous method for insert operations
-    public async Task BeforeInsertAsync<T>(T document, CancellationToken cancellationToken) where T : BaseEntity
+    public async Task BeforeInsertAsync<T>(T document, CancellationToken cancellationToken) where T : AggregateRoot
     {
-        BeforeInsert(document); // Reuse synchronous logic
-        await Task.CompletedTask; // No additional async logic
+        if (document == null) return;
+
+        // Assign auto-incrementing ID asynchronously
+        document.Id = await GetNextSequenceValueAsync(typeof(T).Name, cancellationToken);
+        document.CreatedAt = DateTime.UtcNow;
+        document.ModifiedAt = null; // Reset ModifiedAt for new documents
     }
 
-    // Asynchronous method for update operations
-    public async Task BeforeUpdateAsync<T>(T document, CancellationToken cancellationToken) where T : BaseEntity
+    public async Task BeforeUpdateAsync<T>(T document, CancellationToken cancellationToken) where T : AggregateRoot
     {
-        BeforeUpdate(document); // Reuse synchronous logic
-        await Task.CompletedTask; // No additional async logic
+        if (document == null) return;
+
+        document.ModifiedAt = DateTime.UtcNow;
+    }
+
+    private async Task<long> GetNextSequenceValueAsync(string collectionName, CancellationToken cancellationToken)
+    {
+        var countersCollection = _database.GetCollection<Counter>("counters");
+
+        var filter = Builders<Counter>.Filter.Eq(c => c.Id, collectionName);
+        var update = Builders<Counter>.Update.Inc(c => c.SequenceValue, 1);
+        var options = new FindOneAndUpdateOptions<Counter>
+        {
+            ReturnDocument = ReturnDocument.After, IsUpsert = true // Create the document if it doesn't exist
+        };
+
+        try
+        {
+            var counter = await countersCollection
+                .FindOneAndUpdateAsync(filter, update, options, cancellationToken);
+            return counter.SequenceValue;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to generate sequence value for {collectionName}: {ex.Message}",
+                ex);
+        }
+    }
+
+    private long GetNextSequenceValue(string collectionName)
+    {
+        var countersCollection = _database.GetCollection<Counter>("counters");
+
+        var filter = Builders<Counter>.Filter.Eq(c => c.Id, collectionName);
+        var update = Builders<Counter>.Update.Inc(c => c.SequenceValue, 1);
+        var options = new FindOneAndUpdateOptions<Counter> { ReturnDocument = ReturnDocument.After, IsUpsert = true };
+
+        try
+        {
+            var counter = countersCollection.FindOneAndUpdate(filter, update, options);
+            return counter.SequenceValue;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to generate sequence value for {collectionName}: {ex.Message}",
+                ex);
+        }
     }
 }

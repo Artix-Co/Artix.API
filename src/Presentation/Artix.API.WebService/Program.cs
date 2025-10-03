@@ -2,6 +2,7 @@ using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
+using Artix.API.Infra.Mongo.Data.DbContext;
 using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.DbContexts;
@@ -58,7 +59,8 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var mongoDatabase = services.GetRequiredService<IMongoDatabase>();
-    var dbContext = services.GetRequiredService<ArtixCommandDbContext>();
+    var sqlCommandDbContext = services.GetRequiredService<ArtixCommandDbContext>();
+    var mongoCommandContext = services.GetRequiredService<MongoCommandContext>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     
@@ -66,7 +68,7 @@ using (var scope = app.Services.CreateScope())
     // اعمال migrationهای SQL
     try
     {
-        await dbContext.Database.MigrateAsync();
+        await sqlCommandDbContext.Database.MigrateAsync();
         Log.Information("SQL migrations applied successfully.");
     }
     catch (Exception ex)
@@ -79,10 +81,10 @@ using (var scope = app.Services.CreateScope())
     await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
 
     // Seeding داده‌های SQL
-    await SqlDataSeeder.SeedAsync(dbContext, userManager, roleManager);
+    await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
 
     // Seeding داده‌های MongoDB
-    await MongoDataSeeder.SeedQuestsAsync(mongoDatabase);
+    await MongoDataSeeder.SeedQuestsAsync(mongoCommandContext);
 }
 
 app.UseExceptionHandler(config =>
