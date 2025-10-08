@@ -21,6 +21,7 @@ using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Primitives;
+using File = System.IO.File;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
@@ -36,10 +37,34 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
-
-        var museums = MuseumQueries.GetAllMuseumsClientQuery(_queryDbContext, dto);
-
-        if (museums == null)
+        var museums = this._queryDbContext.Museums
+            .Include(o => o.MuseumImages)
+            .ThenInclude(of => of.FileEntity)
+            .AsSplitQuery()
+            .OrderBy(m => m.Name)
+            .AsEnumerable() 
+            .Where(m => string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name))
+            .Select(m => new
+            {
+                Museum = m,
+                ImagePath = m.MuseumImages
+                    .Where(of => of.FileEntity.MimeType == "jpg" ||
+                                 of.FileEntity.MimeType == "png" ||
+                                 of.FileEntity.MimeType == "jpeg" ||
+                                 of.FileEntity.MimeType == "webp")
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault()
+            })
+            .Select(x => new AllMuseumsClientDto(
+                x.Museum.BusinessId,
+                x.Museum.Name,
+                x.ImagePath != null ? TryReadFileAsBase64(x.ImagePath) : null, // File I/O moved to client-side
+                x.Museum.Description,
+                x.Museum.CreatedAt,
+                x.Museum.IsActive
+            ));
+        
+        if (museums == null || !museums.Any())
         {
             throw InfrastructureNotFoundException.WithMessage("No museums found!");
         }
@@ -226,5 +251,19 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             Draw: true,
             PageSize: pageSize
         );
+    }
+
+    private static string TryReadFileAsBase64(string filePath)
+    {
+        try
+        {
+            return Convert.ToBase64String(File.ReadAllBytes(filePath));
+        }
+        catch (Exception ex)
+        {
+            // Log the error (e.g., using ILogger)
+            // _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
+            return null;
+        }
     }
 }

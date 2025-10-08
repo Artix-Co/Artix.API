@@ -12,36 +12,52 @@ using Object = Artix.API.Core.Domain.Entities.Object.Object;
 
 internal static class MuseumQueries
 {
-    internal static readonly Func<ArtixQueryDbContext, GetAllMuseumsClientQuery, IEnumerable<AllMuseumsClientDto>> GetAllMuseumsClientQuery =
-        EF.CompileQuery((ArtixQueryDbContext context, GetAllMuseumsClientQuery dto) =>
-            context.Museums
-                .Include(o => o.MuseumImages)
-                .ThenInclude(of => of.FileEntity)
-                .AsSplitQuery()
-                .Where(m => string.IsNullOrWhiteSpace(dto.Name) || m.Name.Contains(dto.Name))
-                .Select(m => new
-                {
-                    Museum = m,
-                    ImageBase64 = m.MuseumImages
-                        .Where(of => of.FileEntity.MimeType == "jpg" ||
-                                     of.FileEntity.MimeType == "png" ||
-                                     of.FileEntity.MimeType == "jpeg" ||
-                                     of.FileEntity.MimeType == "webp")
-                        .Select(of => Convert.ToBase64String(File.ReadAllBytes(of.FileEntity.FilePath)))
-                        .FirstOrDefault()
-                })
-                .OrderBy(x => x.Museum.Name)
-                .Select(x => new AllMuseumsClientDto(
-                    x.Museum.BusinessId,
-                    x.Museum.Name,
-                    x.ImageBase64,
-                    x.Museum.Description,
-                    x.Museum.CreatedAt,
-                    x.Museum.IsActive
-                )));
-    
-    
-    
+    internal static readonly Func<ArtixQueryDbContext, GetAllMuseumsClientQuery, IEnumerable<AllMuseumsClientDto>>
+        GetAllMuseumsClientQuery =
+            EF.CompileQuery((ArtixQueryDbContext context, GetAllMuseumsClientQuery dto) =>
+                context.Museums
+                    
+                    .Include(o => o.MuseumImages)
+                    .ThenInclude(of => of.FileEntity)
+                    .AsSplitQuery()
+                    .OrderBy(m => m.Name)
+                    .AsEnumerable() // Switch to client-side evaluation
+                    .Where(m => string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name))
+                    .Select(m => new
+                    {
+                        Museum = m,
+                        ImagePath = m.MuseumImages
+                            .Where(of => of.FileEntity.MimeType == "jpg" ||
+                                         of.FileEntity.MimeType == "png" ||
+                                         of.FileEntity.MimeType == "jpeg" ||
+                                         of.FileEntity.MimeType == "webp")
+                            .Select(of => of.FileEntity.FilePath)
+                            .FirstOrDefault()
+                    })
+                    .Select(x => new AllMuseumsClientDto(
+                        x.Museum.BusinessId,
+                        x.Museum.Name,
+                        x.ImagePath != null ? TryReadFileAsBase64(x.ImagePath) : null, // File I/O moved to client-side
+                        x.Museum.Description,
+                        x.Museum.CreatedAt,
+                        x.Museum.IsActive
+                    )));
+
+    private static string TryReadFileAsBase64(string filePath)
+    {
+        try
+        {
+            return Convert.ToBase64String(File.ReadAllBytes(filePath));
+        }
+        catch (Exception ex)
+        {
+            // Log the error (e.g., using ILogger)
+            // _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
+            return null;
+        }
+    }
+
+
     internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<MuseumObjectDto>> GetMuseumObjectsQuery =
         EF.CompileQuery((ArtixQueryDbContext context, Guid museumId) =>
             context.MuseumObjects
@@ -63,7 +79,7 @@ internal static class MuseumQueries
                     x.Object.GeneralInformation,
                     x.Object.CreatedAt
                 )));
-    
+
     internal static readonly Func<ArtixQueryDbContext, Guid, MuseumDetailsByIdDto?> GetDetailsByIdQuery =
         EF.CompileQuery((ArtixQueryDbContext context, Guid businessId) =>
             context.Museums
@@ -131,7 +147,4 @@ internal static class MuseumQueries
                             .ToList()
                     ))
             );
-
-
-    
 }

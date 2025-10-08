@@ -16,7 +16,11 @@ public class OTP : AggregateRoot
 
     public static OTP Create(string phoneNumber, string purpose, int validityMinutes = 5)
     {
-        var code = new Random().Next(100000, 999999).ToString(); // Generate 6-digit OTP
+        // TODO: uncomment to auto generate randomly on prod (Generate 6-digit OTP)
+        //var code = new Random().Next(100000, 999999).ToString(); 
+
+        var code = "123456";
+
         return new OTP
         {
             PhoneNumber = phoneNumber,

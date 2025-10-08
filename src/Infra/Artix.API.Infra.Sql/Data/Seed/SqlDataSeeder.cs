@@ -22,8 +22,8 @@ public static class SqlDataSeeder
     private const int USER_SEED_COUNT = 7;
     private const int MUSEUM_SEED_COUNT = 7;
     private const int CATEGORY_SEED_COUNT = 7;
-    private const int OBJECT_SEED_COUNT = 3;
-    private const int HISTORICAL_PERIOD_SEED_COUNT = 3;
+    private const int OBJECT_SEED_COUNT = 7;
+    private const int HISTORICAL_PERIOD_SEED_COUNT = 7;
     private const int APP_VERSION_SEED_COUNT = 4;
 
     public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager,
