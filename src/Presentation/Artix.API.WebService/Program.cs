@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
+using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Mongo.Data.DbContext;
@@ -10,12 +11,15 @@ using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.Orchestration.ServiceDefaults;
 using Artix.API.WebService;
+using Elastic.Transport;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
+using Nest;
 using Serilog;
+using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +39,53 @@ builder.Services.AddDataProtection()
 
 
 builder.Services.AddArtixServices(builder.Configuration);
+
+builder.Services.AddSingleton<IElasticClient>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+    var elasticUri = configuration["Elasticsearch:Uri"];
+    var username = configuration["Elasticsearch:Username"];
+    var password = configuration["Elasticsearch:Password"];
+    var indexFormat = configuration["Elasticsearch:IndexFormat"];
+    var requestTimeout = configuration["Elasticsearch:RequestTimeoutInMinutes"];
+
+    if (int.TryParse(requestTimeout, out int requestInMinutes))
+    {
+        var settings = new ConnectionSettings(new Uri(elasticUri))
+            .DefaultIndex(indexFormat)
+            .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes))
+            .BasicAuthentication(username, password);
+
+        return new ElasticClient(settings);
+    }
+
+    throw new InvalidOperationException("Invalid Elasticsearch configuration.");
+});
+
+var elasticUri = builder.Configuration["Elasticsearch:Uri"];
+var username = builder.Configuration["Elasticsearch:Username"];
+var password = builder.Configuration["Elasticsearch:Password"];
+var indexFormat = builder.Configuration["Elasticsearch:IndexFormat"];
+var requestTimeout = builder.Configuration["Elasticsearch:RequestTimeoutInMinutes"];
+
+if (int.TryParse(requestTimeout, out int requestInMinutes))
+{
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = indexFormat,
+            ModifyConnectionSettings = c => c.BasicAuthentication(username, password)
+                .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes)),
+        })
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateLogger();
+}
+else
+{
+    throw new InvalidOperationException("Invalid Elasticsearch request timeout configuration.");
+}
 
 builder.Host.UseSerilog();
 
@@ -109,6 +160,35 @@ app.UseExceptionHandler(config =>
 });
 app.UseResponseCompression();
 app.UseCustomMiddlewares(app.Environment);
+
+var elasticClient = new ElasticClient(new ConnectionSettings(new Uri(elasticUri))
+    .BasicAuthentication(username, password)
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll)
+    .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes)));
+
+var pingResponse = await elasticClient.PingAsync();
+
+if (pingResponse.IsValid)
+{
+    Log.Information("Connected to Elasticsearch");
+}
+else
+{
+    Log.Error("Failed to connect to Elasticsearch: {Reason}", pingResponse.OriginalException?.Message);
+}
+
+app.MapGet("/elastic-health", () =>
+{
+    BaseApiResponse<string> result = new BaseApiResponse<string>();
+    if (pingResponse.IsValid)
+    {
+        result.Data = "connected to elasticsearch";
+        return result;
+    }
+
+    result.Data = "not connected to elasticsearch";
+    return result;
+});
 
 Log.Logger.Information("Application started!");
 

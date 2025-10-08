@@ -55,22 +55,7 @@ public static class HostingExtension
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
         services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
         services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
-        // Configure Elasticsearch
-        var elasticSearchSection = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-        
-        // Configure Serilog
-        Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSearchSection.Uri))
-            {
-                AutoRegisterTemplate = true,
-                IndexFormat = elasticSearchSection.IndexFormat,
-                ModifyConnectionSettings = c => c
-                    .BasicAuthentication(elasticSearchSection.Username, elasticSearchSection.Password)
-                    .RequestTimeout(TimeSpan.FromMinutes(elasticSearchSection.RequestTimeoutInMinutes))
-            })
-            .CreateLogger();
-
+       
         // Configure HSTS
         services.AddHsts(options =>
         {

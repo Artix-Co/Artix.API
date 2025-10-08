@@ -13,6 +13,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    user: root
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -33,6 +34,7 @@ services:
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    user: root
     container_name: sqlserver
     environment:
       SA_PASSWORD: "Hello&Run1234"
@@ -50,7 +52,7 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
-    
+  
   
   mongodb:
     image: mongo:latest
@@ -75,8 +77,9 @@ services:
   redis:
     image: redis:7
     container_name: redis
+    user: root
     ports:
-      - "6379:6379"
+      - "6377:6377"
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass "Heli@ghar771379"
@@ -114,17 +117,16 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "4"
-          memory: 4G
+
     healthcheck:
       test: curl -f http://localhost:80/ || exit 1
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
+    extra_hosts:
+      - "elasticsearch.drlink.ir:192.168.2.40"
+
 
   nginx:
     image: nginx:latest
@@ -139,8 +141,4 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
+
