@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
 using Nest;
 using Serilog;
@@ -97,15 +98,57 @@ builder.WebHost.UseKestrel(options =>
     options.Limits.MaxConcurrentConnections = null;
     options.Limits.MaxConcurrentUpgradedConnections = null;
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(65);
-    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
 });
 var app = builder.Build();
 
 Log.Logger.Information("Application built!");
 
- 
+var storagePathConfig = builder.Configuration["FileSettings:StoragePath"] ?? "uploads/files";
 
-// Perform seeding for MongoDB and SQL
+string filesPath;
+
+if (Path.IsPathRooted(storagePathConfig))
+{
+    filesPath = storagePathConfig;
+}
+else
+{
+    filesPath = Path.Combine(builder.Environment.ContentRootPath, storagePathConfig);
+}
+
+if (!Directory.Exists(filesPath))
+{
+    Log.Logger.Warning("Files directory does not exist: {Path}. Creating...", filesPath);
+    Directory.CreateDirectory(filesPath);
+}
+
+Log.Logger.Information("Serving static files from: {FilesPath}", filesPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(filesPath),
+    RequestPath = "/files",
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream",
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000");
+        ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+    }
+});
+
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/files"))
+    {
+        context.Response.Headers.Append("Accept-Ranges", "bytes");
+    }
+
+    await next();
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -114,7 +157,7 @@ using (var scope = app.Services.CreateScope())
     var mongoCommandContext = services.GetRequiredService<MongoCommandContext>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
-    
+
 
     // اعمال migrationهای SQL
     try

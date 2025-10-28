@@ -11,8 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums.Queries.GetAllMuseumsAdmin;
 using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
@@ -20,51 +22,62 @@ using Data.CompiledQueries.Museums;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
+using Microsoft.Extensions.Options;
 using Primitives;
 using File = System.IO.File;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
     private readonly ILogger<MuseumQueryRepository> _logger;
+    private readonly string _fileServerBaseUrl;
+    private readonly string[] _allowedImagesTypes;
 
-    public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger)
+    public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger,
+        IOptions<FileSettings> fileSettingOptions)
         : base(queryDbContext)
     {
         _logger = logger;
+        _allowedImagesTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
+        _fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
-        var museums = this._queryDbContext.Museums
-            .Include(o => o.MuseumImages)
-            .ThenInclude(of => of.FileEntity)
-            .AsSplitQuery()
+
+        var museums = _queryDbContext.Museums
+            .Where(m => !m.IsDeleted &&
+                        (string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name)))
             .OrderBy(m => m.Name)
-            .AsEnumerable() 
-            .Where(m => string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name))
             .Select(m => new
             {
-                Museum = m,
-                ImagePath = m.MuseumImages
-                    .Where(of => of.FileEntity.MimeType == "jpg" ||
-                                 of.FileEntity.MimeType == "png" ||
-                                 of.FileEntity.MimeType == "jpeg" ||
-                                 of.FileEntity.MimeType == "webp")
-                    .Select(of => of.FileEntity.FilePath)
+                m.BusinessId,
+                m.Name,
+                m.Description,
+                m.CreatedAt,
+                m.IsActive,
+                ImageFilePath = m.MuseumImages
+                    .Where(mi => mi.FileEntity != null &&
+                                 !mi.FileEntity.IsDeleted &&
+                                 _allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                    .Select(mi => mi.FileEntity.FilePath)
                     .FirstOrDefault()
             })
+            .AsEnumerable()
             .Select(x => new AllMuseumsClientDto(
-                x.Museum.BusinessId,
-                x.Museum.Name,
-                x.ImagePath != null ? TryReadFileAsBase64(x.ImagePath) : null, // File I/O moved to client-side
-                x.Museum.Description,
-                x.Museum.CreatedAt,
-                x.Museum.IsActive
-            ));
-        
-        if (museums == null || !museums.Any())
+                x.BusinessId,
+                x.Name,
+                !string.IsNullOrEmpty(x.ImageFilePath)
+                    ? $"{_fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
+                    : null,
+                x.Description,
+                x.CreatedAt,
+                x.IsActive
+            ))
+            .ToList();
+
+        if (!museums.Any())
         {
             throw InfrastructureNotFoundException.WithMessage("No museums found!");
         }
@@ -253,17 +266,5 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         );
     }
 
-    private static string TryReadFileAsBase64(string filePath)
-    {
-        try
-        {
-            return Convert.ToBase64String(File.ReadAllBytes(filePath));
-        }
-        catch (Exception ex)
-        {
-            // Log the error (e.g., using ILogger)
-            // _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
-            return null;
-        }
-    }
+   
 }
