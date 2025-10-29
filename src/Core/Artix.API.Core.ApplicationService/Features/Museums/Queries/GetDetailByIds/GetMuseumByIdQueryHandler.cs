@@ -41,7 +41,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDeta
         }
 
         await this._museumCache.AddToRecentAsync(user.Id.ToString(),
-            RecentMuseumDto.Create(result.BusinessId, result.Name!));
+            RecentMuseumDto.Create(result.BusinessId, result.ImageUrl, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return Result<MuseumDetailsByIdDto>.Success(result);
     }

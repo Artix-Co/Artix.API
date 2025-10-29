@@ -29,7 +29,7 @@ internal sealed class
     {
         var user = await GetCurrentUserAsync(cancellationToken);
         var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString());
-        var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto(m.Id, m.Name));
+        var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto(m.Id, m.ImageUrl, m.Name));
         return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
     }
 }

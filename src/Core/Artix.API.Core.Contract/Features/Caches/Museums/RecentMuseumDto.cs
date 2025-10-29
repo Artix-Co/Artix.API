@@ -4,13 +4,14 @@ using System.Text.Json.Serialization;
 
 public class RecentMuseumDto : RecentBaseEntity
 {
-    public static RecentMuseumDto Create(Guid id, string name)
+    public string? ImageUrl { get; set; }
+    public static RecentMuseumDto Create(Guid id, string? imageUrl, string name)
     {
-        return new RecentMuseumDto(id, name);
+        return new RecentMuseumDto(id, imageUrl, name);
     }
 
     [JsonConstructor]
-    public RecentMuseumDto(Guid id, string name)
+    public RecentMuseumDto(Guid id, string? imageUrl, string name)
     {
         // TODO: use layer exception
         if (string.IsNullOrWhiteSpace(name))
@@ -18,5 +19,6 @@ public class RecentMuseumDto : RecentBaseEntity
 
         this.Id = id;
         this.Name = name;
+        this.ImageUrl = imageUrl;
     }
 }
