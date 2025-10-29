@@ -3,6 +3,7 @@
 public sealed record MuseumDetailsByIdDto(
     Guid BusinessId,
     string? Name,
+    string? ImageUrl,
     string? Description,
     DateTime CreatedAt,
     bool? IsActive,

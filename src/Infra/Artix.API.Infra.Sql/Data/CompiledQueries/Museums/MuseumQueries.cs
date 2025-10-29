@@ -80,8 +80,10 @@ internal static class MuseumQueries
                     x.Object.CreatedAt
                 )));
 
-    internal static readonly Func<ArtixQueryDbContext, Guid, MuseumDetailsByIdDto?> GetDetailsByIdQuery =
-        EF.CompileQuery((ArtixQueryDbContext context, Guid businessId) =>
+  
+   
+    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, MuseumDetailsByIdDto?> GetDetailsByIdQuery =
+        EF.CompileQuery((ArtixQueryDbContext context, Guid businessId, IEnumerable<string> allowedImagesTypes, string fileServerBaseUrl) =>
             context.Museums
                 .Where(m => m.BusinessId == businessId)
                 .GroupJoin(
@@ -95,17 +97,37 @@ internal static class MuseumQueries
                         JournalEntryCount = context.JournalEntries
                             .Count(je => moGroup.Any(mo => mo.ObjectId == je.ObjectId))
                     })
-                .Select(x => new MuseumDetailsByIdDto(
+                .Select(x => new
+                {
                     x.Museum.BusinessId,
                     x.Museum.Name,
+                    ImageFilePath = x.Museum.MuseumImages
+                        .Where(mi => mi.FileEntity != null &&
+                                     !mi.FileEntity.IsDeleted &&
+                                     allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                        .Select(mi => mi.FileEntity.FilePath)
+                        .FirstOrDefault(),
                     x.Museum.Description,
                     x.Museum.CreatedAt,
                     x.Museum.IsActive,
-                    x.MuseumObjects.Count(),
-                    x.JournalEntryCount))
+                    ObjectCount = x.MuseumObjects.Count(),
+                    x.JournalEntryCount
+                })
+                .Select(x => new MuseumDetailsByIdDto(
+                    x.BusinessId,
+                    x.Name,
+                    !string.IsNullOrEmpty(x.ImageFilePath)
+                        ? $"{fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
+                        : null,
+                    x.Description,
+                    x.CreatedAt,
+                    x.IsActive,
+                    x.ObjectCount,
+                    x.JournalEntryCount
+                ))
                 .FirstOrDefault()
         );
-
+    
     internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<AllObjectDto>>
         GetAllObjectsQuery =
             EF.CompileQuery((ArtixQueryDbContext context, string? nameFilter, int pageNumber, int pageSize) =>

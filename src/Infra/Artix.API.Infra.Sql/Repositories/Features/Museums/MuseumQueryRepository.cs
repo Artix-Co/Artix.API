@@ -98,7 +98,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     {
         _logger.LogInformation("Fetching museum with ID: {MuseumId}", dto.Id);
 
-        var museum = MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id);
+        var museum =
+            MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id, _allowedImagesTypes, _fileServerBaseUrl);
 
         if (museum == null)
         {
@@ -265,6 +266,4 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             PageSize: pageSize
         );
     }
-
-   
 }
