@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
@@ -24,20 +23,19 @@ using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Microsoft.Extensions.Options;
 using Primitives;
-using File = System.IO.File;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
     private readonly ILogger<MuseumQueryRepository> _logger;
     private readonly string _fileServerBaseUrl;
-    private readonly string[] _allowedImagesTypes;
+    private readonly string[] _allowedImageMimeTypes;
 
     public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger,
         IOptions<FileSettings> fileSettingOptions)
         : base(queryDbContext)
     {
         _logger = logger;
-        _allowedImagesTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
+        this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
         _fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
@@ -60,7 +58,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 ImageFilePath = m.MuseumImages
                     .Where(mi => mi.FileEntity != null &&
                                  !mi.FileEntity.IsDeleted &&
-                                 _allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                                 this._allowedImageMimeTypes.Contains(mi.FileEntity.MimeType))
                     .Select(mi => mi.FileEntity.FilePath)
                     .FirstOrDefault()
             })
@@ -99,7 +97,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         _logger.LogInformation("Fetching museum with ID: {MuseumId}", dto.Id);
 
         var museum =
-            MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id, _allowedImagesTypes, _fileServerBaseUrl);
+            MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id, this._allowedImageMimeTypes, _fileServerBaseUrl);
 
         if (museum == null)
         {

@@ -7,6 +7,6 @@ public sealed record ObjectDetailsByIdClientDto(
     string Name,
     string? GeneralInformation,
     string? SpecialInformation,
-    string? Model3DBase64,
-    string? ImageBase64,
+    string? Model3DUrl,
+    string? ImageUrl,
     List<HistoricalPeriodDto> HistoricalPeriods);

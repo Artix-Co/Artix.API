@@ -23,17 +23,19 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
 {
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
+    private readonly string _fileServerBaseUrl;
     private readonly ILogger<ObjectQueryRepository> _logger;
     private readonly IFileService _fileService;
 
     public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger,
-        IOptions<FileSettings> options, IFileService fileService)
+        IOptions<FileSettings> fileSettingOptions, IFileService fileService)
         : base(queryDbContext)
     {
         this._logger = logger;
         this._fileService = fileService;
-        this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
-        this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
+        this._allowed3DMimeTypes = fileSettingOptions.Value.Allowed3DMimeTypes;
+        this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
+        this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
 
@@ -45,14 +47,19 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .Where(o => o.BusinessId == dto.Id)
             .Select(o => new
             {
-                Object = new { o.BusinessId, o.Name, o.GeneralInformation, o.SpecialInformation },
-                Model3D = o.ObjectModels
-                    .Where(of => of.FileEntity.MimeType == "model/obj" || of.FileEntity.MimeType == "model/gltf-binary")
-                    .Select(of => new { of.FileEntity.FilePath })
+                o.BusinessId,
+                o.Name,
+                o.GeneralInformation,
+                o.SpecialInformation,
+                Model3DFilePath = o.ObjectModels
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowed3DMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
-                Image = o.ObjectImages
-                    .Where(of => of.FileEntity.MimeType == "jpg/png" || of.FileEntity.MimeType == "jpeg/webp")
-                    .Select(of => new { of.FileEntity.FilePath })
+                ImageFilePath = o.ObjectImages
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedImageMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
                 HistoricalPeriods = o.ObjectHistoricalPeriods
                     .Select(ohp => new HistoricalPeriodDto(
@@ -69,48 +76,22 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         if (query is null)
             throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
 
-        string? model3DBase64 = null;
-        if (query.Model3D?.FilePath != null)
-        {
-            await using var fileStream = new FileStream(
-                query.Model3D.FilePath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.Read,
-                bufferSize: 4096,
-                useAsync: true
-            );
-            using var memoryStream = new MemoryStream();
-            await fileStream.CopyToAsync(memoryStream, 8192, cancellationToken);
-            model3DBase64 = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-        }
+        var model3DUrl = !string.IsNullOrEmpty(query.Model3DFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.Model3DFilePath)}"
+            : null;
 
-        string? imageBase64 = null;
-        if (query.Image?.FilePath != null)
-        {
-            await using var fileStream = new FileStream(
-                query.Image.FilePath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.Read,
-                bufferSize: 4096,
-                useAsync: true
-            );
-            using var memoryStream = new MemoryStream();
-            await fileStream.CopyToAsync(memoryStream, 8192, cancellationToken);
-            imageBase64 = Convert.ToBase64String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
-        }
-
-        var historicalPeriodsList = query.HistoricalPeriods.AsEnumerable().ToList();
+        var imageUrl = !string.IsNullOrEmpty(query.ImageFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.ImageFilePath)}"
+            : null;
 
         return new ObjectDetailsByIdClientDto(
-            Id: query.Object.BusinessId,
-            Name: query.Object.Name,
-            GeneralInformation: query.Object.GeneralInformation,
-            SpecialInformation: query.Object.SpecialInformation,
-            Model3DBase64: model3DBase64,
-            ImageBase64: imageBase64,
-            HistoricalPeriods: historicalPeriodsList
+            Id: query.BusinessId,
+            Name: query.Name,
+            GeneralInformation: query.GeneralInformation,
+            SpecialInformation: query.SpecialInformation,
+            Model3DUrl: model3DUrl,
+            ImageUrl: imageUrl,
+            HistoricalPeriods: query.HistoricalPeriods.ToList()
         );
     }
 

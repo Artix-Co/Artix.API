@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 public class RecentMuseumDto : RecentBaseEntity
 {
     public string? ImageUrl { get; set; }
+    public string Name { get; set; }
     public static RecentMuseumDto Create(Guid id, string? imageUrl, string name)
     {
         return new RecentMuseumDto(id, imageUrl, name);

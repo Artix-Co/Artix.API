@@ -13,7 +13,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 // TODO: develop validator for this handler
-internal sealed class GetObjectDetailsByIdClientQueryHandler : QueryHandlerBase<GetObjectDetailsByIdClientQuery, ObjectDetailsByIdClientDto>
+internal sealed class
+    GetObjectDetailsByIdClientQueryHandler : QueryHandlerBase<GetObjectDetailsByIdClientQuery,
+    ObjectDetailsByIdClientDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheService<RecentObjectDto> _objectCache;
@@ -39,7 +41,8 @@ internal sealed class GetObjectDetailsByIdClientQueryHandler : QueryHandlerBase<
         }
 
         await this._objectCache.AddToRecentAsync(user.Id.ToString(),
-            RecentObjectDto.Create(result.Id, result.Name));
+            RecentObjectDto.Create(result.Id, result.ImageUrl, result.Model3DUrl, result.Name,
+                result.HistoricalPeriods));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
 
 
