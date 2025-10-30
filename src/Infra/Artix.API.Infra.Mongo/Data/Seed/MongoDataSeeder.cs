@@ -1,59 +1,59 @@
 ﻿namespace Artix.API.Infra.Mongo.Data.Seed;
 
-using Core.Domain.Entities.Quest;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core.Domain.Entities.Quiz;
 using DbContext;
 
 public static class MongoDataSeeder
 {
     public static async Task EnsureMongoMigrationAsync(IMongoDatabase database)
     {
-        // چک کردن وجود مجموعه quest
+        // چک کردن وجود مجموعه quiz
         var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
-        if (!collectionNames.Contains("Quests"))
+        if (!collectionNames.Contains("Quizzes"))
         {
-            await database.CreateCollectionAsync("Quests");
+            await database.CreateCollectionAsync("Quizzes");
         }
 
         // ایجاد ایندکس‌ها
-        var collection = database.GetCollection<Quest>("Quests");
-        var indexKeys = Builders<Quest>.IndexKeys
+        var collection = database.GetCollection<Quiz>("Quizzes");
+        var indexKeys = Builders<Quiz>.IndexKeys
             .Ascending("IsDeleted")
             .Ascending("RelatedFeature")
             .Ascending("Priority");
 
-        var indexModel = new CreateIndexModel<Quest>(indexKeys,
+        var indexModel = new CreateIndexModel<Quiz>(indexKeys,
             new CreateIndexOptions { Name = "Quest_IsDeleted_RelatedFeature_Priority", Background = true });
 
         var existingIndexes = await (await collection.Indexes.ListAsync()).ToListAsync();
-        if (!existingIndexes.Any(i => i["name"].AsString == "Quest_IsDeleted_RelatedFeature_Priority"))
+        if (existingIndexes.All(i => i["name"].AsString != "Quest_IsDeleted_RelatedFeature_Priority"))
         {
             await collection.Indexes.CreateOneAsync(indexModel);
         }
     }
 
-    public static async Task SeedQuestsAsync(MongoCommandContext commandContext)
+    public static async Task SeedQuizzesAsync(MongoCommandContext commandContext)
     {
         var collection =
-            commandContext.GetCollection<Quest>("Quests"); // Note: Changed to plural "quests" to match MongoQueryContext convention
+            commandContext.GetCollection<Quiz>("Quizzes"); // Note: Changed to plural "quizs" to match MongoQueryContext convention
 
         // Clear collection to avoid duplicate key errors
-        await collection.DeleteManyAsync(Builders<Quest>.Filter.Empty);
+        await collection.DeleteManyAsync(Builders<Quiz>.Filter.Empty);
 
 
-        // Generate 10 sample quests
-        var quests = GenerateSampleQuests(10);
+        // Generate 10 sample quizs
+        var quizs = GenerateSampleQuizzes(10);
 
-        // Insert quests into MongoDB
-        await commandContext.InsertManyAsync(quests);
+        // Insert quizs into MongoDB
+        await commandContext.InsertManyAsync(quizs);
     }
 
-    private static List<Quest> GenerateSampleQuests(int count)
+    private static List<Quiz> GenerateSampleQuizzes(int count)
     {
-        var quests = new List<Quest>();
+        var quizzes = new List<Quiz>();
         var random = new Random();
         var features = new[] { "QRHunts", "LastQuiz", "Strike", "TreasureHunt", "DailyChallenge" };
         var titles = new[]
@@ -77,7 +77,7 @@ public static class MongoDataSeeder
             var deadline = random.Next(0, 2) == 0 ? DateTime.UtcNow.AddDays(random.Next(7, 31)) : (DateTime?)null;
             var isSeasonal = random.Next(0, 2) == 0;
 
-            var quest = new Quest(
+            var quiz = new Quiz(
                 title: title,
                 description: description,
                 xpReward: xpReward,
@@ -90,11 +90,11 @@ public static class MongoDataSeeder
             );
 
             // Add actions based on feature
-            AddActionsToQuest(quest, feature, random);
-            quests.Add(quest);
+            AddActionsToQuest(quiz, feature, random);
+            quizzes.Add(quiz);
         }
 
-        return quests;
+        return quizzes;
     }
 
     private static string GenerateDescription(string feature, string location, Random random)
@@ -110,27 +110,27 @@ public static class MongoDataSeeder
         };
     }
 
-    private static void AddActionsToQuest(Quest quest, string feature, Random random)
+    private static void AddActionsToQuest(Quiz quiz, string feature, Random random)
     {
         switch (feature)
         {
         case "QRHunts":
-            quest.AddAction("ScanQR", $"اسکن QR اشیاء در {quest.Title}", random.Next(3, 6));
+            quiz.AddAction("ScanQR", $"اسکن QR اشیاء در {quiz.Title}", random.Next(3, 6));
             break;
         case "LastQuiz":
-            quest.AddAction("CompleteQuiz", $"پاسخ به کوئیز در {quest.Title}", 1);
+            quiz.AddAction("CompleteQuiz", $"پاسخ به کوئیز در {quiz.Title}", 1);
             break;
         case "Strike":
-            quest.AddAction("MaintainStreak", $"فعالیت روزانه در {quest.Title}", random.Next(5, 8));
+            quiz.AddAction("MaintainStreak", $"فعالیت روزانه در {quiz.Title}", random.Next(5, 8));
             break;
         case "TreasureHunt":
-            quest.AddAction("FindTreasure", $"گنج یابی در {quest.Title}", random.Next(1, 3));
+            quiz.AddAction("FindTreasure", $"گنج یابی در {quiz.Title}", random.Next(1, 3));
             break;
         case "DailyChallenge":
-            quest.AddAction("CompleteChallenge", $"چالش روزانه در {quest.Title}", 1);
+            quiz.AddAction("CompleteChallenge", $"چالش روزانه در {quiz.Title}", 1);
             break;
         default:
-            quest.AddAction("GeneralAction", $"اقدام عمومی در {quest.Title}", 1);
+            quiz.AddAction("GeneralAction", $"اقدام عمومی در {quiz.Title}", 1);
             break;
         }
     }

@@ -1,18 +1,19 @@
-﻿namespace Artix.API.Infra.Mongo.Repositories.Features.Quests;
+﻿namespace Artix.API.Infra.Mongo.Repositories.Features.Quiz;
 
-using Core.Contract.Features.Quests.Queries;
-using Core.Contract.Features.Quests.Queries.GetShuffledQuests;
+using Artix.API.Core.Contract.Features.Quests.Queries;
+using Artix.API.Core.Contract.Features.Quests.Queries.GetShuffledQuests;
 using Core.Domain.Entities.Quest;
+using Core.Domain.Entities.Quiz;
 using Data.DbContext;
+using Primitives;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using Primitives;
 
-public sealed class QuestQueryRepository : MongoQueryRepository<Quest>, IQuestQueryRepository
+public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuestQueryRepository
 {
     private static readonly Random _random = Random.Shared;
 
-    public QuestQueryRepository(MongoQueryContext queryDbContext, ILogger<MongoQueryRepository<Quest>> logger)
+    public QuizQueryRepository(MongoQueryContext queryDbContext, ILogger<MongoQueryRepository<Quiz>> logger)
         : base(queryDbContext, logger)
     {
     }
@@ -21,14 +22,14 @@ public sealed class QuestQueryRepository : MongoQueryRepository<Quest>, IQuestQu
         GetShuffledQuestsQuery dto,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Fetching and shuffling quests...");
+        this._logger.LogInformation("Fetching and shuffling quests...");
 
         // Define filter and sort for the query
-        var filter = Builders<Quest>.Filter.Empty; // Empty filter to get all non-deleted quests
-        var sort = Builders<Quest>.Sort.Descending(q => q.CreatedAt);
+        var filter = Builders<Quiz>.Filter.Empty; // Empty filter to get all non-deleted quests
+        var sort = Builders<Quiz>.Sort.Descending(q => q.CreatedAt);
 
         // Fetch quests using MongoQueryContext
-        var quests = await _queryDbContext.FindAsync(
+        var quests = await this._queryDbContext.FindAsync(
             filter: filter,
             sort: sort,
             limit: dto.Count,
@@ -82,7 +83,7 @@ public sealed class QuestQueryRepository : MongoQueryRepository<Quest>, IQuestQu
         // Shuffle quests
         Shuffle(result);
 
-        _logger.LogInformation("Fetched and shuffled {Count} quests", result.Count);
+        this._logger.LogInformation("Fetched and shuffled {Count} quests", result.Count);
         return result;
     }
 
