@@ -2,6 +2,7 @@
 
 using Common;
 using Core.Contract.Features.Quests.Queries.GetShuffledQuests;
+using Core.Contract.Features.Quizes.Queries.GetShuffledQuests;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;

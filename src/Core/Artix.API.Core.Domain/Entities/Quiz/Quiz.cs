@@ -42,7 +42,8 @@ public class Quiz : AggregateRoot
     {
     } // برای serialization
 
-    public Quiz(string title, string description, int xpReward, int bonusXp, int tier, int priority, DateTime? deadline = null, bool isSeasonal = false, string relatedFeature = null)
+    private Quiz(string title, string description, int xpReward, int bonusXp, int tier, int priority,
+        DateTime? deadline = null, bool isSeasonal = false, string relatedFeature = null)
     {
         this.Title = title;
         this.Description = description;
@@ -56,10 +57,15 @@ public class Quiz : AggregateRoot
         this.RaiseDomainEvent(new QuizCreatedEvent(this.BusinessId));
     }
 
-    public void AddAction(string actionType, string details, int requiredCount)
+    public static Quiz Create(string title, string description, int xpReward, int bonusXp, int tier, int priority,
+        DateTime? deadline, bool isSeasonal, string relatedFeature)
     {
-        this.RequiredActions.Add(new QuizAction(actionType, details, requiredCount));
+        return new Quiz(title, description, xpReward, bonusXp, tier, priority, deadline, isSeasonal, relatedFeature);
     }
 
- 
+
+    public void AddRequiredAction(string correctAction, string correctDetails, int correctCount)
+    {
+        this.RequiredActions.Add(new QuizAction(correctAction, correctDetails, correctCount));
+    }
 }

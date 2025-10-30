@@ -2,6 +2,7 @@
 
 using Contract.Features.Quests.Queries;
 using Contract.Features.Quests.Queries.GetShuffledQuests;
+using Contract.Features.Quizes.Queries.GetShuffledQuests;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;

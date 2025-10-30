@@ -4,6 +4,7 @@ using Domain.Entities.Quest;
 using Domain.Entities.Quiz;
 using GetShuffledQuests;
 using Primitives.Repositories;
+using Quizes.Queries.GetShuffledQuests;
 
 public interface IQuestQueryRepository : IQueryRepository<Quiz>
 {

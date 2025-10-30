@@ -2,7 +2,7 @@
 
 using Artix.API.Core.Contract.Features.Quests.Queries;
 using Artix.API.Core.Contract.Features.Quests.Queries.GetShuffledQuests;
-using Core.Domain.Entities.Quest;
+using Core.Contract.Features.Quizes.Queries.GetShuffledQuests;
 using Core.Domain.Entities.Quiz;
 using Data.DbContext;
 using Primitives;

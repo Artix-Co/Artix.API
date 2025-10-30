@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Quests.Queries.GetShuffledQuests;
+﻿namespace Artix.API.Core.Contract.Features.Quizes.Queries.GetShuffledQuests;
 
 public readonly record struct ShuffledQuestsDto(
     Guid BusinessId,

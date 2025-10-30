@@ -13,13 +13,13 @@ public static class MongoDataSeeder
     {
         // چک کردن وجود مجموعه quiz
         var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
-        if (!collectionNames.Contains("Quizzes"))
+        if (!collectionNames.Contains("Quizs"))
         {
-            await database.CreateCollectionAsync("Quizzes");
+            await database.CreateCollectionAsync("Quizs");
         }
 
         // ایجاد ایندکس‌ها
-        var collection = database.GetCollection<Quiz>("Quizzes");
+        var collection = database.GetCollection<Quiz>("Quizs");
         var indexKeys = Builders<Quiz>.IndexKeys
             .Ascending("IsDeleted")
             .Ascending("RelatedFeature")
@@ -38,7 +38,7 @@ public static class MongoDataSeeder
     public static async Task SeedQuizzesAsync(MongoCommandContext commandContext)
     {
         var collection =
-            commandContext.GetCollection<Quiz>("Quizzes"); // Note: Changed to plural "quizs" to match MongoQueryContext convention
+            commandContext.GetCollection<Quiz>("Quizs"); // Note: Changed to plural "quizs" to match MongoQueryContext convention
 
         // Clear collection to avoid duplicate key errors
         await collection.DeleteManyAsync(Builders<Quiz>.Filter.Empty);
@@ -77,7 +77,7 @@ public static class MongoDataSeeder
             var deadline = random.Next(0, 2) == 0 ? DateTime.UtcNow.AddDays(random.Next(7, 31)) : (DateTime?)null;
             var isSeasonal = random.Next(0, 2) == 0;
 
-            var quiz = new Quiz(
+            var quiz =  Quiz.Create(
                 title: title,
                 description: description,
                 xpReward: xpReward,
@@ -115,22 +115,22 @@ public static class MongoDataSeeder
         switch (feature)
         {
         case "QRHunts":
-            quiz.AddAction("ScanQR", $"اسکن QR اشیاء در {quiz.Title}", random.Next(3, 6));
+            quiz.AddRequiredAction("ScanQR", $"اسکن QR اشیاء در {quiz.Title}", random.Next(3, 6));
             break;
         case "LastQuiz":
-            quiz.AddAction("CompleteQuiz", $"پاسخ به کوئیز در {quiz.Title}", 1);
+            quiz.AddRequiredAction("CompleteQuiz", $"پاسخ به کوئیز در {quiz.Title}", 1);
             break;
         case "Strike":
-            quiz.AddAction("MaintainStreak", $"فعالیت روزانه در {quiz.Title}", random.Next(5, 8));
+            quiz.AddRequiredAction("MaintainStreak", $"فعالیت روزانه در {quiz.Title}", random.Next(5, 8));
             break;
         case "TreasureHunt":
-            quiz.AddAction("FindTreasure", $"گنج یابی در {quiz.Title}", random.Next(1, 3));
+            quiz.AddRequiredAction("FindTreasure", $"گنج یابی در {quiz.Title}", random.Next(1, 3));
             break;
         case "DailyChallenge":
-            quiz.AddAction("CompleteChallenge", $"چالش روزانه در {quiz.Title}", 1);
+            quiz.AddRequiredAction("CompleteChallenge", $"چالش روزانه در {quiz.Title}", 1);
             break;
         default:
-            quiz.AddAction("GeneralAction", $"اقدام عمومی در {quiz.Title}", 1);
+            quiz.AddRequiredAction("GeneralAction", $"اقدام عمومی در {quiz.Title}", 1);
             break;
         }
     }
