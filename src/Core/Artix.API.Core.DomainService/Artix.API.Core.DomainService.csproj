@@ -14,4 +14,12 @@
     <ProjectReference Include="..\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\DistributedLock\" />
+  </ItemGroup>
+
 </Project>

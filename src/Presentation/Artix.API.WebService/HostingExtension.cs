@@ -47,7 +47,8 @@ public static class HostingExtension
             options.Level = CompressionLevel.Optimal;  
         });
         
-        // Configure Settings
+        
+        
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
         services.Configure<FileSettings>(configuration.GetSection("FileSettings"));

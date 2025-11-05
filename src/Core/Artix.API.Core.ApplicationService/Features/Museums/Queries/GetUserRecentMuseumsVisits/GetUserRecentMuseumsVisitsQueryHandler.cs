@@ -15,10 +15,10 @@ internal sealed class
     GetUserRecentMuseumsVisitsQueryHandler : QueryHandlerBase<GetUserRecentMuseumsVisitQuery,
     IEnumerable<UserRecentMuseumsVisitDto>>
 {
-    private readonly ICacheService<RecentMuseumDto> _museumCache;
+    private readonly ICacheRepository<RecentMuseumDto> _museumCache;
 
     public GetUserRecentMuseumsVisitsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ICacheService<RecentMuseumDto> museumCache) : base(cache, httpContextAccessor,
+        UserManager<AppUser> userManager, ICacheRepository<RecentMuseumDto> museumCache) : base(cache, httpContextAccessor,
         userManager)
     {
         this._museumCache = museumCache;
@@ -28,8 +28,8 @@ internal sealed class
         GetUserRecentMuseumsVisitQuery query, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
-        var recentVisitsCached = await _museumCache.GetRecentAsync(user.Id.ToString());
-        var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto(m.Id, m.ImageUrl, m.Name));
-        return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
+        // var recentVisitsCached = await _museumCache.GetAsync(user.Id.ToString());
+        // var result = recentVisitsCached.Select(m => new UserRecentMuseumsVisitDto(m.Id, m.ImageUrl, m.Name));
+        return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success([]);
     }
 }

@@ -1,11 +1,11 @@
-﻿namespace Artix.API.Infra.Redis;
+﻿ 
+ 
+
+namespace Artix.API.Infra.Redis;
 
 using Core.Contract.Configs.Redis;
-using Core.Contract.Features.Caches.Museums;
-using Core.Contract.Features.Caches.Objects;
 using Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Services;
 using StackExchange.Redis;
@@ -14,35 +14,30 @@ public static class DependencyInjection
 {
     public static void AddRedis(this IServiceCollection services)
     {
-       
-        // Only register IConnectionMultiplexer if not already registered
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
-            var redisOptions = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+            var options = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+
             var redisConfig = new ConfigurationOptions
             {
-                EndPoints = { { redisOptions.Host, redisOptions.Port } },
-                Password = redisOptions.Password,
+                EndPoints = { { options.Host, options.Port } },
+                Password = options.Password,
                 AbortOnConnectFail = false
             };
 
             return ConnectionMultiplexer.Connect(redisConfig);
         });
 
-        // Register RedisCacheService for RecentMuseumDto
-        services.AddSingleton<ICacheService<RecentMuseumDto>>(sp =>
-            new RedisCacheService<RecentMuseumDto>(
-                sp.GetRequiredService<IConnectionMultiplexer>(),
-                "recent:museums:user",
-                sp.GetRequiredService<ILogger<RedisCacheService<RecentMuseumDto>>>()));
-
-        // Register RedisCacheService for RecentObjectDto
-        services.AddSingleton<ICacheService<RecentObjectDto>>(sp =>
-            new RedisCacheService<RecentObjectDto>(
-                sp.GetRequiredService<IConnectionMultiplexer>(),
-                "recent:objects:user",
-                sp.GetRequiredService<ILogger<RedisCacheService<RecentObjectDto>>>()));
+        services.AddSingleton<IRedisConnectionFactory, RedisConnectionFactory>();
+        services.AddSingleton<IDistributedLockService, RedisLockService>();
+        services.AddSingleton<IRequestRatePolicy, RedisRateLimiter>();
+        services.AddSingleton<IBackgroundJobScheduler, RedisJobQueueService>();
+        services.AddScoped(typeof(ICacheRepository<>), typeof(RedisCacheRepository<>));
+        services.AddSingleton<ISessionStore, RedisSessionStore>();
+        services.AddSingleton<ITokenRevocationStore, RedisTokenRevocationStore>();
+        services.AddSingleton<IFeatureToggleService, RedisFeatureToggleService>();
+        services.AddSingleton<IEventDeduplicationStore, RedisEventDeduplicationStore>();
+        services.AddSingleton<ILeaderboardService, RedisLeaderboardService>();
+        services.AddSingleton<IMessageRelayService, RedisMessageRelayService>();
     }
 }
-
- 

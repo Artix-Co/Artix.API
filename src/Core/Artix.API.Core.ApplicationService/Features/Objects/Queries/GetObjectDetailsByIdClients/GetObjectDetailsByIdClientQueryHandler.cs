@@ -18,11 +18,11 @@ internal sealed class
     ObjectDetailsByIdClientDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
-    private readonly ICacheService<RecentObjectDto> _objectCache;
+    private readonly ICacheRepository<RecentObjectDto> _objectCache;
 
     public GetObjectDetailsByIdClientQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository,
-        ICacheService<RecentObjectDto> objectCache) : base(cache, httpContextAccessor, userManager)
+        ICacheRepository<RecentObjectDto> objectCache) : base(cache, httpContextAccessor, userManager)
     {
         this._objectQueryRepository = objectQueryRepository;
         this._objectCache = objectCache;
@@ -40,9 +40,9 @@ internal sealed class
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), clientQuery.Id);
         }
 
-        await this._objectCache.AddToRecentAsync(user.Id.ToString(),
-            RecentObjectDto.Create(result.Id, result.ImageUrl, result.Model3DUrl, result.Name,
-                result.HistoricalPeriods));
+        // await this._objectCache.SetAsync(user.Id.ToString(),
+        //     RecentObjectDto.Create(result.Id, result.ImageUrl, result.Model3DUrl, result.Name,
+        //         result.HistoricalPeriods));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
 
 
