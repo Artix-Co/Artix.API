@@ -1,107 +1,67 @@
 ﻿namespace Artix.API.Infra.Mongo.Repositories.Features.Quiz;
 
-using Artix.API.Core.Contract.Features.Quests.Queries;
-using Artix.API.Core.Contract.Features.Quests.Queries.GetShuffledQuests;
+using Core.Contract.Features.Quests.Queries;
+using Core.Contract.Features.Quests.Queries.GetShuffledQuests;
 using Core.Contract.Features.Quizes.Queries.GetShuffledQuests;
 using Core.Domain.Entities.Quiz;
 using Data.DbContext;
-using Primitives;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Primitives;
+using Utils.List;
 
 public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuestQueryRepository
 {
-    private static readonly Random _random = Random.Shared;
+    private static readonly Random _random = new();
 
     public QuizQueryRepository(MongoQueryContext queryDbContext, ILogger<MongoQueryRepository<Quiz>> logger)
         : base(queryDbContext, logger)
     {
     }
 
+
     public async ValueTask<IEnumerable<ShuffledQuestsDto>> GetShuffledQuestsAsync(
         GetShuffledQuestsQuery dto,
         CancellationToken cancellationToken = default)
     {
-        this._logger.LogInformation("Fetching and shuffling quests...");
+        _logger.LogInformation("Fetching historical quizzes for shuffling...");
 
-        // Define filter and sort for the query
-        var filter = Builders<Quiz>.Filter.Empty; // Empty filter to get all non-deleted quests
-        var sort = Builders<Quiz>.Sort.Descending(q => q.CreatedAt);
+        var filter = Builders<Quiz>.Filter.Where(q => !q.IsDeleted && q.RelatedFeature == "HistoricalQuiz");
+        var sort = Builders<Quiz>.Sort.Ascending(q => q.Priority).Descending(q => q.CreatedAt);
 
-        // Fetch quests using MongoQueryContext
-        var quests = await this._queryDbContext.FindAsync(
+        var quizzes = await _queryDbContext.FindAsync(
             filter: filter,
             sort: sort,
             limit: dto.Count,
             cancellationToken: cancellationToken);
 
-        // Prepare result list
-        int maxCount = dto.Count;
-        var result = new List<ShuffledQuestsDto>();
+        var shuffled = new List<ShuffledQuestsDto>(quizzes.Count);
 
-        foreach (var quest in quests)
+        foreach (var quiz in quizzes)
         {
-            if (result.Count >= maxCount) break;
-            if (quest.RequiredActions.Count == 0) continue;
-
-            // Get up to 4 options
-            int optionCount = Math.Min(quest.RequiredActions.Count, 4);
-            var optionsArray = new string[optionCount];
-            byte correctOptionId = 0;
-
-            // Fill options and find correct option
-            for (byte i = 0; i < optionCount; i++)
-            {
-                optionsArray[i] = quest.RequiredActions[i].Details ?? "";
-                if (quest.RequiredActions[i].RequiredCount > 0 && correctOptionId == 0)
-                {
-                    correctOptionId = i;
-                }
-            }
-
-            // Shuffle options
-            Shuffle(optionsArray);
-
-            // Find new correct option ID after shuffle
-            byte newCorrectOptionId = 0;
-            for (byte i = 0; i < optionsArray.Length; i++)
-            {
-                if (optionsArray[i] != quest.RequiredActions[correctOptionId].Details) continue;
-                newCorrectOptionId = i;
-                break;
-            }
-
-            // Add to result
-            result.Add(new ShuffledQuestsDto(
-                quest.BusinessId,
-                quest.Title,
-                optionsArray.AsMemory(),
-                newCorrectOptionId,
-                quest.CreatedAt));
+            // var descriptionParts = quiz.Description.Split(" - درست: ");
+            // var optionsText = descriptionParts[0]
+            //     .Replace("گزینه‌ها: ", "")
+            //     .Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            //     .Where(o => o.Length == 1 && (o[0] == 'A' || o[0] == 'B' || o[0] == 'C'))
+            //     .ToArray();
+            //
+            // var correctAnswer = descriptionParts[1].Trim();
+            // var originalIndex = Array.IndexOf(optionsText, correctAnswer);
+            // if (originalIndex == -1) continue;
+            //
+            // var shuffledOptions = optionsText.OrderBy(_ => _random.Next()).ToArray();
+            // var correctId = (byte)Array.IndexOf(shuffledOptions, correctAnswer);
+            //
+            // shuffled.Add(new ShuffledQuestsDto(
+            //     quiz.BusinessId,
+            //     quiz.Title,
+            //     shuffledOptions,
+            //     correctId,
+            //     quiz.CreatedAt));
         }
 
-        // Shuffle quests
-        Shuffle(result);
-
-        this._logger.LogInformation("Fetched and shuffled {Count} quests", result.Count);
-        return result;
-    }
-
-    private static void Shuffle<T>(List<T> list)
-    {
-        for (int i = list.Count - 1; i > 0; i--)
-        {
-            int j = _random.Next(0, i + 1);
-            (list[i], list[j]) = (list[j], list[i]);
-        }
-    }
-
-    private static void Shuffle<T>(T[] array)
-    {
-        for (int i = array.Length - 1; i > 0; i--)
-        {
-            int j = _random.Next(0, i + 1);
-            (array[i], array[j]) = (array[j], array[i]);
-        }
+        _logger.LogInformation("Successfully returned {Count} shuffled historical quizzes", shuffled.Count);
+        return shuffled;
     }
 }

@@ -7,23 +7,23 @@ using System.Threading.Tasks;
 using Core.Domain.Entities.Quiz;
 using DbContext;
 
+ 
+
 public static class MongoDataSeeder
 {
     public static async Task EnsureMongoMigrationAsync(IMongoDatabase database)
     {
-        // چک کردن وجود مجموعه quiz
         var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
         if (!collectionNames.Contains("Quizs"))
         {
             await database.CreateCollectionAsync("Quizs");
         }
 
-        // ایجاد ایندکس‌ها
         var collection = database.GetCollection<Quiz>("Quizs");
         var indexKeys = Builders<Quiz>.IndexKeys
-            .Ascending("IsDeleted")
-            .Ascending("RelatedFeature")
-            .Ascending("Priority");
+            .Ascending(q => q.IsDeleted)
+            .Ascending(q => q.RelatedFeature)
+            .Ascending(q => q.Priority);
 
         var indexModel = new CreateIndexModel<Quiz>(indexKeys,
             new CreateIndexOptions { Name = "Quest_IsDeleted_RelatedFeature_Priority", Background = true });
@@ -37,49 +37,47 @@ public static class MongoDataSeeder
 
     public static async Task SeedQuizzesAsync(MongoCommandContext commandContext)
     {
-        var collection =
-            commandContext.GetCollection<Quiz>("Quizs"); // Note: Changed to plural "quizs" to match MongoQueryContext convention
+        var collection = commandContext.GetCollection<Quiz>("Quizs");
 
-        // Clear collection to avoid duplicate key errors
         await collection.DeleteManyAsync(Builders<Quiz>.Filter.Empty);
 
+        var quizzes = GenerateSampleQuizzes(10);
 
-        // Generate 10 sample quizs
-        var quizs = GenerateSampleQuizzes(10);
-
-        // Insert quizs into MongoDB
-        await commandContext.InsertManyAsync(quizs);
+        await commandContext.InsertManyAsync(quizzes);
     }
 
     private static List<Quiz> GenerateSampleQuizzes(int count)
     {
         var quizzes = new List<Quiz>();
         var random = new Random();
-        var features = new[] { "QRHunts", "LastQuiz", "Strike", "TreasureHunt", "DailyChallenge" };
-        var titles = new[]
+        var feature = "HistoricalQuiz";
+        var questions = new[]
         {
-            "اسکن QR در موزه {0}", "تکمیل کوئیز {0}", "حفظ Strike برای {0} روز", "شکار گنج در {0}",
-            "چالش روزانه {0}", "اکتشاف آثار باستانی {0}", "ماموریت ویژه {0}", "جمع‌آوری امتیاز در {0}",
-            "مسابقه سرعت {0}", "کاوش در تاریخ {0}"
+            new { Title = "چه سالی انقلاب فرانسه رخ داد؟", Options = "A: 1789, B: 1812, C: 1917", Correct = "A", Description = "گزینه‌ها: A. 1789 B. 1812 C. 1917 - درست: A" },
+            new { Title = "پایتخت امپراتوری عثمانی کجا بود؟", Options = "A: استانبول, B: قاهره, C: بغداد", Correct = "A", Description = "گزینه‌ها: A. استانبول B. قاهره C. بغداد - درست: A" },
+            new { Title = "چه کسی دیوار چین را ساخت؟", Options = "A: امپراتور Qin Shi Huang, B: چنگیز خان, C: مارکو پولو", Correct = "A", Description = "گزینه‌ها: A. امپراتور Qin Shi Huang B. چنگیز خان C. مارکو پولو - درست: A" },
+            new { Title = "جنگ جهانی اول در چه سالی آغاز شد؟", Options = "A: 1914, B: 1939, C: 1945", Correct = "A", Description = "گزینه‌ها: A. 1914 B. 1939 C. 1945 - درست: A" },
+            new { Title = "کریستف کلمب چه قاره‌ای را کشف کرد؟", Options = "A: آمریکا, B: آسیا, C: آفریقا", Correct = "A", Description = "گزینه‌ها: A. آمریکا B. آسیا C. آفریقا - درست: A" },
+            new { Title = "امپراتوری روم در چه قرنی سقوط کرد؟", Options = "A: قرن پنجم میلادی, B: قرن پانزدهم میلادی, C: قرن اول میلادی", Correct = "A", Description = "گزینه‌ها: A. قرن پنجم میلادی B. قرن پانزدهم میلادی C. قرن اول میلادی - درست: A" },
+            new { Title = "چه کسی تئوری نسبیت را ارائه داد؟", Options = "A: آلبرت اینشتین, B: آیزاک نیوتن, C: گالیله", Correct = "A", Description = "گزینه‌ها: A. آلبرت اینشتین B. آیزاک نیوتن C. گالیله - درست: A" },
+            new { Title = "رنسانس در کدام کشور آغاز شد؟", Options = "A: ایتالیا, B: فرانسه, C: انگلیس", Correct = "A", Description = "گزینه‌ها: A. ایتالیا B. فرانسه C. انگلیس - درست: A" },
+            new { Title = "چه سالی انسان به ماه قدم گذاشت؟", Options = "A: 1969, B: 1957, C: 1975", Correct = "A", Description = "گزینه‌ها: A. 1969 B. 1957 C. 1975 - درست: A" },
+            new { Title = "پادشاه مشهور مصر باستان کی بود؟", Options = "A: توت عنخ آمون, B: هانیبال, C: ژولیوس سزار", Correct = "A", Description = "گزینه‌ها: A. توت عنخ آمون B. هانیبال C. ژولیوس سزار - درست: A" }
         };
-        var locations = new[] { "تهران", "شیراز", "اصفهان", "مشهد", "تبریز" };
 
-        for (int i = 1; i <= count; i++)
+        for (int i = 0; i < count; i++)
         {
-            var feature = features[random.Next(features.Length)];
-            var location = locations[random.Next(locations.Length)];
-            var title = string.Format(titles[i - 1], location);
-            var description = GenerateDescription(feature, location, random);
-            var xpReward = 100 + (i * 50); // 150, 200, 250, ...
-            var bonusXp = random.Next(25, 101); // Random bonus between 25 and 100
-            var tier = random.Next(1, 4); // Random tier between 1 and 3
-            var priority = random.Next(5, 11); // Random priority between 5 and 10
+            var question = questions[i];
+            var xpReward = 100 + ((i + 1) * 50);
+            var bonusXp = random.Next(25, 101);
+            var tier = random.Next(1, 4);
+            var priority = random.Next(5, 11);
             var deadline = random.Next(0, 2) == 0 ? DateTime.UtcNow.AddDays(random.Next(7, 31)) : (DateTime?)null;
             var isSeasonal = random.Next(0, 2) == 0;
 
-            var quiz =  Quiz.Create(
-                title: title,
-                description: description,
+            var quiz = Quiz.Create(
+                title: question.Title,
+                description: question.Description,
                 xpReward: xpReward,
                 bonusXp: bonusXp,
                 tier: tier,
@@ -89,49 +87,15 @@ public static class MongoDataSeeder
                 relatedFeature: feature
             );
 
-            // Add actions based on feature
-            AddActionsToQuest(quiz, feature, random);
+            AddActionsToQuiz(quiz, feature, random, question.Correct);
             quizzes.Add(quiz);
         }
 
         return quizzes;
     }
 
-    private static string GenerateDescription(string feature, string location, Random random)
+    private static void AddActionsToQuiz(Quiz quiz, string feature, Random random, string correctOption)
     {
-        return feature switch
-        {
-            "QRHunts" => $"اسکن {random.Next(3, 6)} QR از اشیاء تاریخی در {location} برای کسب XP!",
-            "LastQuiz" => $"کوئیز نهایی در {location} را تکمیل کنید تا به سطح طلایی برسید!",
-            "Strike" => $"برای {random.Next(5, 8)} روز متوالی در {location} فعالیت کنید!",
-            "TreasureHunt" => $"گنج مخفی در {location} را پیدا کنید و پاداش بگیرید!",
-            "DailyChallenge" => $"چالش روزانه در {location} را تکمیل کنید!",
-            _ => $"ماموریت ویژه در {location} برای کسب امتیاز اضافی!"
-        };
-    }
-
-    private static void AddActionsToQuest(Quiz quiz, string feature, Random random)
-    {
-        switch (feature)
-        {
-        case "QRHunts":
-            quiz.AddRequiredAction("ScanQR", $"اسکن QR اشیاء در {quiz.Title}", random.Next(3, 6));
-            break;
-        case "LastQuiz":
-            quiz.AddRequiredAction("CompleteQuiz", $"پاسخ به کوئیز در {quiz.Title}", 1);
-            break;
-        case "Strike":
-            quiz.AddRequiredAction("MaintainStreak", $"فعالیت روزانه در {quiz.Title}", random.Next(5, 8));
-            break;
-        case "TreasureHunt":
-            quiz.AddRequiredAction("FindTreasure", $"گنج یابی در {quiz.Title}", random.Next(1, 3));
-            break;
-        case "DailyChallenge":
-            quiz.AddRequiredAction("CompleteChallenge", $"چالش روزانه در {quiz.Title}", 1);
-            break;
-        default:
-            quiz.AddRequiredAction("GeneralAction", $"اقدام عمومی در {quiz.Title}", 1);
-            break;
-        }
+        quiz.AddRequiredAction("AnswerQuestion", $"پاسخ درست: {correctOption} برای سوال {quiz.Title}", 1);
     }
 }

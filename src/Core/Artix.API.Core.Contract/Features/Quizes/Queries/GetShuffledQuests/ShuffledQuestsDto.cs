@@ -5,4 +5,4 @@ public readonly record struct ShuffledQuestsDto(
     string Title,
     ReadOnlyMemory<string> Options,
     byte CorrectOptionId,
-    DateTime CreationDate);
+    DateTime CreatedAt);
