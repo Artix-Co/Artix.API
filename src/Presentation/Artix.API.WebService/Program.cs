@@ -172,13 +172,13 @@ using (var scope = app.Services.CreateScope())
     }
 
     // چک کردن و اعمال "migration" برای MongoDB
-    // await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
+    await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
 
     // Seeding داده‌های SQL
     await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
 
     // Seeding داده‌های MongoDB
-    // await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
+    await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
 }
 
 app.UseExceptionHandler(config =>

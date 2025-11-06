@@ -1,8 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Quests.Queries.GetShuffledQuests;
 
-using Contract.Features.Quests.Queries;
-using Contract.Features.Quests.Queries.GetShuffledQuests;
-using Contract.Features.Quizes.Queries.GetShuffledQuests;
+using Contract.Features.Quizzes.Queries;
+using Contract.Features.Quizzes.Queries.GetShuffledQuizzes;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 internal sealed class
-    GetShuffledQuestsQueryHandler : QueryHandlerBase<GetShuffledQuestsQuery, IEnumerable<ShuffledQuestsDto>>
+    GetShuffledQuestsQueryHandler : QueryHandlerBase<GetShuffledQuizzesQuery, IEnumerable<ShuffledQuizzesDto>>
 {
     private readonly IQuestQueryRepository _questQueryRepository;
 
@@ -22,10 +21,10 @@ internal sealed class
         this._questQueryRepository = questQueryRepository;
     }
 
-    public override async Task<Result<IEnumerable<ShuffledQuestsDto>>> Handle(GetShuffledQuestsQuery query,
+    public override async Task<Result<IEnumerable<ShuffledQuizzesDto>>> Handle(GetShuffledQuizzesQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await this._questQueryRepository.GetShuffledQuestsAsync(query, cancellationToken);
-        return Result<IEnumerable<ShuffledQuestsDto>>.Success(result);
+        var result = await this._questQueryRepository.GetShuffledAsync(query, cancellationToken);
+        return Result<IEnumerable<ShuffledQuizzesDto>>.Success(result);
     }
 }
