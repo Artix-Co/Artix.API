@@ -20,9 +20,8 @@ internal sealed class
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheRepository<RecentObjectDto> _objectCache;
 
-    public GetObjectDetailsByIdClientQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository,
-        ICacheRepository<RecentObjectDto> objectCache) : base(cache, httpContextAccessor, userManager)
+
+    public GetObjectDetailsByIdClientQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository, ICacheRepository<RecentObjectDto> objectCache) : base(httpContextAccessor, userManager)
     {
         this._objectQueryRepository = objectQueryRepository;
         this._objectCache = objectCache;

@@ -14,9 +14,8 @@ internal sealed class
 {
     private readonly IQuestQueryRepository _questQueryRepository;
 
-    public GetShuffledQuestsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IQuestQueryRepository questQueryRepository) : base(cache, httpContextAccessor,
-        userManager)
+
+    public GetShuffledQuestsQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IQuestQueryRepository questQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._questQueryRepository = questQueryRepository;
     }

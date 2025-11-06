@@ -14,9 +14,8 @@ internal sealed class
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
 
-    public GetObjectDetailsByIdAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository) : base(cache,
-        httpContextAccessor, userManager)
+
+    public GetObjectDetailsByIdAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._objectQueryRepository = objectQueryRepository;
     }

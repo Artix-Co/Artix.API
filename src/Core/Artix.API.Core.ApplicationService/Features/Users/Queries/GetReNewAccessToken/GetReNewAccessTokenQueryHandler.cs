@@ -14,8 +14,8 @@ internal sealed class GetReNewAccessTokenQueryHandler : QueryHandlerBase<GetReNe
 {
     private readonly ITokenService _tokenService;
 
-    public GetReNewAccessTokenQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ITokenService tokenService) : base(cache, httpContextAccessor, userManager)
+
+    public GetReNewAccessTokenQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ITokenService tokenService) : base(httpContextAccessor, userManager)
     {
         this._tokenService = tokenService;
     }

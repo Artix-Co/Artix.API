@@ -15,11 +15,9 @@ internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQue
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
 
-    public GetObjectsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache,
-        httpContextAccessor, userManager)
+    public GetObjectsQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(httpContextAccessor, userManager)
     {
-        _museumQueryRepository = museumQueryRepository;
+        this._museumQueryRepository = museumQueryRepository;
     }
 
     public override async Task<Result<PaginatedResult<AllObjectDto>>> Handle(GetAllObjectsQuery query,

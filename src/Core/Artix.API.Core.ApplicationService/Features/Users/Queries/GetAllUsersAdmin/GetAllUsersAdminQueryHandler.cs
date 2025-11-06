@@ -22,13 +22,13 @@ internal sealed class
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<GetAllUsersAdminQueryHandler> _logger;
 
-    public GetAllUsersAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IFileService fileService,
-        ILogger<GetAllUsersAdminQueryHandler> logger) : base(cache, httpContextAccessor, userManager)
+
+    public GetAllUsersAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        IFileService fileService, ILogger<GetAllUsersAdminQueryHandler> logger) : base(httpContextAccessor, userManager)
     {
-        _fileService = fileService;
-        _logger = logger;
-        _userManager = userManager;
+        this._fileService = fileService;
+        this._userManager = userManager;
+        this._logger = logger;
     }
 
     public override async Task<Result<PaginatedResult<AllUsersAdminDto>>> Handle(GetAllUsersAdminQuery query,

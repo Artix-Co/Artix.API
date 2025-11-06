@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Redis.Interfaces;
 
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
@@ -23,16 +24,17 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
     private readonly string _audience;
     private readonly int _accessTokenExpireTimeInSeconds;
     private readonly int _refreshTokenExpireTimeInDays;
+    private readonly ITokenRevocationStore _revocationStore;
 
     public JwtTokenGenerator(
         UserManager<AppUser> userManager,
         IOptions<AuthenticationSettings> authenticationSettings,
-        ILogger<JwtTokenGenerator> logger)
+        ILogger<JwtTokenGenerator> logger, ITokenRevocationStore revocationStore)
     {
         this._userManager = userManager;
         this._logger = logger;
+        this._revocationStore = revocationStore;
         this._tokenHandler = new JwtSecurityTokenHandler();
-
         this._signingKey = authenticationSettings.Value.IssuerSigningKey;
         this._issuer = authenticationSettings.Value.Issuer;
         this._audience = authenticationSettings.Value.Audience;
@@ -46,11 +48,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
     {
         _logger.LogInformation("Generating tokens for user {UserId} - {Username}", user.Id, user.UserName);
 
-        // Fetch roles and claims
         var roles = await _userManager.GetRolesAsync(user);
-        var userClaims = await _userManager.GetClaimsAsync(user); // Fetch custom claims like ClientType
+        var userClaims = await _userManager.GetClaimsAsync(user);
 
-        // Build JWT claims
         var authClaims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -59,21 +59,32 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
         };
 
-        // Add roles to claims
         authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        authClaims.AddRange(userClaims.Where(c => c.Type == "ClientType"));
 
-        // Add custom claims (e.g., ClientType)
-        authClaims.AddRange(userClaims.Where(c => c.Type == "ClientType")); // Only add ClientType claims
+        var jti = authClaims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        // Generate access token
+        var existingAccessToken = await _userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        if (!string.IsNullOrEmpty(existingAccessToken))
+        {
+            var existingJwt = _tokenHandler.ReadJwtToken(existingAccessToken);
+            var oldJti = existingJwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+            if (oldJti != null && oldJti != jti)
+            {
+                var expiry =
+                    DateTimeOffset.FromUnixTimeSeconds(existingJwt.ValidTo.ToUniversalTime().Ticks /
+                                                       TimeSpan.TicksPerSecond);
+                await _revocationStore.RevokeAsync(oldJti, expiry);
+            }
+        }
+
         var accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(_accessTokenExpireTimeInSeconds);
         var accessToken = CreateJwtToken(authClaims, accessTokenExpiresAt);
-        await this.StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
+        await StoreAccessTokenAsync(user, accessToken, accessTokenExpiresAt, cancellationToken);
 
         _logger.LogDebug("Access token generated for user {UserId} with expiry {Expiry}", user.Id,
             accessTokenExpiresAt);
 
-        // Handle refresh token
         string refreshToken;
         DateTime refreshTokenExpiresAt;
 
@@ -85,16 +96,12 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             {
                 refreshToken = existingRefreshToken;
                 refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpireTimeInDays);
-                _logger.LogDebug("Using existing refresh token for user {UserId}, expiry: {Expiry}", user.Id,
-                    refreshTokenExpiresAt);
             }
             else
             {
                 refreshToken = GenerateSecureRefreshToken();
                 refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpireTimeInDays);
                 await StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
-                _logger.LogDebug("New refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
-                    refreshTokenExpiresAt);
             }
         }
         else
@@ -102,8 +109,6 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             refreshToken = GenerateSecureRefreshToken();
             refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpireTimeInDays);
             await StoreRefreshTokenAsync(user, refreshToken, refreshTokenExpiresAt, cancellationToken);
-            _logger.LogDebug("Forced new refresh token generated for user {UserId} with expiry {Expiry}", user.Id,
-                refreshTokenExpiresAt);
         }
 
         return new JwtTokenResult

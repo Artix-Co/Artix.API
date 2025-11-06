@@ -13,8 +13,8 @@ internal sealed class
     GetAllMuseumsAdminQueryHandler : QueryHandlerBase<GetAllMuseumsAdminQuery, PaginatedResult<AllMuseumsAdminDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
-    public GetAllMuseumsAdminQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache, httpContextAccessor, userManager)
+
+    public GetAllMuseumsAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
     }

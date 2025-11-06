@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Redis.Interfaces;
 using Services.LoginHistory;
 using Services.TokenProvider;
 using Services.TokenService;
@@ -72,6 +73,15 @@ public static class DependencyInjection
                     },
                     OnTokenValidated = async context =>
                     {
+                        var revocationStore = context.HttpContext.RequestServices.GetRequiredService<ITokenRevocationStore>();
+                        var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+
+                        if (!string.IsNullOrEmpty(jti) && await revocationStore.IsRevokedAsync(jti))
+                        {
+                            context.Fail("Token has been revoked.");
+                            return;
+                        }
+                        
                         var userManager =
                             context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
                         var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??

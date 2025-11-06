@@ -15,7 +15,7 @@ internal sealed class GetAllMuseumsClientQueryHandler : QueryHandlerBase<GetAllM
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
 
-    public GetAllMuseumsClientQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache, httpContextAccessor, userManager)
+    public GetAllMuseumsClientQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
     }

@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
+    <ProjectReference Include="..\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
     <ProjectReference Include="..\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj"/>
   </ItemGroup>
 

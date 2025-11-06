@@ -14,12 +14,11 @@ internal sealed class GetClientUserProfileQueryHandler : QueryHandlerBase<GetCli
 {
     private readonly IFileService _fileService;
 
-    public GetClientUserProfileQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IFileService fileService) : base(cache, httpContextAccessor, userManager)
+
+    public GetClientUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IFileService fileService) : base(httpContextAccessor, userManager)
     {
         this._fileService = fileService;
     }
-
 
     public override async Task<Result<ClientUserProfileDto>> Handle(GetClientUserProfileQuery query,
         CancellationToken cancellationToken)

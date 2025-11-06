@@ -17,9 +17,8 @@ internal sealed class
 {
     private readonly ICacheRepository<RecentMuseumDto> _museumCache;
 
-    public GetUserRecentMuseumsVisitsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ICacheRepository<RecentMuseumDto> museumCache) : base(cache, httpContextAccessor,
-        userManager)
+
+    public GetUserRecentMuseumsVisitsQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ICacheRepository<RecentMuseumDto> museumCache) : base(httpContextAccessor, userManager)
     {
         this._museumCache = museumCache;
     }

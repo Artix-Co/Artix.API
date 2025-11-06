@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Contract.Primitives.Handlers;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
+using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +13,13 @@ using Microsoft.Extensions.Caching.Memory;
 public abstract class QueryHandlerBase<TQuery, TResponse> : IQueryHandler<TQuery, TResponse>
     where TQuery : IQuery<TResponse>
 {
-    protected readonly IMemoryCache _cache;
     protected readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<AppUser> _userManager;
+    protected readonly UserManager<AppUser> _userManager;
 
-    protected QueryHandlerBase(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager)
+
+    protected QueryHandlerBase(IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager)
     {
-        this._cache = cache;
         this._httpContextAccessor = httpContextAccessor;
         this._userManager = userManager;
     }
@@ -38,6 +39,24 @@ public abstract class QueryHandlerBase<TQuery, TResponse> : IQueryHandler<TQuery
 
         return user;
     }
-    
+
+    protected async Task ValidateClientAccessAsync(AppUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains(nameof(Role.Client)))
+            throw new UnauthorizedAccessException("User is not a Client.");
+
+        var claims = await _userManager.GetClaimsAsync(user);
+        if (!claims.Any(c => c is { Type: "ClientType", Value: nameof(ClientType.Emerald) }))
+            throw new UnauthorizedAccessException("User is not an Emerald client.");
+    }
+
+    protected string? GetRemoteIp() =>
+        _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+    protected string? GetUserAgent() =>
+        _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString();
+
+
     public abstract Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken);
 }

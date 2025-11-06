@@ -1,43 +1,50 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.Logout;
 
+using System.IdentityModel.Tokens.Jwt;
 using Contract.Features.Users.Queries.Logout;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
+using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Primitives;
- 
 
 // TODO: develop validator for this handler
 internal sealed class LogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<AppUser> _userManager;
+    private readonly ITokenRevocationStore _revocationStore;
 
 
-    public LogoutQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager) : base(cache, httpContextAccessor, userManager)
+    public LogoutQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        ITokenRevocationStore revocationStore) : base(httpContextAccessor, userManager)
     {
-        this._httpContextAccessor = httpContextAccessor;
-        this._userManager = userManager;
+        this._revocationStore = revocationStore;
     }
 
     public override async Task<Result<LogoutDto>> Handle(GetLogoutQuery query, CancellationToken cancellationToken)
     {
-        var result = new LogoutDto();
         var user = await GetCurrentUserAsync(cancellationToken);
+        var accessToken = await _userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
 
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-
-
-        if (_httpContextAccessor.HttpContext != null)
+        if (!string.IsNullOrEmpty(accessToken))
         {
-            await _httpContextAccessor.HttpContext.SignOutAsync();
+            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+            var jti = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+            var expiry =
+                DateTimeOffset.FromUnixTimeSeconds(jwt.ValidTo.ToUniversalTime().Ticks / TimeSpan.TicksPerSecond);
+
+            if (jti != null)
+                await _revocationStore.RevokeAsync(jti, expiry);
         }
 
-    
-        return Result<LogoutDto>.Success(result);
+        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
+        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
+
+        if (_httpContextAccessor.HttpContext != null)
+            await _httpContextAccessor.HttpContext.SignOutAsync();
+
+        return Result<LogoutDto>.Success(new LogoutDto());
     }
 }

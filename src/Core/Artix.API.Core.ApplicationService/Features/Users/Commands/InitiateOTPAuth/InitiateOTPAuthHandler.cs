@@ -1,9 +1,10 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.InitiateOTPAuth;
 
+using Contract.Features.OTPs.Commands;
 using Contract.Features.Users.Commands.InitiateOTPAuth;
 using Domain.Entities.OTP;
 using Domain.Entities.User;
-using Infra.Sql.Data.DbContexts;
+using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,46 +14,38 @@ using Primitives;
 internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAuthCommand>
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly ArtixCommandDbContext _context;
+    private readonly ISessionStore _sessionStore;
+    private readonly IOTPCommandRepository _otpCommandRepository;
 
-
-    public InitiateOTPAuthHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        ArtixCommandDbContext context) : base(httpContextAccessor, userManager)
+    public InitiateOTPAuthHandler(
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager,
+        ISessionStore sessionStore,
+        IOTPCommandRepository otpCommandRepository) : base(httpContextAccessor, userManager)
     {
-        this._userManager = userManager;
-        this._context = context;
+        _userManager = userManager;
+        _sessionStore = sessionStore;
+        _otpCommandRepository = otpCommandRepository;
     }
 
     public override async Task<Guid> Handle(InitiateOTPAuthCommand command, CancellationToken cancellationToken)
     {
-        var user = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.PhoneNumber == command.PhoneNumber, cancellationToken);
+        var userExists = await _userManager.Users
+            .AnyAsync(u => u.PhoneNumber == command.PhoneNumber, cancellationToken);
 
-        if (user == null)
-        {
-            // New user: send registration OTP
-            var otp = OTP.Create(command.PhoneNumber, "Registration");
-            _context.OTPs.Add(otp);
-            await _context.SaveChangesAsync(cancellationToken);
+        var purpose = userExists ? "Login" : "Registration";
+        var otp = OTP.Create(command.PhoneNumber, purpose);
+        var businessId = otp.BusinessId;
 
-            var smsMessage = $"Your registration OTP is {otp.Code}. It expires in 5 minutes.";
-            // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
+        var smsMessage = $"Your {purpose.ToLower()} OTP is {otp.Code}. It expires in 5 minutes.";
+        // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
-            return otp.BusinessId;
-        }
-        else
-        {
-            // Existing user: check for Client role and send login OTP
-            var roles = await _userManager.GetRolesAsync(user);
+        var sessionData = new { Code = otp.Code, Purpose = purpose, Attempts = 0 };
+        var json = System.Text.Json.JsonSerializer.Serialize(sessionData);
+        await _sessionStore.SetSessionAsync($"otp:{command.PhoneNumber}", json, 300, cancellationToken);
 
-            var otp = OTP.Create(command.PhoneNumber, "Login");
-            _context.OTPs.Add(otp);
-            await _context.SaveChangesAsync(cancellationToken);
+        await _otpCommandRepository.InsertAsync(otp, cancellationToken);
 
-            var smsMessage = $"Your login OTP is {otp.Code}. It expires in 5 minutes.";
-            // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
-
-            return otp.BusinessId;
-        }
+        return businessId;
     }
 }

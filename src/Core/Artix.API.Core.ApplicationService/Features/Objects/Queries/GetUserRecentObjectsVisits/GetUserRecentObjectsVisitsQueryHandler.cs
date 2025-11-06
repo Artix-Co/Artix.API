@@ -17,8 +17,9 @@ internal sealed class
 {
     private readonly ICacheRepository<RecentObjectDto> _objectCache;
 
-    public GetUserRecentObjectsVisitsQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ICacheRepository<RecentObjectDto> objectCache) : base(cache, httpContextAccessor,
+
+    public GetUserRecentObjectsVisitsQueryHandler(IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, ICacheRepository<RecentObjectDto> objectCache) : base(httpContextAccessor,
         userManager)
     {
         this._objectCache = objectCache;

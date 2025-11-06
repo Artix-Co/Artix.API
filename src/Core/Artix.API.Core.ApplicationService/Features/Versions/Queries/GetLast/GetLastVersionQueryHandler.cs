@@ -16,12 +16,8 @@ internal sealed class
 {
     private readonly IVersionQueryRepository _versionQueryRepository;
 
-    public GetLastVersionQueryHandler(
-        IMemoryCache cache,
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager,
-        IVersionQueryRepository versionQueryRepository
-    ) : base(cache, httpContextAccessor, userManager)
+
+    public GetLastVersionQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IVersionQueryRepository versionQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._versionQueryRepository = versionQueryRepository;
     }

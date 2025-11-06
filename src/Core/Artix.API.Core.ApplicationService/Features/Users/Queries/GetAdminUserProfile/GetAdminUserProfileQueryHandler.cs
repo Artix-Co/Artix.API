@@ -15,14 +15,11 @@ internal sealed class GetAdminUserProfileQueryHandler : QueryHandlerBase<GetAdmi
     private readonly IFileService _fileService;
     private readonly UserManager<AppUser> _userManager;
 
-    public GetAdminUserProfileQueryHandler(
-        IMemoryCache cache,
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager,
-        IFileService fileService) : base(cache, httpContextAccessor, userManager)
+
+    public GetAdminUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IFileService fileService) : base(httpContextAccessor, userManager)
     {
-        _userManager = userManager;
-        _fileService = fileService;
+        this._fileService = fileService;
+        this._userManager = userManager;
     }
 
     public override async Task<Result<AdminUserProfileDto>> Handle(GetAdminUserProfileQuery query,

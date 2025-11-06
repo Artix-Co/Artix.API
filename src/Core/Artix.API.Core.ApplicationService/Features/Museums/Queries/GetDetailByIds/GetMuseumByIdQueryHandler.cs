@@ -19,10 +19,8 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDeta
     private readonly IMuseumQueryRepository _museumQueryRepository;
     private readonly ICacheRepository<RecentMuseumDto> _museumCache;
 
-    public GetMuseumByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository,
-        ICacheRepository<RecentMuseumDto> museumCache) : base(cache,
-        httpContextAccessor, userManager)
+
+    public GetMuseumByIdQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository, ICacheRepository<RecentMuseumDto> museumCache) : base(httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
         this._museumCache = museumCache;

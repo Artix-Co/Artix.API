@@ -15,7 +15,8 @@ internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseu
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
 
-    public GetMuseumKeyStatusQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository) : base(cache, httpContextAccessor, userManager)
+    public GetMuseumKeyStatusQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        IMuseumQueryRepository museumQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
     }
@@ -24,13 +25,13 @@ internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseu
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetKeyStatusAsync(query, cancellationToken);
-        
+
         if (result == null)
         {
             // TODO: convert it to ApplicationServiceNotFoundException.ForEntity
             throw new KeyNotFoundException("The given museum key status could not be found.");
         }
-        
+
         return Result<MuseumKeyStatusDto>.Success(result);
     }
 }

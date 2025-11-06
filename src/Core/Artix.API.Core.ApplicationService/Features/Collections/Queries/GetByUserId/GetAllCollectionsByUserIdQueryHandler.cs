@@ -16,8 +16,9 @@ internal sealed class
 {
     private readonly ICollectionQueryRepository _collectionQueryRepository;
 
-    public GetAllCollectionsByUserIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ICollectionQueryRepository collectionQueryRepository) : base(cache,
+
+    public GetAllCollectionsByUserIdQueryHandler(IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager, ICollectionQueryRepository collectionQueryRepository) : base(
         httpContextAccessor, userManager)
     {
         this._collectionQueryRepository = collectionQueryRepository;
