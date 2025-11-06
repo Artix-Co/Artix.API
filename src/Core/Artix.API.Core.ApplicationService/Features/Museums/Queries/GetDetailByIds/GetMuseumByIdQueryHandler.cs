@@ -17,11 +17,11 @@ using Microsoft.Extensions.Caching.Memory;
 internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDetailsByIdQuery, MuseumDetailsByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
-    private readonly ICacheService<RecentMuseumDto> _museumCache;
+    private readonly ICacheRepository<RecentMuseumDto> _museumCache;
 
     public GetMuseumByIdQueryHandler(IMemoryCache cache, IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager, IMuseumQueryRepository museumQueryRepository,
-        ICacheService<RecentMuseumDto> museumCache) : base(cache,
+        ICacheRepository<RecentMuseumDto> museumCache) : base(cache,
         httpContextAccessor, userManager)
     {
         this._museumQueryRepository = museumQueryRepository;
@@ -40,8 +40,8 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDeta
             throw ApplicationServiceNotFoundException.ForEntity(nameof(result), query.Id);
         }
 
-        await this._museumCache.AddToRecentAsync(user.Id.ToString(),
-            RecentMuseumDto.Create(result.BusinessId, result.ImageUrl, result.Name!));
+        // await this._museumCache.SetAsync(user.Id.ToString(),
+        //     RecentMuseumDto.Create(result.BusinessId, result.ImageUrl, result.Name!));
         // await _museumCache.ClearRecentAsync(user.Id.ToString());
         return Result<MuseumDetailsByIdDto>.Success(result);
     }
