@@ -1,28 +1,16 @@
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 80
-
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY . .
+RUN dotnet restore ./src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj
+RUN dotnet publish ./src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-# کپی فایل‌های solution و پروژه‌ها
-COPY ["Artix.API.sln", "."]
-COPY ["Directory.Packages.props", "."]
-
-
-
-COPY ["src/", "src/"]
-COPY ["tests/", "tests/"]
-
-# Restore پروژه‌ها
-RUN dotnet restore "Artix.API.sln"
-
-# Build و Publish پروژه Artix.API.WebService
-WORKDIR "/src/src/Presentation/Artix.API.WebService"
-RUN dotnet publish "Artix.API.WebService.csproj" -c $BUILD_CONFIGURATION -o /app/publish --no-restore
-
-FROM base AS final
+# Stage 2: Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+ENV ASPNETCORE_URLS=http://+:80
+
+
+
 ENTRYPOINT ["dotnet", "Artix.API.WebService.dll"]
