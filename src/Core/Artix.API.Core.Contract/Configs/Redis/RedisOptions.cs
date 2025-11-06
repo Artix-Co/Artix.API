@@ -10,6 +10,6 @@ public class RedisOptions
 
 public class RateLimitOptions
 {
-    public int Limit { get; set; } = 100;
-    public int WindowSeconds { get; set; } = 60;
+    public int Limit { get; set; } = 1;
+    public int WindowSeconds { get; set; } = 5;
 }

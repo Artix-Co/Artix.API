@@ -10,6 +10,7 @@ using DomainService.Interfaces.Notification;
 using Exceptions;
 using Infra.RabbitMQ.Interfaces.Notification;
 using Infra.RabbitMQ.Models.Notification;
+using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
@@ -18,35 +19,43 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IObjectCommandRepository _objectCommandRepository;
-   
+    private readonly IRequestRatePolicy _requestRatePolicy;
+
 
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IObjectCommandRepository objectCommandRepository)
+        IObjectCommandRepository objectCommandRepository, IRequestRatePolicy requestRatePolicy)
         : base(httpContextAccessor, userManager)
     {
         _museumCommandRepository = museumCommandRepository;
         _objectCommandRepository = objectCommandRepository;
-
+        _requestRatePolicy = requestRatePolicy;
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
-        var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
+
+        var rateKey = $"scan:{user.Id}";
+        var allowed = await _requestRatePolicy.IsAllowedAsync(rateKey, cancellationToken);
+
+        if (!allowed)
+            throw new TooManyRequestsException("You are scanning too fast. Please wait a few seconds.");
+
+        var museum = await _museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
         var @object = museum.FindObject(command.ObjectId);
         if (@object == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
-        
+
         user.ProcessScan(@object);
 
         await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
-        
+
         return @object.BusinessId;
     }
 }

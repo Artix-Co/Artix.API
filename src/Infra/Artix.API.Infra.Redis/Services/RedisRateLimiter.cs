@@ -18,11 +18,14 @@ public sealed class RedisRateLimiter : IRequestRatePolicy
     public async Task<bool> IsAllowedAsync(string key, CancellationToken ct = default)
     {
         var db = _factory.Connection.GetDatabase();
-        var redisKey = $"rate:{key}:{_options.WindowSeconds}";
-        var count = await db.StringIncrementAsync(redisKey);
 
+        var window = TimeSpan.FromSeconds(_options.WindowSeconds);
+        var currentWindow = DateTimeOffset.UtcNow.Ticks / window.Ticks;
+        var redisKey = $"rate:{key}:{currentWindow}";
+
+        var count = await db.StringIncrementAsync(redisKey);
         if (count == 1)
-            await db.KeyExpireAsync(redisKey, TimeSpan.FromSeconds(_options.WindowSeconds));
+            await db.KeyExpireAsync(redisKey, window);
 
         return count <= _options.Limit;
     }
