@@ -8,21 +8,23 @@ using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 // TODO: develop validator for this handler
-internal sealed class
-    GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<GetUserRecentObjectsVisitQuery,
-    IEnumerable<UserRecentObjectsVisitDto>>
+internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<GetUserRecentObjectsVisitQuery, IEnumerable<UserRecentObjectsVisitDto>>
 {
-    private readonly ICacheRepository<RecentObjectDto> _objectCache;
+    private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;
+    private readonly ILogger<GetUserRecentObjectsVisitsQueryHandler> _logger;
 
-
-    public GetUserRecentObjectsVisitsQueryHandler(IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, ICacheRepository<RecentObjectDto> objectCache) : base(httpContextAccessor,
-        userManager)
+    public GetUserRecentObjectsVisitsQueryHandler(
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<AppUser> userManager,
+        ICacheRepository<List<RecentObjectDto>> objectCache,
+        ILogger<GetUserRecentObjectsVisitsQueryHandler> logger) : base(httpContextAccessor, userManager)
     {
-        this._objectCache = objectCache;
+        _objectCache = objectCache;
+        _logger = logger;
     }
 
     public override async Task<Result<IEnumerable<UserRecentObjectsVisitDto>>> Handle(
@@ -30,9 +32,23 @@ internal sealed class
         CancellationToken cancellationToken)
     {
         var user = await GetCurrentUserAsync(cancellationToken);
-        var recentVisitsCached = await this._objectCache.GetAsync(user.Id.ToString());
-        // var result = recentVisitsCached.Select(m =>
-        //     new UserRecentObjectsVisitDto(m.Id, m.ImageUrl, m.Model3DUrl, m.Name, m.HistoricalPeriod));
-        return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success([]);
+        var cacheKey = $"recent-objects:{user.Id}";
+
+        var cached = await _objectCache.GetAsync(cacheKey);
+        if (cached != null)
+        {
+            _logger.LogInformation("Cache hit for recent objects UserId={UserId}", user.Id);
+            var result = cached.Select(dto => new UserRecentObjectsVisitDto(
+                Id: dto.Id,
+                ImageUrl: dto.ImageUrl,
+                Model3DUrl: dto.Model3DUrl,
+                Name: dto.Name,
+                HistoricalPeriod: dto.HistoricalPeriod));
+
+            return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(result);
+        }
+
+        _logger.LogInformation("Cache miss for recent objects UserId={UserId}", user.Id);
+        return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(Enumerable.Empty<UserRecentObjectsVisitDto>());
     }
 }
