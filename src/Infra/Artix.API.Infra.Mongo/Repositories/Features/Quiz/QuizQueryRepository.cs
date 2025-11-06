@@ -11,7 +11,7 @@ using Primitives;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuestQueryRepository
+public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuizQueryRepository
 {
     public QuizQueryRepository(MongoQueryContext queryDbContext, ILogger<MongoQueryRepository<Quiz>> logger)
         : base(queryDbContext, logger)

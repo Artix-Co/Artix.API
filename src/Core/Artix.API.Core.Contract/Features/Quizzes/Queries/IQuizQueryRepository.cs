@@ -4,7 +4,7 @@ using Domain.Entities.Quiz;
 using GetShuffledQuizzes;
 using Primitives.Repositories;
 
-public interface IQuestQueryRepository : IQueryRepository<Quiz>
+public interface IQuizQueryRepository : IQueryRepository<Quiz>
 {
     ValueTask<IEnumerable<ShuffledQuizzesDto>> GetShuffledAsync(GetShuffledQuizzesQuery dto,
         CancellationToken cancellationToken = default);
