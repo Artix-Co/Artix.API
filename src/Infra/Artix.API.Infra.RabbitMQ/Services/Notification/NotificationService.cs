@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
-using Interfaces.Notification;
-using Models.Notification;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 
 internal sealed class NotificationService : INotificationService
 {

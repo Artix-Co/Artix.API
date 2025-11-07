@@ -1,6 +1,4 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Interfaces.Notification;
-
- 
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.RabbitMQ;
 
 public interface INotificationProducer
 {

@@ -1,7 +1,6 @@
 ﻿namespace Artix.API.Infra.RabbitMQ;
 
-using Interfaces.Notification;
-using Interfaces.Outbox;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Services.Notification;

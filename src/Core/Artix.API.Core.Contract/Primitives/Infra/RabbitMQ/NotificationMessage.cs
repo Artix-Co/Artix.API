@@ -1,7 +1,6 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Models.Notification;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.RabbitMQ;
 
-using Core.Domain.Entities.Notification;
-using Core.Domain.Entities.Notification.Enums;
+using Domain.Entities.Notification.Enums;
 
 public record NotificationMessage(
     Guid NotificationId,

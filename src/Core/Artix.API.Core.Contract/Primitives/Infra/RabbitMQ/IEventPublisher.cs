@@ -1,6 +1,6 @@
-﻿namespace Artix.API.Infra.RabbitMQ.Interfaces.Outbox;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.RabbitMQ;
 
-using Core.Domain.DomainEvents;
+using Domain.DomainEvents;
 
 public interface IEventPublisher
 {

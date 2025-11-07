@@ -3,10 +3,9 @@ namespace Artix.API.Core.DomainService.Services.Notification;
 using Contract.Features.Notifications.Commands;
 using Contract.Features.Notifications.Commands.AddUserNotification;
 using Domain.Entities.Notification;
-using Infra.RabbitMQ.Interfaces.Notification;
-using Infra.RabbitMQ.Models.Notification;
 using Interfaces.Notification;
 using System.Threading.Tasks;
+using Contract.Primitives.Infra.RabbitMQ;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
 

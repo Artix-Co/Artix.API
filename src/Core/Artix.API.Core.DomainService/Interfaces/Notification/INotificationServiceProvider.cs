@@ -1,7 +1,6 @@
 namespace Artix.API.Core.DomainService.Interfaces.Notification;
 
 using Contract.Features.Notifications.Commands.AddUserNotification;
-using Infra.RabbitMQ.Models.Notification;
 
 public interface INotificationServiceProvider
 {

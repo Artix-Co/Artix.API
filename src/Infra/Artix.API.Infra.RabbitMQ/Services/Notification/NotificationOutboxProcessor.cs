@@ -1,11 +1,10 @@
 namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Domain.Entities.Notification.Enums;
-using Interfaces.Notification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Models.Notification;
 using Sql.Data.DbContexts;
 
 internal sealed class NotificationOutboxProcessor : BackgroundService

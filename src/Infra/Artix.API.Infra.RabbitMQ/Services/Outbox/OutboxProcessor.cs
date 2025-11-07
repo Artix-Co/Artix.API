@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
 using System.Text.Json;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.DomainEvents;
-using Interfaces.Outbox;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,11 +1,11 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
 using System.Text.Json;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Domain.DomainEvents;
 using Core.Domain.Entities.Object.Events;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
-using Interfaces.Outbox;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

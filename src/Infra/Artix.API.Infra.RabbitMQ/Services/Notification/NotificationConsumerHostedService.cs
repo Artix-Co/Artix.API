@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
 using System.Text.Json;
-using Artix.API.Infra.RabbitMQ.Models.Notification;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using Services;
 using Sql.Data.DbContexts;
 using global::RabbitMQ.Client;

@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Notification;
 
 using System.Text.Json;
+using Core.Contract.Primitives.Infra.RabbitMQ;
 using global::RabbitMQ.Client;
-using Interfaces.Notification;
 
 internal sealed class NotificationProducer : INotificationProducer, IDisposable
 {
