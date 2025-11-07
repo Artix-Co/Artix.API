@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Redis.Services;
 
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 
 public sealed class RedisFeatureToggleService : IFeatureToggleService
 {

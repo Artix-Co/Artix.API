@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 using System.Text.Json;
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.Extensions.Logging;
 public sealed class RedisCacheRepository<T> : ICacheRepository<T>
 {

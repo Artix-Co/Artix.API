@@ -3,13 +3,12 @@
 using Contract.Features.Caches.Objects;
 using Contract.Features.Objects.Queries;
 using Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
+using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Exceptions;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Primitives;
 

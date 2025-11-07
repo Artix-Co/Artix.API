@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Redis.Services;
 
 using Core.Contract.Configs.Redis;
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -10,8 +10,8 @@ public sealed class RedisConnectionFactory : IRedisConnectionFactory
 {
     private readonly Lazy<IConnectionMultiplexer> _connection;
     private readonly ILogger<RedisConnectionFactory> _logger;
-
-    public RedisConnectionFactory(IOptions<RedisOptions> options, ILogger<RedisConnectionFactory> logger)
+    
+    public RedisConnectionFactory(IOptions<RedisOptions> options, ILogger<RedisConnectionFactory> logger, Lazy<IConnectionMultiplexer> connection)
     {
         _logger = logger;
         _connection = new Lazy<IConnectionMultiplexer>(() =>

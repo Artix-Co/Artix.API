@@ -8,11 +8,11 @@ using Core.Contract.Configs.Authentication;
 using Core.Contract.Features.Tokens;
 using Core.Domain.Entities.User;
 using Artix.API.Infra.Identity.Interfaces.TokenProvider;
+using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Redis.Interfaces;
 
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {

@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Redis.Services;
 
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 using StackExchange.Redis;
 
 public sealed class RedisLockService : IDistributedLockService

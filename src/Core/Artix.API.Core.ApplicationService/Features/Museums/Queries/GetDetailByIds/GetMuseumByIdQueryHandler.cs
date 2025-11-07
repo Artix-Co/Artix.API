@@ -3,15 +3,13 @@
 using Exceptions;
 using Primitives;
 using Artix.API.Core.Contract.Features.Caches.Museums;
-using Artix.API.Core.Contract.Features.Museums.Commands;
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
+using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler

@@ -2,13 +2,12 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using Contract.Features.Users.Queries.Logout;
+using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 // TODO: develop validator for this handler

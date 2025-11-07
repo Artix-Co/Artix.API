@@ -2,12 +2,11 @@
 
 using Contract.Features.Caches.Museums;
 using Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
+using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Primitives;
 

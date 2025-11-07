@@ -1,22 +1,17 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.VerifyOTPAuth;
 
 using System.Security.Claims;
-using Contract.Features.OTPs.Commands;
-using Contract.Features.OTPs.Queries;
-using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
 using Primitives;
 using Domain.Entities.User;
 using Contract.Features.Users.Queries.VerifyOTPAuth;
+using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;
 using Domain.Entities.User.Enums;
-using Exceptions;
 using Infra.Identity.Interfaces.LoginHistory;
 using Infra.Identity.Interfaces.TokenProvider;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 
 // TODO: develop validator for this handler
 internal sealed class VerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAuthQuery, VerifyOTPAuthDto>

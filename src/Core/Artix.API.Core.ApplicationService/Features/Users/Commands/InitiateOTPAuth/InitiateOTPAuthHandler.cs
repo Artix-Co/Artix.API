@@ -2,9 +2,9 @@
 
 using Contract.Features.OTPs.Commands;
 using Contract.Features.Users.Commands.InitiateOTPAuth;
+using Contract.Primitives.Infra.Redis;
 using Domain.Entities.OTP;
 using Domain.Entities.User;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

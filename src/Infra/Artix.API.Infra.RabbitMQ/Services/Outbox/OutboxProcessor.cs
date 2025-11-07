@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
 using System.Text.Json;
+using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.DomainEvents;
 using Interfaces.Outbox;
 using MediatR;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sql.Data.DbContexts;
+
 
 internal sealed class OutboxProcessor : BackgroundService
 {
@@ -28,11 +30,12 @@ internal sealed class OutboxProcessor : BackgroundService
         {
             try
             {
-                await using var scope = this._scopeFactory.CreateAsyncScope();
+                await using var scope = _scopeFactory.CreateAsyncScope();
                 var context = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
                 var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                
+                var dedup = scope.ServiceProvider.GetRequiredService<IEventDeduplicationStore>();
+
                 var messages = await context.OutboxMessages
                     .Where(m => m.Status == "Pending")
                     .Take(50)
@@ -45,22 +48,26 @@ internal sealed class OutboxProcessor : BackgroundService
                         var eventType = Type.GetType(message.Type);
                         if (eventType == null)
                         {
-                            _logger.LogWarning("Event type {Type} not found. Assemblies loaded: {Assemblies}", 
-                                message.Type, 
-                                string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
                             message.Status = "Failed";
                             continue;
                         }
 
                         var @event = (IDomainEvent)JsonSerializer.Deserialize(message.Data, eventType, new JsonSerializerOptions
                         {
-                            PropertyNameCaseInsensitive = true // برای سازگاری با CamelCase
+                            PropertyNameCaseInsensitive = true
                         })!;
 
+                        var dedupKey = message.Id.ToString();
+                        var isFirst = await dedup.TryMarkProcessedAsync(dedupKey, 3600, stoppingToken);
+                        if (!isFirst)
+                        {
+                            message.Status = "Processed";
+                            message.ProcessedAt = DateTime.UtcNow;
+                            continue;
+                        }
 
                         await publisher.PublishAsync(@event, stoppingToken);
 
-                        // انتشار به MediatR
                         var notification = new DomainEventNotification(@event);
                         await mediator.Publish(notification, stoppingToken);
 
@@ -69,7 +76,7 @@ internal sealed class OutboxProcessor : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        this._logger.LogError(ex, "Failed to process message {MessageId}", message.Id);
+                        _logger.LogError(ex, "Failed to process message {MessageId}", message.Id);
                         message.Status = "Failed";
                     }
                 }
@@ -83,27 +90,5 @@ internal sealed class OutboxProcessor : BackgroundService
 
             await Task.Delay(_interval, stoppingToken);
         }
-    }
-
-    private Type? GetEventType(string typeName)
-    {
-        var type = Type.GetType(typeName);
-        if (type != null)
-            return type;
-
-        var domainAssembly = typeof(IDomainEvent).Assembly;
-        type = domainAssembly.GetType(typeName);
-        if (type != null)
-            return type;
-
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            type = assembly.GetType(typeName);
-            if (type != null)
-                return type;
-        }
-
-        _logger.LogInformation("Loaded assemblies: {Assemblies}", string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
-        return null;
     }
 }

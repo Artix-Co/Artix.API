@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Redis.Services;
 
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.Extensions.Logging;
 
 public sealed class RedisTokenRevocationStore : ITokenRevocationStore

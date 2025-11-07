@@ -3,6 +3,7 @@
 using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
+using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
 using Interfaces.LoginHistory;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Redis.Interfaces;
 using Services.LoginHistory;
 using Services.TokenProvider;
 using Services.TokenService;

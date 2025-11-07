@@ -4,7 +4,7 @@
 namespace Artix.API.Infra.Redis;
 
 using Core.Contract.Configs.Redis;
-using Interfaces;
+using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Services;

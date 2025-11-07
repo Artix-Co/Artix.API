@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Redis.Interfaces;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Redis;
 
 using StackExchange.Redis;
 

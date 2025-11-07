@@ -1,16 +1,11 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
 
 using Contract.Features.Museums.Commands;
-using Contract.Features.Notifications.Commands.AddUserNotification;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Scan;
-using Domain.Entities.Notification.Enums;
+using Contract.Primitives.Infra.Redis;
 using Domain.Entities.User;
-using DomainService.Interfaces.Notification;
 using Exceptions;
-using Infra.RabbitMQ.Interfaces.Notification;
-using Infra.RabbitMQ.Models.Notification;
-using Infra.Redis.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
@@ -26,7 +21,8 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IMuseumCommandRepository museumCommandRepository,
-        IObjectCommandRepository objectCommandRepository, IRequestRatePolicy requestRatePolicy)
+        IObjectCommandRepository objectCommandRepository,
+        IRequestRatePolicy requestRatePolicy)
         : base(httpContextAccessor, userManager)
     {
         _museumCommandRepository = museumCommandRepository;
