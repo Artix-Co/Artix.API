@@ -14,23 +14,22 @@ internal sealed class TimestampInterceptor : IChangeInterceptor
 
         foreach (var entityEntry in entries)
         {
-            var entity = (BaseEntity)entityEntry.Entity;
-
-            if (entityEntry.State == EntityState.Added)
+            switch (entityEntry.State)
             {
+            case EntityState.Added:
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
-            }
-            else if (entityEntry.State == EntityState.Modified)
-            {
+                break;
+            case EntityState.Modified:
                 entityEntry.Property(nameof(BaseEntity.ModifiedAt)).CurrentValue = DateTime.UtcNow;
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
+                break;
             }
         }
     }
 
     public async Task BeforeSaveChangesAsync(ArtixCommandDbContext context, CancellationToken cancellationToken)
     {
-        BeforeSaveChanges(context); // منطق ناهمزمان اضافی ندارد، فقط از متد همگام استفاده می‌کنیم
+        BeforeSaveChanges(context);
         await Task.CompletedTask;
     }
 }
