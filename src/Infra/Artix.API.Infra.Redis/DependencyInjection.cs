@@ -1,7 +1,4 @@
-﻿ 
- 
-
-namespace Artix.API.Infra.Redis;
+﻿namespace Artix.API.Infra.Redis;
 
 using Core.Contract.Configs.Redis;
 using Core.Contract.Primitives.Infra.Redis;

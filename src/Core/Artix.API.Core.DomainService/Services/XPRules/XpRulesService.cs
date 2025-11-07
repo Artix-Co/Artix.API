@@ -1,6 +1,8 @@
 namespace Artix.API.Core.DomainService.Services.XPRules;
 
 using Contract.Features.Objects.Commands;
+using Contract.Primitives.Infra.Redis;
+using Domain.Entities.Object;
 using Domain.Entities.User;
 using Interfaces.TierCalculator;
 using Interfaces.XPRules;
@@ -11,146 +13,187 @@ public sealed class XpRulesService : IXpRulesService
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly UserManager<AppUser> _userManager;
     private readonly ITierCalculatorService _tierCalculatorService;
+    private readonly ICacheRepository<AppUser> _userCache;
+    private readonly ICacheRepository<Object> _objectCache;
+    private readonly ILeaderboardService _leaderboardService;
+    private readonly IDistributedLockService _lockService;
+    private readonly IEventDeduplicationStore _dedupStore;
+    private readonly IFeatureToggleService _featureToggle;
 
-    public XpRulesService(IObjectCommandRepository objectCommandRepository, UserManager<AppUser> userManager,
-        ITierCalculatorService tierCalculatorService)
+    public XpRulesService(
+        IObjectCommandRepository objectCommandRepository,
+        UserManager<AppUser> userManager,
+        ITierCalculatorService tierCalculatorService,
+        ICacheRepository<AppUser> userCache,
+        ICacheRepository<Object> objectCache,
+        ILeaderboardService leaderboardService,
+        IDistributedLockService lockService,
+        IEventDeduplicationStore dedupStore,
+        IFeatureToggleService featureToggle)
     {
         _objectCommandRepository = objectCommandRepository;
         _userManager = userManager;
         _tierCalculatorService = tierCalculatorService;
+        _userCache = userCache;
+        _objectCache = objectCache;
+        _leaderboardService = leaderboardService;
+        _lockService = lockService;
+        _dedupStore = dedupStore;
+        _featureToggle = featureToggle;
     }
 
-    /// <summary>
-    /// محاسبه و اضافه کردن XP برای اسکن بار اول یک آبجکت
-    /// فرض می‌شود UserObject از بیرون ایجاد شده است
-    /// </summary>
-    /// <param name="userId">شناسه کاربر</param>
-    /// <param name="objectId">شناسه آبجکت</param>
-    /// <param name="seasonId">شناسه فصل (اختیاری)</param>
-    /// <param name="cancellationToken"></param>
-    public async Task CalculateXpForFirstScanAsync(long userId, Guid objectId, long? seasonId = null,
+    public async Task CalculateXpForFirstScanAsync(
+        long userId,
+        Guid objectId,
+        long? seasonId = null,
         CancellationToken cancellationToken = default)
     {
-        // بررسی وجود کاربر
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-            throw new Exception("User not found.");
+        var dedupKey = $"xp:firstscan:{userId}:{objectId}";
+        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, cancellationToken))
+            return;
 
-        // دریافت اطلاعات آبجکت
-        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId, cancellationToken);
-        if (objectEntity == null)
-            throw new Exception("Object not found.");
+        await using var lockHandle = await _lockService.TryAcquireAsync(
+            $"user:{userId}:xp",
+            TimeSpan.FromSeconds(10),
+            cancellationToken);
 
-        // بررسی اینکه آبجکت قبلاً اسکن نشده باشد (مطابق سناریو)
+        if (lockHandle is null)
+            throw new InvalidOperationException("Could not acquire lock for XP update.");
+
+        var user = await _userCache.GetOrSetAsync(
+            $"user:{userId}",
+            () => _userManager.FindByIdAsync(userId.ToString()),
+            120,
+            cancellationToken);
+
+        if (user is null)
+            throw new InvalidOperationException("User not found.");
+
+        var objectEntity = await _objectCache.GetOrSetAsync(
+            $"object:{objectId}",
+            () => _objectCommandRepository.GetByIdAsync(objectId, cancellationToken),
+            300,
+            cancellationToken);
+
+        if (objectEntity is null)
+            throw new InvalidOperationException("Object not found.");
+
         var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == objectEntity.Id);
-        if (userScan == null)
-            throw new Exception("user scan not found.");
+        if (userScan is null)
+            throw new InvalidOperationException("User scan not found.");
 
-        // محاسبه Tier
         var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, cancellationToken);
 
-        // محاسبه XP با اعمال multiplier
-        long baseXp = objectEntity.IsSpecial ? 150 : 100;
-        baseXp += objectEntity.Tier.GetValueOrDefault() * 10; // اضافه کردن XP بر اساس Tier آبجکت
-        long xpToAdd = (long)(baseXp * multiplier); // اعمال multiplier از tier
+        var xpBoostFlag = await _featureToggle.GetFlagAsync("xp_double_event", cancellationToken);
+        var effectiveMultiplier = xpBoostFlag == "true" ? multiplier * 2 : multiplier;
 
-        // به‌روزرسانی UserXp
+        long baseXp = objectEntity.IsSpecial ? 150 : 100;
+        baseXp += objectEntity.Tier.GetValueOrDefault() * 10;
+        long xpToAdd = (long)(baseXp * effectiveMultiplier);
+
         var userXp = user.UserXps.FirstOrDefault() ?? UserXp.Create(userId);
         if (!user.UserXps.Contains(userXp))
             user.AddUserXp(userXp);
         userXp.AddXp(xpToAdd);
 
-
         if (seasonId.HasValue)
         {
-            var seasonProgress =
-                user.UserSeasonProgresses.FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value);
-            if (seasonProgress == null)
-            {
-                seasonProgress = UserSeasonProgress.Create(userId, seasonId.Value, 0);
-                user.AddUserSeasonProgress(seasonProgress); // اضافه کردن به لیست برای ردیابی
-            }
+            var seasonProgress = user.UserSeasonProgresses
+                                     .FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value)
+                                 ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
+
+            if (!user.UserSeasonProgresses.Contains(seasonProgress))
+                user.AddUserSeasonProgress(seasonProgress);
 
             seasonProgress.AddXp((int)xpToAdd);
         }
 
-        // ذخیره تغییرات با استفاده از Change Tracker
         await _userManager.UpdateAsync(user);
+
+        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, cancellationToken);
+        if (seasonId.HasValue)
+            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd,
+                cancellationToken);
     }
 
-    /// <summary>
-    /// محاسبه و اضافه کردن XP برای اسکن بار چندم یک آبجکت
-    /// فرض می‌شود UserObject از بیرون ایجاد شده است
-    /// </summary>
-    /// <param name="userId">شناسه کاربر</param>
-    /// <param name="objectId">شناسه آبجکت</param>
-    /// <param name="seasonId">شناسه فصل (اختیاری)</param>
-    /// <param name="isGoldenLevel">آیا شی به لِوِل طلایی رسیده؟ (برای آخرین کوییز)</param>
-    /// <param name="cancellationToken"></param>
-    public async Task CalculateXpForRepeatScanAsync(long userId, Guid objectId, long? seasonId = null,
-        bool isGoldenLevel = false, CancellationToken cancellationToken = default)
+    public async Task CalculateXpForRepeatScanAsync(
+        long userId,
+        Guid objectId,
+        long? seasonId = null,
+        bool isGoldenLevel = false,
+        CancellationToken cancellationToken = default)
     {
-        // بررسی وجود کاربر
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-            throw new Exception("User not found.");
+        var goldenSuffix = isGoldenLevel ? ":golden" : string.Empty;
+        var dedupKey = $"xp:repeatscan:{userId}:{objectId}{goldenSuffix}";
+        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, cancellationToken))
+            return;
 
-        // دریافت اطلاعات آبجکت
-        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId);
-        if (objectEntity == null)
-            throw new Exception("Object not found.");
+        await using var lockHandle = await _lockService.TryAcquireAsync(
+            $"user:{userId}:xp",
+            TimeSpan.FromSeconds(10),
+            cancellationToken);
 
-        // بررسی اینکه آبجکت قبلاً اسکن شده باشد
+        if (lockHandle is null)
+            throw new InvalidOperationException("Could not acquire lock for XP update.");
+
+        var user = await _userCache.GetOrSetAsync(
+            $"user:{userId}",
+            () => _userManager.FindByIdAsync(userId.ToString()),
+            120,
+            cancellationToken);
+
+        if (user is null)
+            throw new InvalidOperationException("User not found.");
+
+        var objectEntity = await _objectCache.GetOrSetAsync(
+            $"object:{objectId}",
+            () => _objectCommandRepository.GetByIdAsync(objectId, cancellationToken),
+            300,
+            cancellationToken);
+
+        if (objectEntity is null)
+            throw new InvalidOperationException("Object not found.");
+
         var userObject = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == objectEntity.Id);
-        if (userObject == null)
-            throw new Exception("Object not previously scanned by user.");
+        if (userObject is null)
+            throw new InvalidOperationException("Object not previously scanned by user.");
 
-        // ارتقا یا افزایش ScanCount
         if (!userObject.IsUpgraded)
             userObject.Upgrade();
         else if (isGoldenLevel)
-            userObject.RecordScan(); // برای golden level
+            userObject.RecordScan();
 
-        /*
-
-         * دلیل عدم استفاده از tierLevel در XpRulesService:
-
-           تمرکز روی Multiplier در Gamification: طبق سناریوی Artix، multiplier از CalculateTierAsync برای تقویت XP (مثل boost در QR hunts، golden level، یا seasonal events) مهم‌تره، چون مستقیماً به پاداش‌ها (XP) و engagement وصل می‌شه. tierLevel بیشتر برای نمایش (مثل rankings یا کلکسیون) استفاده می‌شه و در محاسبه XP نقشی نداره.
-           استفاده از Object.Tier: کد فعلی از objectEntity.Tier برای اضافه کردن XP پایه (مثل Tier * 10 یا Tier * 5) استفاده می‌کنه، که با منطق داخلی آبجکت هم‌خوانی داره و نیازی به tierLevel از UserScan نداره.
-           جلوگیری از پیچیدگی: ترکیب tierLevel (از UserScan) با objectEntity.Tier می‌تونه لاجیک رو پیچیده کنه و با سناریو (که XP به ویژگی‌های آبجکت و multiplier وابسته‌ست) ناسازگار باشه.
-           سناریوی Artix: tierLevel برای به‌روزرسانی‌های بعدی (مثل rankings یا ژورنال) ذخیره می‌شه، اما در محاسبه XP فعلی ضرورتی نداره، چون multiplier کافی پوشش می‌ده.
-
-         */
-        // محاسبه Tier
         var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userObject, cancellationToken);
 
-        // محاسبه XP با اعمال multiplier
-        long baseXp = isGoldenLevel ? 200 : 50;
-        baseXp += objectEntity.Tier.GetValueOrDefault() * 5; // XP کمتر برای اسکن‌های تکراری
-        long xpToAdd = (long)(baseXp * multiplier); // اعمال multiplier از tier
+        var xpBoostFlag = await _featureToggle.GetFlagAsync("xp_double_event", cancellationToken);
+        var effectiveMultiplier = xpBoostFlag == "true" ? multiplier * 2 : multiplier;
 
-        // به‌روزرسانی UserXp
+        long baseXp = isGoldenLevel ? 200 : 50;
+        baseXp += objectEntity.Tier.GetValueOrDefault() * 5;
+        long xpToAdd = (long)(baseXp * effectiveMultiplier);
+
         var userXp = user.UserXps.FirstOrDefault() ?? UserXp.Create(userId);
         if (!user.UserXps.Contains(userXp))
             user.AddUserXp(userXp);
         userXp.AddXp(xpToAdd);
 
-
-        // اگر فصل فعال باشد، XP به UserSeasonProgress اضافه می‌شود
         if (seasonId.HasValue)
         {
-            var seasonProgress =
-                user.UserSeasonProgresses.FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value);
-            if (seasonProgress == null)
-            {
-                seasonProgress = UserSeasonProgress.Create(userId, seasonId.Value, 0);
-                user.AddUserSeasonProgress(seasonProgress); // اضافه کردن به لیست برای ردیابی
-            }
+            var seasonProgress = user.UserSeasonProgresses
+                                     .FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value)
+                                 ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
+
+            if (!user.UserSeasonProgresses.Contains(seasonProgress))
+                user.AddUserSeasonProgress(seasonProgress);
 
             seasonProgress.AddXp((int)xpToAdd);
         }
 
-        // ذخیره تغییرات با استفاده از Change Tracker
         await _userManager.UpdateAsync(user);
+
+        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, cancellationToken);
+        if (seasonId.HasValue)
+            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd,
+                cancellationToken);
     }
 }
