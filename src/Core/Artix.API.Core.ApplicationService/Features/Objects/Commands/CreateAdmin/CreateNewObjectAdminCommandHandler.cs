@@ -11,7 +11,6 @@ using Domain.Entities.Object;
 using Domain.Entities.User;
 using DomainService.Interfaces.FileProcessing;
 using Exceptions;
-using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

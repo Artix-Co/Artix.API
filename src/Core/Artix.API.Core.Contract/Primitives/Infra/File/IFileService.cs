@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.File.Interfaces;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.File;
 
 using Microsoft.AspNetCore.Http;
 

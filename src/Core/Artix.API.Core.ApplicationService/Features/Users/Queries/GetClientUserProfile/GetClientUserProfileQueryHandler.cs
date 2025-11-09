@@ -3,8 +3,8 @@
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.GetClientUserProfile;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Primitives.Infra.File;
 using Domain.Entities.User;
-using Artix.API.Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;

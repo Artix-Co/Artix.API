@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
-using Interfaces;
+using Core.Contract.Primitives.Infra.File;
 using Microsoft.Extensions.Options;
 
 public class FileService : IFileService

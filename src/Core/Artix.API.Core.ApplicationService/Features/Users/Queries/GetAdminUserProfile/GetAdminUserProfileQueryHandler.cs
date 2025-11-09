@@ -2,9 +2,9 @@ namespace Artix.API.Core.ApplicationService.Features.Users.Queries.GetAdminUserP
 
 using System.Security.Claims;
 using Contract.Features.Users.Queries.GetAdminUserProfile;
+using Contract.Primitives.Infra.File;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
-using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;

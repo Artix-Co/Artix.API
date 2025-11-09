@@ -3,9 +3,9 @@
 using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
 using Contract.Features.Users.Commands.Modify;
+using Contract.Primitives.Infra.File;
 using Domain.Entities.File;
 using Domain.Entities.User;
-using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

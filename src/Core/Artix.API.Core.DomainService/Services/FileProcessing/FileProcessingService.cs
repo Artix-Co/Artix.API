@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using Contract.Features.Files.Commands;
+using Contract.Primitives.Infra.File;
 using Domain.Entities.File;
-using Infra.File.Interfaces;
 using Interfaces.FileProcessing;
 
 public class FileProcessingService : IFileProcessingService

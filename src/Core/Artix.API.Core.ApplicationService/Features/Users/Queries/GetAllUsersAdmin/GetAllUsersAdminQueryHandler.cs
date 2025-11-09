@@ -3,11 +3,11 @@ namespace Artix.API.Core.ApplicationService.Features.Users.Queries.GetAllUsersAd
 using System.Security.Claims;
 using Contract.Features.Users.Queries.GetAdminUserProfile;
 using Contract.Features.Users.Queries.GetAllUsersAdmin;
+using Contract.Primitives.Infra.File;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Domain.Entities.User.Enums;
 using DPG.Core.Contract.Primitives.Models;
-using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

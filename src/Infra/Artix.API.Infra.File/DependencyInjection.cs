@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.File;
 
 using Core.Contract.Configs.FileSettings;
-using Interfaces;
+using Core.Contract.Primitives.Infra.File;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services;

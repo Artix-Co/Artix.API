@@ -8,7 +8,6 @@ using Domain.Entities.File;
 using Domain.Entities.Museum;
 using Domain.Entities.User;
 using DomainService.Interfaces.FileProcessing;
-using Infra.File.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
