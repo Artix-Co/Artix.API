@@ -2,9 +2,9 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.GetReNewAccessToken;
+using Contract.Primitives.Infra.Identity;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
-using Infra.Identity.Interfaces.TokenService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;

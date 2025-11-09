@@ -2,9 +2,8 @@
 
 using Core.Contract.Features.Tokens;
 using Core.Domain.Entities.User;
-using Artix.API.Infra.Identity.Interfaces.TokenProvider;
-using Artix.API.Infra.Identity.Interfaces.TokenService;
 using Core.Contract.Configs.Authentication;
+using Core.Contract.Primitives.Infra.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Tests.Integration.Core.DomainService.XPRules;
 
+using API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Features.Objects.Commands;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Core.DomainService.Interfaces.TierCalculator;
@@ -17,6 +18,7 @@ public class XpRulesServiceTests
     private Mock<IObjectCommandRepository> _objectRepoMock;
     private Mock<UserManager<AppUser>> _userManagerMock;
     private Mock<ITierCalculatorService> _tierCalcMock;
+    private Mock<IFeatureToggleService> _featureFlag;
     private IXpRulesService _xpRulesService;
 
     [SetUp]
@@ -36,7 +38,7 @@ public class XpRulesServiceTests
             null,    // IServiceProvider
             new Mock<ILogger<UserManager<AppUser>>>().Object
         );        this._tierCalcMock = new Mock<ITierCalculatorService>();
-        this._xpRulesService = new XpRulesService(this._objectRepoMock.Object, this._userManagerMock.Object, this._tierCalcMock.Object);
+        // this._xpRulesService = new XpRulesService(this._objectRepoMock.Object, this._userManagerMock.Object, this._tierCalcMock.Object,this._featureFlag);
     }
 
     // Arrange, Act, Assert comments above each test

@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Identity.Services.LoginHistory;
 
+using Core.Contract.Primitives.Infra.Identity;
 using Core.Domain.Entities.User;
-using Artix.API.Infra.Identity.Interfaces.LoginHistory;
 using Sql.Data.DbContexts;
 
 public sealed class UserLoginHistoryService : IUserLoginHistoryService

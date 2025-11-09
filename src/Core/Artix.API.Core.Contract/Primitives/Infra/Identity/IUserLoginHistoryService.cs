@@ -1,6 +1,6 @@
-﻿namespace Artix.API.Infra.Identity.Interfaces.LoginHistory;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Identity;
 
-using Core.Domain.Entities.User;
+using Domain.Entities.User;
 
 public interface IUserLoginHistoryService
 {

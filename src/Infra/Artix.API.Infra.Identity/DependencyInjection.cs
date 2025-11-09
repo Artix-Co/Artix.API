@@ -3,12 +3,10 @@
 using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
+using Core.Contract.Primitives.Infra.Identity;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
-using Interfaces.LoginHistory;
-using Interfaces.TokenProvider;
-using Interfaces.TokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
