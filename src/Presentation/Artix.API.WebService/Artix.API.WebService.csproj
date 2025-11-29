@@ -10,34 +10,39 @@
   <ItemGroup>
     
     
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   
-    <PackageReference Include="Elastic.Serilog.Sinks"/>
-    <PackageReference Include="Elasticsearch.Net"/>
+    <PackageReference Include="Elastic.Serilog.Sinks" />
+    <PackageReference Include="Elasticsearch.Net" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
 
-    <PackageReference Include="NEST"/>
-    <PackageReference Include="Serilog"/>
-    <PackageReference Include="Serilog.AspNetCore"/>
-    <PackageReference Include="Serilog.Settings.Configuration"/>
-    <PackageReference Include="Serilog.Sinks.Console"/>
-    <PackageReference Include="Serilog.Sinks.Elasticsearch"/>
-    <PackageReference Include="Swashbuckle.AspNetCore"/>
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations"/>
+    <PackageReference Include="NEST" />
+
+    <PackageReference Include="Polly" />
+
+    <PackageReference Include="Polly.Extensions.Http" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
 
   </ItemGroup>
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Artix.API.Core.ApplicationService\Artix.API.Core.ApplicationService.csproj"/>
-    <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
-    <ProjectReference Include="..\..\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
-    <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj"/>
+    <ProjectReference Include="..\..\Core\Artix.API.Core.ApplicationService\Artix.API.Core.ApplicationService.csproj" />
+    <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj" />
+    <ProjectReference Include="..\..\Core\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj" />
+    <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Mongo\Artix.API.Infra.Mongo.csproj" />
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj"/>
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj"/>
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj"/>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj" />
     <ProjectReference Include="..\..\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj"/>
+    <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj" />
   </ItemGroup>
 </Project>

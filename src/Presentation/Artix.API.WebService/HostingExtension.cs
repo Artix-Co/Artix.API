@@ -10,6 +10,7 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.Mongo;
 using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
+using Core.Contract.Primitives.CircuitBreaker;
 using Core.DomainService;
 using Endpoints;
 using Extensions;
@@ -25,7 +26,27 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
 using Nest;
 using Serilog;
+using Utils.Http;
 using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
+
+
+public sealed class CustomerApiClient
+{
+    private readonly HttpClient _http;
+
+    public CustomerApiClient(HttpClient http)
+    {
+        _http = http;
+    }
+
+    public async Task<string> PingAsync()
+    {
+        var response = await _http.GetAsync("ping");
+        await response.EnsureSuccessStatusCodeSafeAsync();
+        return await response.Content.ReadAsStringAsync();
+    }
+}
+
 
 public static class HostingExtension
 {
@@ -65,7 +86,17 @@ public static class HostingExtension
             options.Preload = true;
         });
 
-        // Configure Cache
+        
+        services.AddHttpClient<CustomerApiClient>(client =>
+            {
+                client.BaseAddress = new Uri("https://external-api.example.com/");
+                client.Timeout = Timeout.InfiniteTimeSpan; // Timeout via Polly
+            })
+            .AddPolicyHandler(PollyPolicies.GetRetryPolicy())
+            .AddPolicyHandler(PollyPolicies.GetTimeoutPolicy())
+            .AddPolicyHandler(PollyPolicies.GetCircuitBreakerPolicy());
+
+        
         services.AddMemoryCache();
         services.AddResponseCaching();
 

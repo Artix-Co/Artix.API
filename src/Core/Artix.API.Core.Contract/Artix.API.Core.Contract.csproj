@@ -9,15 +9,17 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Scrutor"/>
-    <PackageReference Include="MediatR"/>
-    <PackageReference Include="FluentValidation"/>
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Polly.Extensions.Http" />
+    <PackageReference Include="Scrutor" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <ProjectReference Include="..\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
+    <ProjectReference Include="..\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
   </ItemGroup>
 </Project>
