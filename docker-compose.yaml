@@ -110,6 +110,9 @@ services:
       ASPNETCORE_URLS: http://+:80
       DOTNET_RUNNING_IN_CONTAINER: true
       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 0
+      DOCKER_BUILDKIT: 1
+      COMPOSE_DOCKER_CLI_BUILD: 1
+      
     expose:
       - 80
     volumes:
