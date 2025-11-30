@@ -7,17 +7,20 @@ using Core.Domain.Entities.File;
 public class InMemoryUploadRepository : IUploadRepository
 {
     private readonly ConcurrentDictionary<Guid, UploadSession> _store = new();
-    public Task AddAsync(UploadSession session)
+
+    public Task AddAsync(UploadSession session, CancellationToken cancellationToken = default)
     {
         this._store[session.Id] = session;
         return Task.CompletedTask;
     }
-    public Task<UploadSession> GetAsync(Guid id)
+
+    public Task<UploadSession?> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         this._store.TryGetValue(id, out var s);
         return Task.FromResult(s);
     }
-    public Task UpdateAsync(UploadSession session)
+
+    public Task UpdateAsync(UploadSession session, CancellationToken cancellationToken = default)
     {
         this._store[session.Id] = session;
         return Task.CompletedTask;

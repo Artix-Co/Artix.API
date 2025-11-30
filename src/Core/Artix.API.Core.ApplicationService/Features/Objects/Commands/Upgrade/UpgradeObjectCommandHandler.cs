@@ -4,6 +4,7 @@ using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Upgrade;
+using Contract.Primitives.Infra.File;
 using Contract.Primitives.Repositories;
 using Domain.Entities.File;
 using Domain.Entities.User;
@@ -11,6 +12,7 @@ using DomainService.Interfaces.FileProcessing;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
@@ -21,21 +23,28 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
     private readonly string[] _allowedImageMimeTypes;
     private readonly ILogger<UpgradeObjectCommandHandler> _logger;
     private readonly IObjectCommandRepository _objectCommandRepository;
-    private readonly IFileProcessingService _fileProcessingService;
+    private readonly IFileCommandRepository _fileCommandRepository;
+
+    private readonly IUploadService _uploadService;
+    private readonly IFileStorage _fileStorage;
 
     public UpgradeObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IObjectCommandRepository objectCommandRepository,
         IOptions<FileSettings> options,
+        IFileStorage fileStorage,
+        IUploadService uploadService,
         ILogger<UpgradeObjectCommandHandler> logger,
-        IFileProcessingService fileProcessingService) : base(httpContextAccessor, userManager)
+        IFileCommandRepository fileCommandRepository) : base(httpContextAccessor, userManager)
     {
         _objectCommandRepository = objectCommandRepository;
         _allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
         _allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
         _logger = logger;
-        _fileProcessingService = fileProcessingService;
+        _fileStorage = fileStorage;
+        _uploadService = uploadService;
+        _fileCommandRepository = fileCommandRepository;
     }
 
     public override async Task<Guid> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
@@ -43,6 +52,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         _logger.LogInformation("Starting upgrade for object {ObjectId}", command.Id);
 
         var user = await GetCurrentUserAsync(cancellationToken);
+        long userId = user.Id;
+
 
         var @object = await _objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
         if (@object == null)
@@ -67,29 +78,23 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 command.Tier);
         }
 
-        await _fileProcessingService.ProcessFileUploadAsync(
-            fileDataBase64: command.Model3DFileDataBase64,
-            fileName: command.Model3DFileName,
-            mimeType: command.Model3DFileMimeType,
-            userId: user.Id,
-            allowedMimeTypes: _allowed3DMimeTypes,
-            assignFileAction: (obj, fileId, mimeTypes) => obj.Assign3DModel(fileId, mimeTypes),
-            entity: @object,
-            fileTypeDescription: "3D model",
-            cancellationToken: cancellationToken);
 
 
-        await _fileProcessingService.ProcessFileUploadAsync(
-            fileDataBase64: command.ImageFileDataBase64,
-            fileName: command.ImageFileName,
-            mimeType: command.ImageFileMimeType,
-            userId: user.Id,
-            allowedMimeTypes: _allowedImageMimeTypes,
-            assignFileAction: (obj, fileId, mimeTypes) => obj.AssignImage(fileId, mimeTypes),
-            entity: @object,
-            fileTypeDescription: "Image",
-            cancellationToken: cancellationToken);
-
+        // var fileEntity = FileEntity.Create(model3DFileName, model3DFilePath, model3DFileSize, model3DMimeType, userId);
+        // if (fileEntity == null)
+        // {
+        //     _logger.LogError("Failed to create {FileType} file: {FileName}", model3DFileTypeDescription,
+        //         model3DFileName);
+        //     throw new Exception($"Failed to create {model3DFileTypeDescription} file.");
+        // }
+        //
+        // await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+        //
+        // _logger.LogInformation("{FileType} file inserted: FileId={FileId}, FileName={FileName}",
+        //     model3DFileTypeDescription, fileEntity.Id, model3DFileName);
+        //
+        // @object.Assign3DModel(fileId, mimeTypes);
+        
 
         return @object.BusinessId;
     }
