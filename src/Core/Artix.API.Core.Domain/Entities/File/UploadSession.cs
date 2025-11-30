@@ -13,4 +13,5 @@ public class UploadSession
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool Completed { get; set; }
     public string TempFolder { get; set; }
+    public string MergedFilePath { get; set; }  
 }

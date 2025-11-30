@@ -45,11 +45,18 @@ public class UploadService : IUploadService
     {
         var s = await this._repo.GetAsync(uploadId, cancellationToken);
         if (s == null) throw new InvalidOperationException("not found");
-        await using var ms = new MemoryStream();
-        await this._storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, ms, cancellationToken);
+    
+        var finalPath = await _storage.GetMergedFilePathAsync(s.Id, s.FileName, cancellationToken);
+
+        await using var fs = File.OpenWrite(finalPath);
+        await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, fs, cancellationToken);
+
+        s.MergedFilePath = finalPath;
         s.Completed = true;
-        await this._repo.UpdateAsync(s, cancellationToken);
+
+        await _repo.UpdateAsync(s, cancellationToken);
     }
+
 
     public Task<UploadSession> GetStatusAsync(Guid uploadId, CancellationToken cancellationToken = default)
     {

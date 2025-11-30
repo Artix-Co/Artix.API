@@ -54,24 +54,20 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         var user = await GetCurrentUserAsync(cancellationToken);
         long userId = user.Id;
 
+        var obj = await _objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
+        if (obj == null)
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(obj), command.Id);
 
-        var @object = await _objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
-        if (@object == null)
-        {
-            _logger.LogError("Object not found: {ObjectId}", command.Id);
-            throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.Id);
-        }
 
+        // ---------- Update object data ----------
         if (!string.IsNullOrWhiteSpace(command.Name))
-        {
-            @object.Rename(command.Name);
-        }
+            obj.Rename(command.Name);
 
         if (!string.IsNullOrWhiteSpace(command.GeneralInformation) ||
             !string.IsNullOrWhiteSpace(command.SpecializedInformation) ||
             command.Tier.HasValue || command.Version.HasValue)
         {
-            @object.UpdateDetails(
+            obj.UpdateDetails(
                 command.GeneralInformation,
                 command.SpecializedInformation,
                 command.Version,
@@ -79,23 +75,44 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         }
 
 
+        // ========================================================
+        //  NEW PART — Handle 3D File Upload
+        // ========================================================
+        if (command.Model3DUploadId.HasValue)
+        {
+            var upload = await _uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
 
-        // var fileEntity = FileEntity.Create(model3DFileName, model3DFilePath, model3DFileSize, model3DMimeType, userId);
-        // if (fileEntity == null)
-        // {
-        //     _logger.LogError("Failed to create {FileType} file: {FileName}", model3DFileTypeDescription,
-        //         model3DFileName);
-        //     throw new Exception($"Failed to create {model3DFileTypeDescription} file.");
-        // }
-        //
-        // await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
-        //
-        // _logger.LogInformation("{FileType} file inserted: FileId={FileId}, FileName={FileName}",
-        //     model3DFileTypeDescription, fileEntity.Id, model3DFileName);
-        //
-        // @object.Assign3DModel(fileId, mimeTypes);
-        
+            if (upload == null || !upload.Completed)
+                throw new InvalidOperationException("3D upload session not completed.");
 
-        return @object.BusinessId;
+            var filePath = upload.MergedFilePath;
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                throw new FileNotFoundException("Merged 3D file not found.", filePath);
+
+            var fileInfo = new FileInfo(filePath);
+
+            // MIME detection (simple or using MimeTypesMap)
+            var model3DMimeType = _allowed3DMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
+            if (!_allowed3DMimeTypes.Contains(model3DMimeType))
+                throw new InvalidOperationException($"Invalid 3D file mime type: {model3DMimeType}");
+
+            var fileEntity = FileEntity.Create(
+                fileInfo.Name,
+                fileInfo.FullName,
+                fileInfo.Length,
+                model3DMimeType,
+                userId
+            );
+
+            await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+
+            obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
+            await _objectCommandRepository.UpdateAsync(obj, cancellationToken);
+            _logger.LogInformation("3D file attached to object: ObjectId={ObjectId}, FileId={FileId}",
+                obj.Id, fileEntity.Id);
+        }
+
+
+        return obj.BusinessId;
     }
 }

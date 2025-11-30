@@ -2,7 +2,6 @@ namespace Artix.API.Infra.FileService.Services;
 
 using Core.Contract.Primitives.Infra.File;
 using Microsoft.Extensions.Options;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,23 +9,29 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Buffers;
+using Core.Contract.Configs.FileSettings;
 
 public class FileSystemStorage : IFileStorage
 {
-    private readonly StorageOptions _options;
-    public FileSystemStorage(IOptions<StorageOptions> options) => _options = options.Value;
+    
+    private readonly FileSettings _fileSettings;
+
+    public FileSystemStorage( IOptions<FileSettings> fileSettings)
+    {
+        _fileSettings = fileSettings.Value;
+    }
 
     public Task EnsureDirectoriesAsync(CancellationToken cancellationToken = default)
     {
-        Directory.CreateDirectory(_options.TempPath);
-        Directory.CreateDirectory(_options.FinalPath);
+        Directory.CreateDirectory(this._fileSettings.TempPath);
+        Directory.CreateDirectory(this._fileSettings.StoragePath);
         return Task.CompletedTask;
     }
 
     public async Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data,
         CancellationToken cancellationToken = default)
     {
-        var folder = Path.Combine(_options.TempPath, uploadId.ToString());
+        var folder = Path.Combine(this._fileSettings.TempPath, uploadId.ToString());
         Directory.CreateDirectory(folder);
 
         var filePath = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
@@ -51,9 +56,9 @@ public class FileSystemStorage : IFileStorage
     public async Task MergeAsync(Guid uploadId, string fileName, int totalChunks, Stream _,
         CancellationToken cancellationToken = default)
     {
-        var folder = Path.Combine(_options.TempPath, uploadId.ToString());
-        Directory.CreateDirectory(_options.FinalPath);
-        var finalPath = Path.Combine(_options.FinalPath, fileName);
+        var folder = Path.Combine(this._fileSettings.TempPath, uploadId.ToString());
+        Directory.CreateDirectory(this._fileSettings.StoragePath);
+        var finalPath = Path.Combine(this._fileSettings.StoragePath, fileName);
 
         // Discover chunk paths and sizes in order
         var chunkPaths = Enumerable.Range(0, totalChunks)
@@ -76,12 +81,12 @@ public class FileSystemStorage : IFileStorage
 
         // Pre-allocate final file to avoid fragmentation and allow concurrent writes
         await using (var finalFs = new FileStream(
-            finalPath,
-            FileMode.Create,
-            FileAccess.ReadWrite,
-            FileShare.Read,
-            bufferSize: 4 * 1024 * 1024,
-            FileOptions.Asynchronous | FileOptions.RandomAccess))
+                         finalPath,
+                         FileMode.Create,
+                         FileAccess.ReadWrite,
+                         FileShare.Read,
+                         bufferSize: 4 * 1024 * 1024,
+                         FileOptions.Asynchronous | FileOptions.RandomAccess))
         {
             finalFs.SetLength(totalSize);
             finalFs.Flush(); // ensure allocation before parallel writes
@@ -90,7 +95,8 @@ public class FileSystemStorage : IFileStorage
             var finalHandle = finalFs.SafeFileHandle;
 
             // Tunables
-            int maxParallel = Math.Min(Math.Max(1, Environment.ProcessorCount * 2), 8); // cap to avoid excessive disk seeks
+            int maxParallel =
+                Math.Min(Math.Max(1, Environment.ProcessorCount * 2), 8); // cap to avoid excessive disk seeks
             int workerBufferSize = 1 * 1024 * 1024; // 1MB per worker buffer
 
             using var semaphore = new SemaphoreSlim(maxParallel);
@@ -120,11 +126,13 @@ public class FileSystemStorage : IFileStorage
                         try
                         {
                             int read;
-                            while ((read = await partFs.ReadAsync(buffer, 0, workerBufferSize, cancellationToken).ConfigureAwait(false)) > 0)
+                            while ((read = await partFs.ReadAsync(buffer, 0, workerBufferSize, cancellationToken)
+                                       .ConfigureAwait(false)) > 0)
                             {
                                 // RandomAccess.WriteAsync allows writing at an explicit offset without locking.
                                 // It uses the underlying file handle.
-                                await RandomAccess.WriteAsync(finalHandle, new ReadOnlyMemory<byte>(buffer, 0, read), writeOffset, cancellationToken).ConfigureAwait(false);
+                                await RandomAccess.WriteAsync(finalHandle, new ReadOnlyMemory<byte>(buffer, 0, read),
+                                    writeOffset, cancellationToken).ConfigureAwait(false);
                                 writeOffset += read;
                             }
                         }
@@ -158,10 +166,18 @@ public class FileSystemStorage : IFileStorage
         }
     }
 
+    public async Task<string> GetMergedFilePathAsync(Guid uploadId, string fileName, CancellationToken ct)
+    {
+        var folder = Path.Combine(this._fileSettings.StoragePath, uploadId.ToString());
+        Directory.CreateDirectory(folder);
+
+        return Path.Combine(folder, fileName);
+    }
+
     public Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken cancellationToken = default) =>
-        Task.FromResult(Path.Combine(_options.TempPath, uploadId.ToString()));
+        Task.FromResult(Path.Combine(this._fileSettings.TempPath, uploadId.ToString()));
 
     public Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken = default) =>
-        Task.FromResult(File.Exists(Path.Combine(_options.TempPath, uploadId.ToString(), $"{uploadId}.part{chunkIndex}")));
+        Task.FromResult(
+            File.Exists(Path.Combine(this._fileSettings.TempPath, uploadId.ToString(), $"{uploadId}.part{chunkIndex}")));
 }
-
