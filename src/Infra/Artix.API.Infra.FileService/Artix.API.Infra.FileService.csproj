@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
     <ProjectReference Include="..\..\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
+    <ProjectReference Include="..\..\Utils\Artix.API.Utils\Artix.API.Utils.csproj" />
   </ItemGroup>
 
 </Project>

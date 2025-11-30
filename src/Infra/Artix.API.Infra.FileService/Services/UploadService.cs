@@ -1,17 +1,22 @@
 namespace Artix.API.Infra.FileService.Services;
 
+using Core.Contract.Configs.FileSettings;
 using Core.Contract.Primitives.Infra.File;
 using Core.Domain.Entities.File;
+using Microsoft.Extensions.Options;
+using Utils.File;
 
 public class UploadService : IUploadService
 {
     private readonly IUploadRepository _repo;
     private readonly IFileStorage _storage;
+    private readonly FileSettings _fileSettings;
 
-    public UploadService(IUploadRepository repo, IFileStorage storage)
+    public UploadService(IUploadRepository repo, IFileStorage storage, IOptions<FileSettings> fileSettings)
     {
         this._repo = repo;
         this._storage = storage;
+        this._fileSettings = fileSettings.Value;
     }
 
     public async Task<UploadSession> InitiateAsync(string fileName, long totalSize, int chunkSize,
@@ -45,13 +50,14 @@ public class UploadService : IUploadService
     {
         var s = await this._repo.GetAsync(uploadId, cancellationToken);
         if (s == null) throw new InvalidOperationException("not found");
-    
-        var finalPath = await _storage.GetMergedFilePathAsync(s.Id, s.FileName, cancellationToken);
+        
+        var uniqueFileName = FileNameHelper.GenerateUniqueFileName(s.FileName);
+        var finalPath = Path.Combine(_fileSettings.StoragePath, uniqueFileName);
 
-        await using var fs = File.OpenWrite(finalPath);
-        await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, fs, cancellationToken);
+        await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, Stream.Null, cancellationToken);
 
         s.MergedFilePath = finalPath;
+        s.FinalFileName = uniqueFileName; 
         s.Completed = true;
 
         await _repo.UpdateAsync(s, cancellationToken);

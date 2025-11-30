@@ -86,9 +86,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 throw new InvalidOperationException("3D upload session not completed.");
 
             var filePath = upload.MergedFilePath;
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("Merged 3D file not found.", filePath);
-
+          
             var fileInfo = new FileInfo(filePath);
 
             // MIME detection (simple or using MimeTypesMap)
@@ -96,6 +94,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             if (!_allowed3DMimeTypes.Contains(model3DMimeType))
                 throw new InvalidOperationException($"Invalid 3D file mime type: {model3DMimeType}");
 
+            
+            // err caused here
             var fileEntity = FileEntity.Create(
                 fileInfo.Name,
                 fileInfo.FullName,
