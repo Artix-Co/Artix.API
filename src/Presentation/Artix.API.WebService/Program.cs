@@ -93,15 +93,58 @@ builder.Host.UseSerilog();
 builder.AddServiceDefaults();
 
 // Configure Kestrel for high concurrency
-builder.WebHost.UseKestrel(options =>
+builder.WebHost.UseKestrel(k =>
 {
-    options.Limits.MaxConcurrentConnections = null;
-    options.Limits.MaxConcurrentUpgradedConnections = null;
-    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(65);
+    // Bind to HTTP
+    k.ListenLocalhost(5274);
 
+    // Bind to HTTPS
+    k.ListenLocalhost(7013, listenOptions =>
+    {
+        listenOptions.UseHttps(); // uses the development certificate
+    });
 
-    options.Limits.MaxRequestBodySize = null;
+    
+    // 1) Network Performance
+    k.AddServerHeader = false;               // امنیت
+    k.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2); 
+    k.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
+
+    // 2) Connection Limits (High Throughput)
+    k.Limits.MaxConcurrentConnections = 5000;            // قابل افزایش
+    k.Limits.MaxConcurrentUpgradedConnections = 5000;
+
+    // 3) Request Body Limits (برای Chunk Upload لازم)
+    k.Limits.MaxRequestBodySize = null;                  // ما روی مسیر Upload محدود می‌کنیم
+
+    // 4) Request Buffering
+    k.Limits.MaxRequestBufferSize = 32 * 1024 * 1024;    // 32MB
+    k.Limits.MaxResponseBufferSize = 32 * 1024 * 1024;
+
+    // 5) Request/Response Header Limits
+    k.Limits.MaxRequestHeaderCount = 200;
+    k.Limits.MaxRequestLineSize = 16 * 1024;             // 16KB
+    k.Limits.MaxRequestHeadersTotalSize = 64 * 1024;     // 64KB
+
+    // 6) HTTP/2 upload tuning
+    k.Limits.Http2.MaxStreamsPerConnection = 100;        // default=100
+    k.Limits.Http2.MaxRequestHeaderFieldSize = 64 * 1024;
+    k.Limits.Http2.InitialConnectionWindowSize = 2 * 1024 * 1024; // 2MB
+    k.Limits.Http2.InitialStreamWindowSize = 1 * 1024 * 1024;     // 1MB
+
+    // 7) Threading / IO queue tuning
+    // k.Limits.MaxIops = 100_000;     // عدد بالا = اجازه I/O async زیاد
+    // k.Limits.MaxReadBufferSize = 64 * 1024 * 1024;
+    // k.Limits.MaxWriteBufferSize = 64 * 1024 * 1024;
+
+    // 8) Endpoint Binding
+    k.ListenAnyIP(8080, o =>
+    {
+        o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+    });
 });
+
+
 var app = builder.Build();
 
 Log.Logger.Information("Application built!");
