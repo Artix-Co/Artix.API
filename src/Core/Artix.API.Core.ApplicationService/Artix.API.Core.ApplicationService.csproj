@@ -11,7 +11,7 @@
  
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Infra\Artix.API.Infra.File\Artix.API.Infra.File.csproj"/>
+    <ProjectReference Include="..\..\Infra\Artix.API.Infra.FileService\Artix.API.Infra.FileService.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj"/>
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj"/>
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj"/>

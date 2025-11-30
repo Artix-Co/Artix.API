@@ -15,7 +15,7 @@ using Core.DomainService;
 using Endpoints;
 using Extensions;
 using Filters;
-using Infra.File;
+using Infra.FileService;
 using Infra.Identity;
 using Infra.Mongo;
 using Infra.RabbitMQ;

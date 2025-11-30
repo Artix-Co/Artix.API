@@ -41,7 +41,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Identity", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Redis", "src\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj", "{4C0CFFF9-3F9F-4E37-B92F-DF7242A5E8C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.File", "src\Infra\Artix.API.Infra.File\Artix.API.Infra.File.csproj", "{FBA35D48-A6BA-4857-BABE-369B3304F25B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.FileService", "src\Infra\Artix.API.Infra.FileService\Artix.API.Infra.FileService.csproj", "{FBA35D48-A6BA-4857-BABE-369B3304F25B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Artix.API.Infra.Sql", "src\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj", "{D427B4BA-E26A-4843-8917-090192193A77}"
 EndProject

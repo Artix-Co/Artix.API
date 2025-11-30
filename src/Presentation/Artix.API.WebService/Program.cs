@@ -98,7 +98,9 @@ builder.WebHost.UseKestrel(options =>
     options.Limits.MaxConcurrentConnections = null;
     options.Limits.MaxConcurrentUpgradedConnections = null;
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(65);
-    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
+
+
+    options.Limits.MaxRequestBodySize = null;
 });
 var app = builder.Build();
 

@@ -1,10 +1,10 @@
-﻿namespace Artix.API.Infra.File.Services;
+﻿namespace Artix.API.Infra.FileService.Services;
 
-using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
-using Core.Contract.Primitives.Infra.File;
+using Artix.API.Core.Contract.Primitives.Infra.File;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 public class FileService : IFileService
@@ -13,8 +13,8 @@ public class FileService : IFileService
 
     public FileService(IOptions<FileSettings> options)
     {
-        _fileStoragePath = options.Value.StoragePath;
-        Directory.CreateDirectory(_fileStoragePath);
+        this._fileStoragePath = options.Value.StoragePath;
+        Directory.CreateDirectory(this._fileStoragePath);
     }
 
     public async Task<string> UploadFileAsync(IFormFile file, long? uploadedBy,
@@ -29,7 +29,7 @@ public class FileService : IFileService
                 $"Invalid file type: {file.ContentType}. Allowed types: {string.Join(", ", allowedMimeTypes)}");
 
         var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-        var filePath = Path.Combine(_fileStoragePath, fileName);
+        var filePath = Path.Combine(this._fileStoragePath, fileName);
 
         await using (var stream = new FileStream(filePath, FileMode.Create))
         {
@@ -58,7 +58,7 @@ public class FileService : IFileService
                 $"Invalid file type: {mimeType}. Allowed types: {string.Join(", ", allowedMimeTypes)}");
 
         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(fileName)}";
-        var filePath = Path.Combine(_fileStoragePath, uniqueFileName);
+        var filePath = Path.Combine(this._fileStoragePath, uniqueFileName);
 
         await File.WriteAllBytesAsync(filePath, fileData);
 
