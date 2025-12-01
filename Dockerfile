@@ -1,11 +1,21 @@
 # syntax=docker/dockerfile:1.4
+
+# ------------------------------
+# Build stage
+# ------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# ------------------------------
+# Copy solution and NuGet config (for private feeds)
+# ------------------------------
 COPY Directory.Packages.props .
+
 COPY Artix.API.sln .
 
-# copy all project files for main solution
+# ------------------------------
+# Copy only csproj files for restore
+# ------------------------------
 COPY src/Core/Artix.API.Core.Contract/Artix.API.Core.Contract.csproj src/Core/Artix.API.Core.Contract/
 COPY src/Core/Artix.API.Core.Domain/Artix.API.Core.Domain.csproj src/Core/Artix.API.Core.Domain/
 COPY src/Core/Artix.API.Core.DomainService/Artix.API.Core.DomainService.csproj src/Core/Artix.API.Core.DomainService/
@@ -31,18 +41,28 @@ COPY tests/Artix.API.Tests.Integration/Artix.API.Tests.Integration.csproj tests/
 COPY tests/Artix.API.Tests.Unit/Artix.API.Tests.Unit.csproj tests/Artix.API.Tests.Unit/
 COPY tests/Directory.Build.props tests/
 
+# ------------------------------
+# Restore all packages
+# ------------------------------
 RUN dotnet restore Artix.API.sln -v:m
 
-# now copy all source code and tests
+# ------------------------------
+# Copy all source code
+# ------------------------------
 COPY src/ src/
 COPY tests/ tests/
 
+# ------------------------------
+# Publish WebService
+# ------------------------------
 RUN dotnet publish src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj \
     -c Release \
-    --no-restore \
     /p:UseAppHost=false \
     -o /app/publish
 
+# ------------------------------
+# Runtime stage
+# ------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
 WORKDIR /app
 EXPOSE 80
