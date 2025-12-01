@@ -10,5 +10,5 @@ public interface IFileStorage
 
     Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken cancellationToken);
     Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken);
-    Task<string> GetMergedFilePathAsync(Guid uploadId, string fileName, CancellationToken cancellationToken);
+    
 }

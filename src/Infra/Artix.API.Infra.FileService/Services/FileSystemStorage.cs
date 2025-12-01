@@ -12,159 +12,130 @@ using System.Buffers;
 using Core.Contract.Configs.FileSettings;
 using Utils.File;
 
+ 
 public class FileSystemStorage : IFileStorage
 {
-    private readonly FileSettings _fileSettings;
+    private readonly FileSettings _settings;
+    private const int WriteBufferSize = 8 * 1024 * 1024; // 8MB برای نوشتن چانک
+    private const int MergeBufferSize = 4 * 1024 * 1024; // 4MB برای merge
+    private const int MaxMergeThreads = 16;
 
-    public FileSystemStorage(IOptions<FileSettings> fileSettings)
-    {
-        _fileSettings = fileSettings.Value;
-    }
+    public FileSystemStorage(IOptions<FileSettings> settings) => _settings = settings.Value;
 
-    public Task EnsureDirectoriesAsync(CancellationToken cancellationToken = default)
+    public Task EnsureDirectoriesAsync(CancellationToken ct = default)
     {
-        Directory.CreateDirectory(this._fileSettings.TempPath);
-        Directory.CreateDirectory(this._fileSettings.StoragePath);
+        Directory.CreateDirectory(_settings.TempPath);
+        Directory.CreateDirectory(_settings.StoragePath);
         return Task.CompletedTask;
     }
 
-    public async Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data,
-        CancellationToken cancellationToken = default)
+    public async Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken ct = default)
     {
-        var folder = Path.Combine(this._fileSettings.TempPath, uploadId.ToString());
+        var folder = Path.Combine(_settings.TempPath, uploadId.ToString());
         Directory.CreateDirectory(folder);
 
         var filePath = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
 
-        // Write chunk to disk with a reasonably large buffer and async flags.
         await using var fs = new FileStream(
             filePath,
             FileMode.Create,
             FileAccess.Write,
             FileShare.None,
-            bufferSize: 4 * 1024 * 1024, // 4MB buffer for chunk write
+            WriteBufferSize,
             FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-        await data.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
-        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await data.CopyToAsync(fs, WriteBufferSize, ct);
+        await fs.FlushAsync(ct);
     }
 
-    /// <summary>
-    /// Merge chunks into final file using parallel reads + RandomAccess writes to final file handle.
-    /// Uses small per-worker buffer (1MB) and bounded parallelism to avoid memory blowup or disk thrash.
-    /// </summary>
-    public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks, 
-        CancellationToken cancellationToken = default)
+    public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks, CancellationToken ct = default)
     {
-        Directory.CreateDirectory(_fileSettings.StoragePath);
+        var tempFolder = Path.Combine(_settings.TempPath, uploadId.ToString());
+        var uniqueName = FileNameHelper.GenerateUniqueFileName(originalFileName);
+        var finalPath = Path.Combine(_settings.StoragePath, uniqueName);
 
-        var uniqueFileName = FileNameHelper.GenerateUniqueFileName(originalFileName);
-        var finalPath = Path.Combine(_fileSettings.StoragePath, uniqueFileName);
-
-        var folder = Path.Combine(_fileSettings.TempPath, uploadId.ToString());
+        if (!Directory.Exists(tempFolder))
+            throw new DirectoryNotFoundException($"Temp folder not found: {tempFolder}");
 
         var chunkPaths = Enumerable.Range(0, totalChunks)
-            .Select(i => Path.Combine(folder, $"{uploadId}.part{i}"))
-            .ToList();
+            .Select(i => Path.Combine(tempFolder, $"{uploadId}.part{i}"))
+            .ToArray();
 
+        // پیش‌محاسبه اندازه و آفست
         var offsets = new long[totalChunks];
         long totalSize = 0;
         for (int i = 0; i < totalChunks; i++)
         {
-            var p = chunkPaths[i];
-            if (!File.Exists(p))
-                throw new FileNotFoundException($"Missing chunk file: {p}");
+            if (!File.Exists(chunkPaths[i]))
+                throw new FileNotFoundException($"Chunk missing: {chunkPaths[i]}");
 
-            var len = new FileInfo(p).Length;
+            var length = new FileInfo(chunkPaths[i]).Length;
             offsets[i] = totalSize;
-            totalSize += len;
+            totalSize += length;
         }
 
-        await using (var finalFs = new FileStream(
-                         finalPath,
-                         FileMode.CreateNew,
-                         FileAccess.ReadWrite,
-                         FileShare.Read,
-                         4 * 1024 * 1024,
-                         FileOptions.Asynchronous | FileOptions.RandomAccess))
+        await using var destination = new FileStream(
+            finalPath,
+            FileMode.CreateNew,
+            FileAccess.ReadWrite,
+            FileShare.Read,
+            4096,
+            FileOptions.Asynchronous | FileOptions.RandomAccess);
+
+        destination.SetLength(totalSize);
+        var handle = destination.SafeFileHandle;
+
+        var semaphore = new SemaphoreSlim(MaxMergeThreads);
+        var tasks = new Task[totalChunks];
+
+        for (int i = 0; i < totalChunks; i++)
         {
-            finalFs.SetLength(totalSize);
+            var chunkPath = chunkPaths[i];
+            var offset = offsets[i];
 
-            var finalHandle = finalFs.SafeFileHandle;
-            int maxParallel = Math.Min(Math.Max(1, Environment.ProcessorCount * 2), 8);
-            int bufferSize = 1 * 1024 * 1024;
-
-            using var semaphore = new SemaphoreSlim(maxParallel);
-            var tasks = new List<Task>(totalChunks);
-
-            for (int i = 0; i < totalChunks; i++)
+            await semaphore.WaitAsync(ct);
+            tasks[i] = Task.Run(async () =>
             {
-                var idx = i;
-                await semaphore.WaitAsync(cancellationToken);
-
-                tasks.Add(Task.Run(async () =>
+                var buffer = ArrayPool<byte>.Shared.Rent(MergeBufferSize);
+                try
                 {
-                    try
-                    {
-                        await using var partFs = new FileStream(
-                            chunkPaths[idx],
-                            FileMode.Open,
-                            FileAccess.Read,
-                            FileShare.Read,
-                            bufferSize,
-                            FileOptions.Asynchronous | FileOptions.SequentialScan);
+                    await using var source = new FileStream(
+                        chunkPath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read,
+                        4096,
+                        FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-                        long offset = offsets[idx];
-                        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-                        try
-                        {
-                            int read;
-                            while ((read = await partFs.ReadAsync(buffer, 0, bufferSize, cancellationToken)) > 0)
-                            {
-                                await RandomAccess.WriteAsync(finalHandle, new ReadOnlyMemory<byte>(buffer, 0, read),
-                                    offset, cancellationToken);
-                                offset += read;
-                            }
-                        }
-                        finally
-                        {
-                            ArrayPool<byte>.Shared.Return(buffer);
-                        }
-                    }
-                    finally
+                    long pos = offset;
+                    int read;
+                    while ((read = await source.ReadAsync(buffer, 0, MergeBufferSize, ct)) > 0)
                     {
-                        semaphore.Release();
+                        await RandomAccess.WriteAsync(handle, buffer.AsMemory(0, read), pos, ct);
+                        pos += read;
                     }
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks);
-            await finalFs.FlushAsync(cancellationToken);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                    semaphore.Release();
+                }
+            }, ct);
         }
 
+        await Task.WhenAll(tasks);
+        await destination.FlushAsync(ct);
 
-
-        try { Directory.Delete(folder, true); } catch { }
+        try { Directory.Delete(tempFolder, true); } catch { }
 
         return finalPath;
-
-        // مهم: اینجا باید مسیر نهایی با نام یونیک رو برگردونی
-        // پس یه متد جدید یا خروجی اضافه کن، یا finalPath رو تو دیتابیس ذخیره کن
     }
 
-    public async Task<string> GetMergedFilePathAsync(Guid uploadId, string fileName, CancellationToken ct)
-    {
-        var folder = Path.Combine(this._fileSettings.StoragePath, uploadId.ToString());
-        Directory.CreateDirectory(folder);
+    public Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken ct = default) =>
+        Task.FromResult(Path.Combine(_settings.TempPath, uploadId.ToString()));
 
-        return Path.Combine(folder, fileName);
-    }
+    public Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken ct = default) =>
+        Task.FromResult(File.Exists(Path.Combine(_settings.TempPath, uploadId.ToString(), $"{uploadId}.part{chunkIndex}")));
 
-    public Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken cancellationToken = default) =>
-        Task.FromResult(Path.Combine(this._fileSettings.TempPath, uploadId.ToString()));
-
-    public Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken = default) =>
-        Task.FromResult(
-            File.Exists(Path.Combine(this._fileSettings.TempPath, uploadId.ToString(),
-                $"{uploadId}.part{chunkIndex}")));
+ 
 }

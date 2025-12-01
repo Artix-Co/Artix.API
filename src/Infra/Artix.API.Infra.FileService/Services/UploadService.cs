@@ -46,19 +46,26 @@ public class UploadService : IUploadService
         await this._repo.UpdateAsync(s, cancellationToken);
     }
 
-    public async Task MergeChunksAsync(Guid uploadId, CancellationToken cancellationToken = default)
+    public async Task MergeChunksAsync(Guid uploadId, CancellationToken ct = default)
     {
-        var s = await _repo.GetAsync(uploadId, cancellationToken)
-                ?? throw new InvalidOperationException("not found");
+        var session = await _repo.GetAsync(uploadId, ct)
+                      ?? throw new InvalidOperationException("Upload session not found.");
 
-        var actualFinalPath =
-            await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, cancellationToken);
 
-        s.MergedFilePath = actualFinalPath;
-        s.FinalFileName = Path.GetFileName(actualFinalPath); 
-        s.Completed = true;
+        var receivedCount = session.ReceivedChunks?.Count(kvp => kvp.Value) ?? 0;
+        if (receivedCount != session.TotalChunks)
+            throw new InvalidOperationException($"Cannot merge: only {receivedCount} of {session.TotalChunks} chunks received.");
 
-        await _repo.UpdateAsync(s, cancellationToken);
+        if (session.Completed)
+            return;
+
+        var finalPath = await _storage.MergeAsync(uploadId, session.FileName, session.TotalChunks, ct);
+
+        session.MergedFilePath = finalPath;
+        session.FinalFileName = Path.GetFileName(finalPath);
+        session.Completed = true;
+
+        await _repo.UpdateAsync(session, ct);
     }
 
 
