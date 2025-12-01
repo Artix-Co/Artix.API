@@ -12,13 +12,12 @@ using System.Buffers;
 using Core.Contract.Configs.FileSettings;
 using Utils.File;
 
- 
 public class FileSystemStorage : IFileStorage
 {
     private readonly FileSettings _settings;
-    private const int WriteBufferSize = 8 * 1024 * 1024; // 8MB برای نوشتن چانک
-    private const int MergeBufferSize = 4 * 1024 * 1024; // 4MB برای merge
-    private const int MaxMergeThreads = 16;
+    private const int WriteBufferSize = 16 * 1024 * 1024; // 16MB — حداکثر ممکن
+    private const int MergeBufferSize = 8 * 1024 * 1024; // 8MB — وحشیانه
+    private const int MaxMergeThreads = 32; // فقط برای SSD های NVMe
 
     public FileSystemStorage(IOptions<FileSettings> settings) => _settings = settings.Value;
 
@@ -33,74 +32,70 @@ public class FileSystemStorage : IFileStorage
     {
         var folder = Path.Combine(_settings.TempPath, uploadId.ToString());
         Directory.CreateDirectory(folder);
-
-        var filePath = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
+        var path = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
 
         await using var fs = new FileStream(
-            filePath,
+            path,
             FileMode.Create,
             FileAccess.Write,
             FileShare.None,
             WriteBufferSize,
-            FileOptions.Asynchronous | FileOptions.SequentialScan);
+            FileOptions.Asynchronous | FileOptions.SequentialScan |
+            FileOptions.WriteThrough); // WriteThrough = مستقیم به دیسک
 
         await data.CopyToAsync(fs, WriteBufferSize, ct);
         await fs.FlushAsync(ct);
     }
 
-    public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks, CancellationToken ct = default)
+    public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks,
+        CancellationToken ct = default)
     {
         var tempFolder = Path.Combine(_settings.TempPath, uploadId.ToString());
         var uniqueName = FileNameHelper.GenerateUniqueFileName(originalFileName);
         var finalPath = Path.Combine(_settings.StoragePath, uniqueName);
 
-        if (!Directory.Exists(tempFolder))
-            throw new DirectoryNotFoundException($"Temp folder not found: {tempFolder}");
-
         var chunkPaths = Enumerable.Range(0, totalChunks)
             .Select(i => Path.Combine(tempFolder, $"{uploadId}.part{i}"))
             .ToArray();
 
-        // پیش‌محاسبه اندازه و آفست
+
         var offsets = new long[totalChunks];
         long totalSize = 0;
         for (int i = 0; i < totalChunks; i++)
         {
-            if (!File.Exists(chunkPaths[i]))
-                throw new FileNotFoundException($"Chunk missing: {chunkPaths[i]}");
-
-            var length = new FileInfo(chunkPaths[i]).Length;
+            var fi = new FileInfo(chunkPaths[i]);
+            if (!fi.Exists) throw new FileNotFoundException($"Missing chunk: {fi.FullName}");
             offsets[i] = totalSize;
-            totalSize += length;
+            totalSize += fi.Length;
         }
 
-        await using var destination = new FileStream(
+        await using var dest = new FileStream(
             finalPath,
             FileMode.CreateNew,
             FileAccess.ReadWrite,
-            FileShare.Read,
+            FileShare.None,
             4096,
             FileOptions.Asynchronous | FileOptions.RandomAccess);
 
-        destination.SetLength(totalSize);
-        var handle = destination.SafeFileHandle;
+        dest.SetLength(totalSize);
+        var handle = dest.SafeFileHandle;
 
         var semaphore = new SemaphoreSlim(MaxMergeThreads);
         var tasks = new Task[totalChunks];
 
         for (int i = 0; i < totalChunks; i++)
         {
-            var chunkPath = chunkPaths[i];
+            var path = chunkPaths[i];
             var offset = offsets[i];
-
             await semaphore.WaitAsync(ct);
+
             tasks[i] = Task.Run(async () =>
             {
                 var buffer = ArrayPool<byte>.Shared.Rent(MergeBufferSize);
                 try
                 {
-                    await using var source = new FileStream(
-                        chunkPath,
+                    await using var src = new FileStream(
+                        path,
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.Read,
@@ -109,7 +104,7 @@ public class FileSystemStorage : IFileStorage
 
                     long pos = offset;
                     int read;
-                    while ((read = await source.ReadAsync(buffer, 0, MergeBufferSize, ct)) > 0)
+                    while ((read = await src.ReadAsync(buffer, ct)) > 0)
                     {
                         await RandomAccess.WriteAsync(handle, buffer.AsMemory(0, read), pos, ct);
                         pos += read;
@@ -124,9 +119,16 @@ public class FileSystemStorage : IFileStorage
         }
 
         await Task.WhenAll(tasks);
-        await destination.FlushAsync(ct);
+        await dest.FlushAsync(ct);
 
-        try { Directory.Delete(tempFolder, true); } catch { }
+
+        try
+        {
+            Directory.Delete(tempFolder, true);
+        }
+        catch
+        {
+        }
 
         return finalPath;
     }
@@ -135,7 +137,6 @@ public class FileSystemStorage : IFileStorage
         Task.FromResult(Path.Combine(_settings.TempPath, uploadId.ToString()));
 
     public Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken ct = default) =>
-        Task.FromResult(File.Exists(Path.Combine(_settings.TempPath, uploadId.ToString(), $"{uploadId}.part{chunkIndex}")));
-
- 
+        Task.FromResult(File.Exists(Path.Combine(_settings.TempPath, uploadId.ToString(),
+            $"{uploadId}.part{chunkIndex}")));
 }
