@@ -8,7 +8,6 @@ public static class DependencyInjection
 {
     public static void AddFileService(this IServiceCollection services)
     {
-        services.AddScoped<IFileService, FileService>();
         services.AddSingleton<IUploadRepository, InMemoryUploadRepository>();
         services.AddSingleton<IFileStorage, FileSystemStorage>();
         services.AddScoped<IUploadService, UploadService>();

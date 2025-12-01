@@ -12,13 +12,11 @@ using Primitives;
 
 internal sealed class GetAdminUserProfileQueryHandler : QueryHandlerBase<GetAdminUserProfileQuery, AdminUserProfileDto>
 {
-    private readonly IFileService _fileService;
     private readonly UserManager<AppUser> _userManager;
 
 
-    public GetAdminUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IFileService fileService) : base(httpContextAccessor, userManager)
+    public GetAdminUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
-        this._fileService = fileService;
         this._userManager = userManager;
     }
 
@@ -29,12 +27,7 @@ internal sealed class GetAdminUserProfileQueryHandler : QueryHandlerBase<GetAdmi
         var file = userInfo.GetProfileImage();
 
         var profileImageBase64String = "";
-        if (file != null)
-        {
-            var relativePath = file.FilePath;
-
-            profileImageBase64String = this._fileService.GetFileBase64String(relativePath);
-        }
+ 
 
         var claims = await _userManager.GetClaimsAsync(userInfo);
         if (claims == null)

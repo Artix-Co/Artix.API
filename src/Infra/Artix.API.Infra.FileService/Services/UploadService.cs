@@ -51,12 +51,11 @@ public class UploadService : IUploadService
         var s = await _repo.GetAsync(uploadId, cancellationToken)
                 ?? throw new InvalidOperationException("not found");
 
-        // اینجا دیگه نیازی به GenerateUniqueFileName نیست، چون داخل Merge انجام میشه
         var actualFinalPath =
             await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, cancellationToken);
 
         s.MergedFilePath = actualFinalPath;
-        s.FinalFileName = Path.GetFileName(actualFinalPath); // اختیاری ولی خوبه داشته باشی
+        s.FinalFileName = Path.GetFileName(actualFinalPath); 
         s.Completed = true;
 
         await _repo.UpdateAsync(s, cancellationToken);

@@ -25,14 +25,12 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     private readonly string[] _allowedImageMimeTypes;
     private readonly string _fileServerBaseUrl;
     private readonly ILogger<ObjectQueryRepository> _logger;
-    private readonly IFileService _fileService;
 
     public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger,
-        IOptions<FileSettings> fileSettingOptions, IFileService fileService)
+        IOptions<FileSettings> fileSettingOptions)
         : base(queryDbContext)
     {
         this._logger = logger;
-        this._fileService = fileService;
         this._allowed3DMimeTypes = fileSettingOptions.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
@@ -250,37 +248,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
 
         // Process 3D model file
         string model3DBase64 = "";
-        var model = query.Get3DModel(this._allowed3DMimeTypes);
-        if (model != null)
-        {
-            try
-            {
-                var relativePath = model.FilePath;
-                model3DBase64 = this._fileService.GetFileBase64String(relativePath);
-            }
-            catch (IOException ex)
-            {
-                _logger.LogWarning(ex, "Failed to read 3D model file at path {FilePath} for object {ObjectId}",
-                    model?.FilePath, dto.Id);
-            }
-        }
+      
 
         // Process image file
         string imageBase64 = "";
-        var image = query.GetImage(this._allowedImageMimeTypes);
-        if (image != null)
-        {
-            try
-            {
-                var relativePath = image.FilePath;
-                imageBase64 = this._fileService.GetFileBase64String(relativePath);
-            }
-            catch (IOException ex)
-            {
-                _logger.LogWarning(ex, "Failed to read image file at path {FilePath} for object {ObjectId}",
-                    image?.FilePath, dto.Id);
-            }
-        }
+  
 
         // Map related entities to DTOs
         var objectTypes = query.ObjectTypes

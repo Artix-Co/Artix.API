@@ -3,21 +3,17 @@
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.GetClientUserProfile;
 using Artix.API.Core.Contract.Primitives.Models;
-using Contract.Primitives.Infra.File;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 
 // TODO: develop validator for this handler
 internal sealed class GetClientUserProfileQueryHandler : QueryHandlerBase<GetClientUserProfileQuery, ClientUserProfileDto>
 {
-    private readonly IFileService _fileService;
 
 
-    public GetClientUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IFileService fileService) : base(httpContextAccessor, userManager)
+    public GetClientUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
-        this._fileService = fileService;
     }
 
     public override async Task<Result<ClientUserProfileDto>> Handle(GetClientUserProfileQuery query,
@@ -27,13 +23,7 @@ internal sealed class GetClientUserProfileQueryHandler : QueryHandlerBase<GetCli
         var file = user.GetProfileImage();
 
         var profileImageBase64String = "";
-        if (file != null)
-        {
-            // Resolve relative path
-            var relativePath = file.FilePath;
-
-            profileImageBase64String = this._fileService.GetFileBase64String(relativePath);
-        }
+    
 
         var result = new ClientUserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, profileImageBase64String,
             user.PhoneNumber, user.IsPro);
