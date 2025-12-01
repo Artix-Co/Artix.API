@@ -30,13 +30,11 @@ COPY src/Orchestration/Artix.API.Orchestration.ServiceDefaults/Artix.API.Orchest
 COPY src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj src/Presentation/Artix.API.WebService/
 COPY src/Presentation/Artix.API.Endpoints/Artix.API.Endpoints.csproj src/Presentation/Artix.API.Endpoints/
 COPY src/Utils/Artix.API.Utils/Artix.API.Utils.csproj src/Utils/Artix.API.Utils/
-
 # copy test projects
 COPY tests/Artix.API.Tests.EndToEnd/Artix.API.Tests.EndToEnd.csproj tests/Artix.API.Tests.EndToEnd/
 COPY tests/Artix.API.Tests.Integration/Artix.API.Tests.Integration.csproj tests/Artix.API.Tests.Integration/
 COPY tests/Artix.API.Tests.Unit/Artix.API.Tests.Unit.csproj tests/Artix.API.Tests.Unit/
 COPY tests/Directory.Build.props tests/
-
 # Restore
 RUN dotnet restore Artix.API.sln -v:m
 
