@@ -1,11 +1,11 @@
-namespace Artix.API.Endpoints.Controllers.Client;
+namespace Artix.API.Endpoints.Controllers.Shared;
 
+using Artix.API.Core.Contract.Primitives.Infra.File;
 using Common;
-using Core.Contract.Primitives.Infra.File;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-public class UploadController : ClientBaseController
+public class UploadController : SharedController
 {
     private readonly IUploadService _service;
     private readonly IFileStorage _storage;
