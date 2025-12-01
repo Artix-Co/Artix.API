@@ -11,7 +11,7 @@ COPY src/Core/Artix.API.Core.Domain/Artix.API.Core.Domain.csproj src/Core/Artix.
 COPY src/Core/Artix.API.Core.DomainService/Artix.API.Core.DomainService.csproj src/Core/Artix.API.Core.DomainService/
 COPY src/Core/Artix.API.Core.ApplicationService/Artix.API.Core.ApplicationService.csproj src/Core/Artix.API.Core.ApplicationService/
 
-COPY src/Infra/Artix.API.Infra.File/Artix.API.Infra.File.csproj src/Infra/Artix.API.Infra.File/
+COPY src/Infra/Artix.API.Infra.FileService/Artix.API.Infra.FileService.csproj src/Infra/Artix.API.Infra.FileService/
 COPY src/Infra/Artix.API.Infra.Identity/Artix.API.Infra.Identity.csproj src/Infra/Artix.API.Infra.Identity/
 COPY src/Infra/Artix.API.Infra.Mongo/Artix.API.Infra.Mongo.csproj src/Infra/Artix.API.Infra.Mongo/
 COPY src/Infra/Artix.API.Infra.RabbitMQ/Artix.API.Infra.RabbitMQ.csproj src/Infra/Artix.API.Infra.RabbitMQ/
