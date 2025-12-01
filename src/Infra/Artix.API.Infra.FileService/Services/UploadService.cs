@@ -48,16 +48,15 @@ public class UploadService : IUploadService
 
     public async Task MergeChunksAsync(Guid uploadId, CancellationToken cancellationToken = default)
     {
-        var s = await this._repo.GetAsync(uploadId, cancellationToken);
-        if (s == null) throw new InvalidOperationException("not found");
-        
-        var uniqueFileName = FileNameHelper.GenerateUniqueFileName(s.FileName);
-        var finalPath = Path.Combine(_fileSettings.StoragePath, uniqueFileName);
+        var s = await _repo.GetAsync(uploadId, cancellationToken)
+                ?? throw new InvalidOperationException("not found");
 
-        await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, Stream.Null, cancellationToken);
+        // اینجا دیگه نیازی به GenerateUniqueFileName نیست، چون داخل Merge انجام میشه
+        var actualFinalPath =
+            await _storage.MergeAsync(uploadId, s.FileName, s.TotalChunks, cancellationToken);
 
-        s.MergedFilePath = finalPath;
-        s.FinalFileName = uniqueFileName; 
+        s.MergedFilePath = actualFinalPath;
+        s.FinalFileName = Path.GetFileName(actualFinalPath); // اختیاری ولی خوبه داشته باشی
         s.Completed = true;
 
         await _repo.UpdateAsync(s, cancellationToken);

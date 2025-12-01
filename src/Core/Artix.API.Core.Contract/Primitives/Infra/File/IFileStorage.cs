@@ -5,7 +5,7 @@ public interface IFileStorage
     Task EnsureDirectoriesAsync(CancellationToken cancellationToken);
     Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken cancellationToken);
 
-    Task MergeAsync(Guid uploadId, string fileName, int totalChunks, Stream outputStream,
+    Task<string> MergeAsync(Guid uploadId, string fileName, int totalChunks, 
         CancellationToken cancellationToken);
 
     Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken cancellationToken);

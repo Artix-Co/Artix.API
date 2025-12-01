@@ -53,7 +53,7 @@ public class FileSystemStorage : IFileStorage
     /// Merge chunks into final file using parallel reads + RandomAccess writes to final file handle.
     /// Uses small per-worker buffer (1MB) and bounded parallelism to avoid memory blowup or disk thrash.
     /// </summary>
-    public async Task MergeAsync(Guid uploadId, string originalFileName, int totalChunks, Stream _,
+    public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks, 
         CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(_fileSettings.StoragePath);
@@ -142,13 +142,11 @@ public class FileSystemStorage : IFileStorage
             await finalFs.FlushAsync(cancellationToken);
         }
 
-        try
-        {
-            Directory.Delete(folder, true);
-        }
-        catch
-        {
-        }
+
+
+        try { Directory.Delete(folder, true); } catch { }
+
+        return finalPath;
 
         // مهم: اینجا باید مسیر نهایی با نام یونیک رو برگردونی
         // پس یه متد جدید یا خروجی اضافه کن، یا finalPath رو تو دیتابیس ذخیره کن
