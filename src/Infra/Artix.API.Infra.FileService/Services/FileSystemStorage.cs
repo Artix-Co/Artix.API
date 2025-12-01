@@ -11,14 +11,27 @@ using System.Threading.Tasks;
 using System.Buffers;
 using Core.Contract.Configs.FileSettings;
 using Utils.File;
+using Core.Contract.Primitives.Infra.File;
+using Microsoft.Extensions.Options;
+using System.Buffers;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Core.Contract.Configs.FileSettings;
+using Utils.File;
 
 public class FileSystemStorage : IFileStorage
 {
     private readonly FileSettings _settings;
-    private const int WriteBufferSize = 16 * 1024 * 1024; // 16MB — حداکثر ممکن
-    private const int MergeBufferSize = 8 * 1024 * 1024; // 8MB — وحشیانه
-    private const int MaxMergeThreads = 64; // فقط برای SSD های NVMe
-    private static object? _folderCreationLock;
+    private const int WriteBufferSize = 16 * 1024 * 1024; // 16MB نوشتن چانک
+    private const int MergeBufferSize = 8 * 1024 * 1024; // 8MB برای merge
+
+    private const int MaxMergeThreads = 64; // فقط برای NVMe + CPU قوی
+
+// این لاک رو static نکن! هر نمونه جدا باشه → مشکل در DI
+    private readonly object _folderCreationLock = new();
     public FileSystemStorage(IOptions<FileSettings> settings) => _settings = settings.Value;
 
     public Task EnsureDirectoriesAsync(CancellationToken ct = default)
@@ -31,54 +44,47 @@ public class FileSystemStorage : IFileStorage
     public async Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken ct = default)
     {
         var folder = Path.Combine(_settings.TempPath, uploadId.ToString());
-    
-        // پوشه رو فقط یکبار می‌سازیم (thread-safe)
+        // thread-safe پوشه‌سازی بدون static lock
         if (!Directory.Exists(folder))
         {
-            Interlocked.CompareExchange(ref _folderCreationLock, new object(), null);
             lock (_folderCreationLock)
             {
-                Directory.CreateDirectory(folder);
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
             }
         }
 
         var path = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
-
-        // مهم: هر چانک فایل جدا، پس هیچ تداخلی نداره → کاملاً parallel
         await using var fs = new FileStream(
             path,
-            FileMode.CreateNew,                    // CreateNew → اگه وجود داشت خطا بده (جلوگیری از تداخل)
+            FileMode.Create, // ← Create (نه CreateNew) → اگه دوباره اومد، overwrite کنه نه خطا
             FileAccess.Write,
             FileShare.None,
-            16 * 1024 * 1024,
+            WriteBufferSize,
             FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough);
-
-        // این خط طلاییه — کاملاً parallel و بدون انتظار
-        await data.CopyToAsync(fs, 16 * 1024 * 1024, ct);
+        await data.CopyToAsync(fs, WriteBufferSize, ct);
         await fs.FlushAsync(ct);
     }
-
-
-    
 
     public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks,
         CancellationToken ct = default)
     {
         var tempFolder = Path.Combine(_settings.TempPath, uploadId.ToString());
+        if (!Directory.Exists(tempFolder))
+            throw new DirectoryNotFoundException($"Temp folder not found: {tempFolder}");
         var uniqueName = FileNameHelper.GenerateUniqueFileName(originalFileName);
         var finalPath = Path.Combine(_settings.StoragePath, uniqueName);
-
         var chunkPaths = Enumerable.Range(0, totalChunks)
             .Select(i => Path.Combine(tempFolder, $"{uploadId}.part{i}"))
             .ToArray();
-
-
+// پیش‌محاسبه آفست‌ها
         var offsets = new long[totalChunks];
         long totalSize = 0;
         for (int i = 0; i < totalChunks; i++)
         {
             var fi = new FileInfo(chunkPaths[i]);
-            if (!fi.Exists) throw new FileNotFoundException($"Missing chunk: {fi.FullName}");
+            if (!fi.Exists)
+                throw new FileNotFoundException($"Missing chunk: {chunkPaths[i]}");
             offsets[i] = totalSize;
             totalSize += fi.Length;
         }
@@ -90,35 +96,30 @@ public class FileSystemStorage : IFileStorage
             FileShare.None,
             4096,
             FileOptions.Asynchronous | FileOptions.RandomAccess);
-
         dest.SetLength(totalSize);
         var handle = dest.SafeFileHandle;
-
         var semaphore = new SemaphoreSlim(MaxMergeThreads);
         var tasks = new Task[totalChunks];
-
         for (int i = 0; i < totalChunks; i++)
         {
-            var path = chunkPaths[i];
+            var chunkPath = chunkPaths[i];
             var offset = offsets[i];
             await semaphore.WaitAsync(ct);
-
             tasks[i] = Task.Run(async () =>
             {
                 var buffer = ArrayPool<byte>.Shared.Rent(MergeBufferSize);
                 try
                 {
                     await using var src = new FileStream(
-                        path,
+                        chunkPath,
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.Read,
                         4096,
                         FileOptions.Asynchronous | FileOptions.SequentialScan);
-
                     long pos = offset;
                     int read;
-                    while ((read = await src.ReadAsync(buffer, ct)) > 0)
+                    while ((read = await src.ReadAsync(buffer, 0, MergeBufferSize, ct)) > 0)
                     {
                         await RandomAccess.WriteAsync(handle, buffer.AsMemory(0, read), pos, ct);
                         pos += read;
@@ -134,14 +135,14 @@ public class FileSystemStorage : IFileStorage
 
         await Task.WhenAll(tasks);
         await dest.FlushAsync(ct);
-
-
+// پاک کردن سریع و ایمن
         try
         {
             Directory.Delete(tempFolder, true);
         }
         catch
         {
+            /* ignore */
         }
 
         return finalPath;
