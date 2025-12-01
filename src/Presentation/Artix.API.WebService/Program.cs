@@ -144,6 +144,10 @@ builder.WebHost.UseKestrel(k =>
     });
 });
 
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = null;
+});
 
 var app = builder.Build();
 
@@ -226,24 +230,43 @@ using (var scope = app.Services.CreateScope())
     await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
 }
 
-app.UseExceptionHandler(config =>
+// app.UseExceptionHandler(config =>
+// {
+//     config.Run(async context =>
+//     {
+//         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+//
+//         context.Response.ContentType = "application/json";
+//
+//         context.Response.StatusCode = exception switch
+//         {
+//             InfrastructureNotFoundException => StatusCodes.Status404NotFound,
+//             ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
+//             _ => StatusCodes.Status500InternalServerError
+//         };
+//
+//         var result = JsonSerializer.Serialize(new { error = exception?.Message });
+//
+//         await context.Response.WriteAsync(result);
+//     });
+// });
+
+app.UseExceptionHandler(errorApp =>
 {
-    config.Run(async context =>
+    errorApp.Run(async context =>
     {
-        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "text/plain; charset=utf-8";
 
-        context.Response.ContentType = "application/json";
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var ex = exceptionHandlerPathFeature?.Error;
 
-        context.Response.StatusCode = exception switch
-        {
-            InfrastructureNotFoundException => StatusCodes.Status404NotFound,
-            ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
-            _ => StatusCodes.Status500InternalServerError
-        };
+        var errorDetails = $"Exception: {ex?.GetType().Name}\n" +
+                           $"Message: {ex?.Message}\n" +
+                           $"StackTrace:\n{ex?.StackTrace}\n" +
+                           $"Path: {exceptionHandlerPathFeature?.Path}";
 
-        var result = JsonSerializer.Serialize(new { error = exception?.Message });
-
-        await context.Response.WriteAsync(result);
+        await context.Response.WriteAsync(errorDetails);
     });
 });
 app.UseResponseCompression();

@@ -17,8 +17,8 @@ public class FileSystemStorage : IFileStorage
     private readonly FileSettings _settings;
     private const int WriteBufferSize = 16 * 1024 * 1024; // 16MB — حداکثر ممکن
     private const int MergeBufferSize = 8 * 1024 * 1024; // 8MB — وحشیانه
-    private const int MaxMergeThreads = 32; // فقط برای SSD های NVMe
-
+    private const int MaxMergeThreads = 64; // فقط برای SSD های NVMe
+    private static object? _folderCreationLock;
     public FileSystemStorage(IOptions<FileSettings> settings) => _settings = settings.Value;
 
     public Task EnsureDirectoriesAsync(CancellationToken ct = default)
@@ -31,21 +31,35 @@ public class FileSystemStorage : IFileStorage
     public async Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken ct = default)
     {
         var folder = Path.Combine(_settings.TempPath, uploadId.ToString());
-        Directory.CreateDirectory(folder);
+    
+        // پوشه رو فقط یکبار می‌سازیم (thread-safe)
+        if (!Directory.Exists(folder))
+        {
+            Interlocked.CompareExchange(ref _folderCreationLock, new object(), null);
+            lock (_folderCreationLock)
+            {
+                Directory.CreateDirectory(folder);
+            }
+        }
+
         var path = Path.Combine(folder, $"{uploadId}.part{chunkIndex}");
 
+        // مهم: هر چانک فایل جدا، پس هیچ تداخلی نداره → کاملاً parallel
         await using var fs = new FileStream(
             path,
-            FileMode.Create,
+            FileMode.CreateNew,                    // CreateNew → اگه وجود داشت خطا بده (جلوگیری از تداخل)
             FileAccess.Write,
             FileShare.None,
-            WriteBufferSize,
-            FileOptions.Asynchronous | FileOptions.SequentialScan |
-            FileOptions.WriteThrough); // WriteThrough = مستقیم به دیسک
+            16 * 1024 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.WriteThrough);
 
-        await data.CopyToAsync(fs, WriteBufferSize, ct);
+        // این خط طلاییه — کاملاً parallel و بدون انتظار
+        await data.CopyToAsync(fs, 16 * 1024 * 1024, ct);
         await fs.FlushAsync(ct);
     }
+
+
+    
 
     public async Task<string> MergeAsync(Guid uploadId, string originalFileName, int totalChunks,
         CancellationToken ct = default)
