@@ -133,7 +133,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
 
             await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
 
-            obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
+            obj.AssignImage(fileEntity.Id, this._allowedImageMimeTypes);
             await _objectCommandRepository.UpdateAsync(obj, cancellationToken);
             
             _logger.LogInformation("Image file attached to object: ObjectId={ObjectId}, FileId={FileId}",
