@@ -31,16 +31,7 @@ internal sealed class CreateNewMuseumAdminCommandHandler : CommandHandlerBase<Cr
         var museum = Museum.Create(command.Name, command.Description);
 
 
-        // await _fileProcessingService.ProcessFileUploadAsync(
-        //     fileDataBase64: command.ImageFileDataBase64,
-        //     fileName: command.ImageFileName,
-        //     mimeType: command.ImageFileMimeType,
-        //     userId: user.Id,
-        //     allowedMimeTypes: _allowedImageMimeTypes,
-        //     assignFileAction: (obj, fileId, mimeTypes) => obj.AssignImage(fileId, mimeTypes),
-        //     entity: museum,
-        //     fileTypeDescription: "Image",
-        //     cancellationToken: cancellationToken);
+ 
 
         await this._museumCommandRepository.InsertAsync(museum, cancellationToken);
 

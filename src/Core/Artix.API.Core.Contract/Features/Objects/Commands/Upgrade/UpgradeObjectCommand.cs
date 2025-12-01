@@ -9,6 +9,6 @@ public sealed record UpgradeObjectCommand(
     string? SpecializedInformation,
     int? Tier,
     int? Version,
-    Guid? Model3DUploadId
-    // upload 3d model
+    Guid? Model3DUploadId,
+    Guid? ImageUploadId
 ) : ICommand;
