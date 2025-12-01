@@ -15,6 +15,7 @@ using Elastic.Transport;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
@@ -92,62 +93,46 @@ builder.Host.UseSerilog();
 
 builder.AddServiceDefaults();
 
-// Configure Kestrel for high concurrency
-builder.WebHost.UseKestrel(k =>
+ 
+// Inside builder setup – replace your entire UseKestrel block with this:
+builder.WebHost.UseKestrel(options =>
 {
-    // Bind to HTTP
-    k.ListenLocalhost(5274);
-
-    // Bind to HTTPS
-    k.ListenLocalhost(7013, listenOptions =>
+    // ONLY listen on port 80 inside container – this is what Nginx expects
+    options.ListenAnyIP(80, listenOptions =>
     {
-        listenOptions.UseHttps(); // uses the development certificate
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 
-    
-    // 1) Network Performance
-    k.AddServerHeader = false;               // امنیت
-    k.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2); 
-    k.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-
-    // 2) Connection Limits (High Throughput)
-    k.Limits.MaxConcurrentConnections = 5000;            // قابل افزایش
-    k.Limits.MaxConcurrentUpgradedConnections = 5000;
-
-    // 3) Request Body Limits (برای Chunk Upload لازم)
-    k.Limits.MaxRequestBodySize = null;                  // ما روی مسیر Upload محدود می‌کنیم
-
-    // 4) Request Buffering
-    k.Limits.MaxRequestBufferSize = 32 * 1024 * 1024;    // 32MB
-    k.Limits.MaxResponseBufferSize = 32 * 1024 * 1024;
-
-    // 5) Request/Response Header Limits
-    k.Limits.MaxRequestHeaderCount = 200;
-    k.Limits.MaxRequestLineSize = 16 * 1024;             // 16KB
-    k.Limits.MaxRequestHeadersTotalSize = 64 * 1024;     // 64KB
-
-    // 6) HTTP/2 upload tuning
-    k.Limits.Http2.MaxStreamsPerConnection = 100;        // default=100
-    k.Limits.Http2.MaxRequestHeaderFieldSize = 64 * 1024;
-    k.Limits.Http2.InitialConnectionWindowSize = 2 * 1024 * 1024; // 2MB
-    k.Limits.Http2.InitialStreamWindowSize = 1 * 1024 * 1024;     // 1MB
-
-    // 7) Threading / IO queue tuning
-    // k.Limits.MaxIops = 100_000;     // عدد بالا = اجازه I/O async زیاد
-    // k.Limits.MaxReadBufferSize = 64 * 1024 * 1024;
-    // k.Limits.MaxWriteBufferSize = 64 * 1024 * 1024;
-
-    // 8) Endpoint Binding
-    k.ListenAnyIP(8080, o =>
+    // Dev-only: add local HTTPS when running outside Docker
+    if (builder.Environment.IsDevelopment())
     {
-        o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-    });
+        options.ListenLocalhost(5274);                    // HTTP
+        options.ListenLocalhost(7013, o => o.UseHttps()); // HTTPS
+    }
+
+    // High-performance & secure tuning
+    options.AddServerHeader = false;
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
+    options.Limits.MaxConcurrentConnections = 10_000;
+    options.Limits.MaxConcurrentUpgradedConnections = 10_000;
+    options.Limits.MaxRequestBodySize = null;
+
+    options.Limits.MaxRequestBufferSize = 32 * 1024 * 1024;
+    options.Limits.MaxResponseBufferSize = 32 * 1024 * 1024;
+
+    options.Limits.MaxRequestHeaderCount = 200;
+    options.Limits.MaxRequestLineSize = 32 * 1024;
+    options.Limits.MaxRequestHeadersTotalSize = 128 * 1024;
+
+    // HTTP/2 tuning
+    options.Limits.Http2.MaxStreamsPerConnection = 200;
+    options.Limits.Http2.InitialConnectionWindowSize = 4 * 1024 * 1024;
+    options.Limits.Http2.InitialStreamWindowSize = 2 * 1024 * 1024;
 });
 
-builder.Services.Configure<IISServerOptions>(options =>
-{
-    options.MaxRequestBodySize = null;
-});
+// DO NOT set ASPNETCORE_URLS anywhere – let Kestrel control it
+ 
 
 var app = builder.Build();
 

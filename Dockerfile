@@ -1,16 +1,12 @@
 # syntax=docker/dockerfile:1.4
 
-# ------------------------------
-# Build stage
-# ------------------------------
+# ==============================
+# Build Stage
+# ==============================
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# ------------------------------
-# Copy solution and NuGet config (for private feeds)
-# ------------------------------
 COPY Directory.Packages.props .
-
 COPY Artix.API.sln .
 
 # ------------------------------
@@ -41,33 +37,32 @@ COPY tests/Artix.API.Tests.Integration/Artix.API.Tests.Integration.csproj tests/
 COPY tests/Artix.API.Tests.Unit/Artix.API.Tests.Unit.csproj tests/Artix.API.Tests.Unit/
 COPY tests/Directory.Build.props tests/
 
-# ------------------------------
-# Restore all packages
-# ------------------------------
+# Restore
 RUN dotnet restore Artix.API.sln -v:m
 
-# ------------------------------
-# Copy all source code
-# ------------------------------
-COPY src/ src/
-COPY tests/ tests/
+# Copy source code
+COPY src/ ./src/
+COPY tests/ ./tests/
 
-# ------------------------------
-# Publish WebService
-# ------------------------------
+# Publish
 RUN dotnet publish src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj \
     -c Release \
     /p:UseAppHost=false \
     -o /app/publish
 
-# ------------------------------
-# Runtime stage
-# ------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
+# ==============================
+# Runtime Stage - Debian-based (حل کامل مشکل ICU)
+# ==============================
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
 
+# فقط پورت ۸۰ رو باز می‌کنیم (Nginx به همین می‌زنه)
+EXPOSE 80
+
+# کپی فایل‌های منتشرشده
 COPY --from=build /app/publish .
+
+# هیچ ENV برای URL نزنیم → Kestrel خودش کنترل کنه
+# ENV ASPNETCORE_URLS حذف شد!
 
 ENTRYPOINT ["dotnet", "Artix.API.WebService.dll"]
