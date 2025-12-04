@@ -91,7 +91,7 @@ services:
       dockerfile: Dockerfile
     container_name: artix-api
     ports:
-      - "8080:80"                  # بیرون 8080 → داخل کانتینر 80 (همون که داکرفایلت گوش میده)
+      - "8080:80"                
     depends_on:
       redis:
         condition: service_healthy

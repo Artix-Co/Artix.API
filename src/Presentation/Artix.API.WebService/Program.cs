@@ -93,46 +93,39 @@ builder.Host.UseSerilog();
 
 builder.AddServiceDefaults();
 
- 
-// Inside builder setup – replace your entire UseKestrel block with this:
+
 builder.WebHost.UseKestrel(options =>
 {
-    // ONLY listen on port 80 inside container – this is what Nginx expects
-    options.ListenAnyIP(80, listenOptions =>
-    {
-        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-    });
+    options.ListenAnyIP(80, listen => { listen.Protocols = HttpProtocols.Http1AndHttp2; });
 
-    // Dev-only: add local HTTPS when running outside Docker
+    options.AddServerHeader = false;
+
+    // ---- Limits ----
+    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024; // 8GB
+    options.Limits.MaxConcurrentConnections = 500;
+    options.Limits.MaxConcurrentUpgradedConnections = 50;
+
+    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
+
+    options.Limits.MinRequestBodyDataRate =
+        new MinDataRate(100, TimeSpan.FromSeconds(10));
+
+    options.Limits.MinResponseDataRate =
+        new MinDataRate(100, TimeSpan.FromSeconds(10));
+
+    options.Limits.MaxRequestBufferSize = 1024 * 1024;
+    options.Limits.MaxResponseBufferSize = 1024 * 1024;
+
+    options.AllowSynchronousIO = false;
+
     if (builder.Environment.IsDevelopment())
     {
-        options.ListenLocalhost(5274);                    // HTTP
-        options.ListenLocalhost(7013, o => o.UseHttps()); // HTTPS
+        options.ListenLocalhost(5274);
+        options.ListenLocalhost(7013, x => x.UseHttps());
     }
-
-    // High-performance & secure tuning
-    options.AddServerHeader = false;
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-    options.Limits.MaxConcurrentConnections = 10_000;
-    options.Limits.MaxConcurrentUpgradedConnections = 10_000;
-    options.Limits.MaxRequestBodySize = null;
-
-    options.Limits.MaxRequestBufferSize = 32 * 1024 * 1024;
-    options.Limits.MaxResponseBufferSize = 32 * 1024 * 1024;
-
-    options.Limits.MaxRequestHeaderCount = 200;
-    options.Limits.MaxRequestLineSize = 32 * 1024;
-    options.Limits.MaxRequestHeadersTotalSize = 128 * 1024;
-
-    // HTTP/2 tuning
-    options.Limits.Http2.MaxStreamsPerConnection = 200;
-    options.Limits.Http2.InitialConnectionWindowSize = 4 * 1024 * 1024;
-    options.Limits.Http2.InitialStreamWindowSize = 2 * 1024 * 1024;
 });
 
-// DO NOT set ASPNETCORE_URLS anywhere – let Kestrel control it
- 
 
 var app = builder.Build();
 
@@ -208,8 +201,67 @@ using (var scope = app.Services.CreateScope())
     // چک کردن و اعمال "migration" برای MongoDB
     await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
 
+    Log.Information("Truncating and resetting all SQL tables (with FK support)...");
+
+// این روش کاملاً امن و بدون ارور FK هست
+    await sqlCommandDbContext.Database.ExecuteSqlRawAsync(@"
+    SET NOCOUNT ON;
+
+    -- مرحله ۱: غیرفعال کردن همه Foreign Keyها در کل دیتابیس
+    EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
+
+    -- مرحله ۲: DELETE به جای TRUNCATE (چون TRUNCATE با FK مشکل داره حتی با NOCHECK در بعضی موارد)
+    -- ولی ما DELETE + TRUNCATE ترکیب می‌کنیم برای جداول بدون FK مستقیم + Identity reset
+    DELETE FROM dbo.AppVersions; DBCC CHECKIDENT ('dbo.AppVersions', RESEED, 0);
+    DELETE FROM dbo.AspNetRoleClaims;
+    DELETE FROM dbo.AspNetRoles; DBCC CHECKIDENT ('dbo.AspNetRoles', RESEED, 0);
+    DELETE FROM dbo.AspNetUserClaims;
+    DELETE FROM dbo.AspNetUserLogins;
+    DELETE FROM dbo.AspNetUserRoles;
+    DELETE FROM dbo.AspNetUsers; DBCC CHECKIDENT ('dbo.AspNetUsers', RESEED, 0);
+    DELETE FROM dbo.AspNetUserTokens;
+    DELETE FROM dbo.CollectionItems;
+    DELETE FROM dbo.Collections; DBCC CHECKIDENT ('dbo.Collections', RESEED, 0);
+    DELETE FROM dbo.Files;
+    DELETE FROM dbo.Friendships;
+    DELETE FROM dbo.HistoricalPeriods; DBCC CHECKIDENT ('dbo.HistoricalPeriods', RESEED, 0);
+    DELETE FROM dbo.JournalEntries;
+    DELETE FROM dbo.MarketplaceItems;
+    DELETE FROM dbo.MuseumImages;
+    DELETE FROM dbo.MuseumObjects;
+    DELETE FROM dbo.Museums; DBCC CHECKIDENT ('dbo.Museums', RESEED, 0);
+    DELETE FROM dbo.Notifications;
+    DELETE FROM dbo.ObjectHistoricalPeriods;
+    DELETE FROM dbo.ObjectImages;
+    DELETE FROM dbo.ObjectModels;
+    DELETE FROM dbo.Objects; DBCC CHECKIDENT ('dbo.Objects', RESEED, 0);
+    DELETE FROM dbo.ObjectTypes;
+    DELETE FROM dbo.OTPs;
+    DELETE FROM dbo.OutboxMessages;
+    DELETE FROM dbo.Seasons;
+    DELETE FROM dbo.SeasonTasks;
+    DELETE FROM dbo.TierConfigs; DBCC CHECKIDENT ('dbo.TierConfigs', RESEED, 0);
+    DELETE FROM dbo.Types; DBCC CHECKIDENT ('dbo.Types', RESEED, 0);
+    DELETE FROM dbo.UserImages;
+    DELETE FROM dbo.UserJournalEntries;
+    DELETE FROM dbo.UserLoginHistories;
+    DELETE FROM dbo.UserMuseumKeys;
+    DELETE FROM dbo.UserNotification;
+    DELETE FROM dbo.UserScans;
+    DELETE FROM dbo.UserSeasonProgresses;
+    DELETE FROM dbo.UserStrikes;
+    DELETE FROM dbo.UserXps;
+    DELETE FROM dbo.VoiceTrackFiles;
+    DELETE FROM dbo.VoiceTracks;
+
+    -- مرحله ۳: دوباره فعال کردن همه FKها
+    EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
+");
+
+    Log.Information("All SQL tables cleaned and identity columns reset successfully!");
+
     // Seeding داده‌های SQL
-    await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
+    // await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
 
     // Seeding داده‌های MongoDB
     await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
