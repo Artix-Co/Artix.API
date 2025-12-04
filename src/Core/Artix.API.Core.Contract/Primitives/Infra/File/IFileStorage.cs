@@ -2,9 +2,13 @@ namespace Artix.API.Core.Contract.Primitives.Infra.File;
 
 public interface IFileStorage
 {
-    Task EnsureDirectoriesAsync();
-    Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken ct);
-    Task MergeAsync(Guid uploadId, string fileName, int totalChunks, Stream outputStream, CancellationToken ct);
-    Task<string> GetTempFolderAsync(Guid uploadId);
-    Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex);
+    Task EnsureDirectoriesAsync(CancellationToken cancellationToken);
+    Task SaveChunkAsync(Guid uploadId, int chunkIndex, Stream data, CancellationToken cancellationToken);
+
+    Task<string> MergeAsync(Guid uploadId, string fileName, int totalChunks, 
+        CancellationToken cancellationToken);
+
+    Task<string> GetTempFolderAsync(Guid uploadId, CancellationToken cancellationToken);
+    Task<bool> ChunkExistsAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken);
+    
 }

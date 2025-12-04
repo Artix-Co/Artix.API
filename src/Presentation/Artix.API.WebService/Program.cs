@@ -15,6 +15,7 @@ using Elastic.Transport;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
@@ -92,56 +93,37 @@ builder.Host.UseSerilog();
 
 builder.AddServiceDefaults();
 
-// Configure Kestrel for high concurrency
-builder.WebHost.UseKestrel(k =>
+
+builder.WebHost.UseKestrel(options =>
 {
-    // Bind to HTTP
-    k.ListenLocalhost(5274);
+    options.ListenAnyIP(80, listen => { listen.Protocols = HttpProtocols.Http1AndHttp2; });
 
-    // Bind to HTTPS
-    k.ListenLocalhost(7013, listenOptions =>
+    options.AddServerHeader = false;
+
+    // ---- Limits ----
+    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024; // 8GB
+    options.Limits.MaxConcurrentConnections = 500;
+    options.Limits.MaxConcurrentUpgradedConnections = 50;
+
+    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
+
+    options.Limits.MinRequestBodyDataRate =
+        new MinDataRate(100, TimeSpan.FromSeconds(10));
+
+    options.Limits.MinResponseDataRate =
+        new MinDataRate(100, TimeSpan.FromSeconds(10));
+
+    options.Limits.MaxRequestBufferSize = 1024 * 1024;
+    options.Limits.MaxResponseBufferSize = 1024 * 1024;
+
+    options.AllowSynchronousIO = false;
+
+    if (builder.Environment.IsDevelopment())
     {
-        listenOptions.UseHttps(); // uses the development certificate
-    });
-
-    
-    // 1) Network Performance
-    k.AddServerHeader = false;               // امنیت
-    k.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2); 
-    k.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-
-    // 2) Connection Limits (High Throughput)
-    k.Limits.MaxConcurrentConnections = 5000;            // قابل افزایش
-    k.Limits.MaxConcurrentUpgradedConnections = 5000;
-
-    // 3) Request Body Limits (برای Chunk Upload لازم)
-    k.Limits.MaxRequestBodySize = null;                  // ما روی مسیر Upload محدود می‌کنیم
-
-    // 4) Request Buffering
-    k.Limits.MaxRequestBufferSize = 32 * 1024 * 1024;    // 32MB
-    k.Limits.MaxResponseBufferSize = 32 * 1024 * 1024;
-
-    // 5) Request/Response Header Limits
-    k.Limits.MaxRequestHeaderCount = 200;
-    k.Limits.MaxRequestLineSize = 16 * 1024;             // 16KB
-    k.Limits.MaxRequestHeadersTotalSize = 64 * 1024;     // 64KB
-
-    // 6) HTTP/2 upload tuning
-    k.Limits.Http2.MaxStreamsPerConnection = 100;        // default=100
-    k.Limits.Http2.MaxRequestHeaderFieldSize = 64 * 1024;
-    k.Limits.Http2.InitialConnectionWindowSize = 2 * 1024 * 1024; // 2MB
-    k.Limits.Http2.InitialStreamWindowSize = 1 * 1024 * 1024;     // 1MB
-
-    // 7) Threading / IO queue tuning
-    // k.Limits.MaxIops = 100_000;     // عدد بالا = اجازه I/O async زیاد
-    // k.Limits.MaxReadBufferSize = 64 * 1024 * 1024;
-    // k.Limits.MaxWriteBufferSize = 64 * 1024 * 1024;
-
-    // 8) Endpoint Binding
-    k.ListenAnyIP(8080, o =>
-    {
-        o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-    });
+        options.ListenLocalhost(5274);
+        options.ListenLocalhost(7013, x => x.UseHttps());
+    }
 });
 
 
@@ -219,31 +201,109 @@ using (var scope = app.Services.CreateScope())
     // چک کردن و اعمال "migration" برای MongoDB
     await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
 
+    Log.Information("Truncating and resetting all SQL tables (with FK support)...");
+
+// این روش کاملاً امن و بدون ارور FK هست
+    await sqlCommandDbContext.Database.ExecuteSqlRawAsync(@"
+    SET NOCOUNT ON;
+
+    -- مرحله ۱: غیرفعال کردن همه Foreign Keyها در کل دیتابیس
+    EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
+
+    -- مرحله ۲: DELETE به جای TRUNCATE (چون TRUNCATE با FK مشکل داره حتی با NOCHECK در بعضی موارد)
+    -- ولی ما DELETE + TRUNCATE ترکیب می‌کنیم برای جداول بدون FK مستقیم + Identity reset
+    DELETE FROM dbo.AppVersions; DBCC CHECKIDENT ('dbo.AppVersions', RESEED, 0);
+    DELETE FROM dbo.AspNetRoleClaims;
+    DELETE FROM dbo.AspNetRoles; DBCC CHECKIDENT ('dbo.AspNetRoles', RESEED, 0);
+    DELETE FROM dbo.AspNetUserClaims;
+    DELETE FROM dbo.AspNetUserLogins;
+    DELETE FROM dbo.AspNetUserRoles;
+    DELETE FROM dbo.AspNetUsers; DBCC CHECKIDENT ('dbo.AspNetUsers', RESEED, 0);
+    DELETE FROM dbo.AspNetUserTokens;
+    DELETE FROM dbo.CollectionItems;
+    DELETE FROM dbo.Collections; DBCC CHECKIDENT ('dbo.Collections', RESEED, 0);
+    DELETE FROM dbo.Files;
+    DELETE FROM dbo.Friendships;
+    DELETE FROM dbo.HistoricalPeriods; DBCC CHECKIDENT ('dbo.HistoricalPeriods', RESEED, 0);
+    DELETE FROM dbo.JournalEntries;
+    DELETE FROM dbo.MarketplaceItems;
+    DELETE FROM dbo.MuseumImages;
+    DELETE FROM dbo.MuseumObjects;
+    DELETE FROM dbo.Museums; DBCC CHECKIDENT ('dbo.Museums', RESEED, 0);
+    DELETE FROM dbo.Notifications;
+    DELETE FROM dbo.ObjectHistoricalPeriods;
+    DELETE FROM dbo.ObjectImages;
+    DELETE FROM dbo.ObjectModels;
+    DELETE FROM dbo.Objects; DBCC CHECKIDENT ('dbo.Objects', RESEED, 0);
+    DELETE FROM dbo.ObjectTypes;
+    DELETE FROM dbo.OTPs;
+    DELETE FROM dbo.OutboxMessages;
+    DELETE FROM dbo.Seasons;
+    DELETE FROM dbo.SeasonTasks;
+    DELETE FROM dbo.TierConfigs; DBCC CHECKIDENT ('dbo.TierConfigs', RESEED, 0);
+    DELETE FROM dbo.Types; DBCC CHECKIDENT ('dbo.Types', RESEED, 0);
+    DELETE FROM dbo.UserImages;
+    DELETE FROM dbo.UserJournalEntries;
+    DELETE FROM dbo.UserLoginHistories;
+    DELETE FROM dbo.UserMuseumKeys;
+    DELETE FROM dbo.UserNotification;
+    DELETE FROM dbo.UserScans;
+    DELETE FROM dbo.UserSeasonProgresses;
+    DELETE FROM dbo.UserStrikes;
+    DELETE FROM dbo.UserXps;
+    DELETE FROM dbo.VoiceTrackFiles;
+    DELETE FROM dbo.VoiceTracks;
+
+    -- مرحله ۳: دوباره فعال کردن همه FKها
+    EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
+");
+
+    Log.Information("All SQL tables cleaned and identity columns reset successfully!");
+
     // Seeding داده‌های SQL
-    await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
+    // await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
 
     // Seeding داده‌های MongoDB
     await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
 }
 
-app.UseExceptionHandler(config =>
+// app.UseExceptionHandler(config =>
+// {
+//     config.Run(async context =>
+//     {
+//         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+//
+//         context.Response.ContentType = "application/json";
+//
+//         context.Response.StatusCode = exception switch
+//         {
+//             InfrastructureNotFoundException => StatusCodes.Status404NotFound,
+//             ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
+//             _ => StatusCodes.Status500InternalServerError
+//         };
+//
+//         var result = JsonSerializer.Serialize(new { error = exception?.Message });
+//
+//         await context.Response.WriteAsync(result);
+//     });
+// });
+
+app.UseExceptionHandler(errorApp =>
 {
-    config.Run(async context =>
+    errorApp.Run(async context =>
     {
-        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "text/plain; charset=utf-8";
 
-        context.Response.ContentType = "application/json";
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var ex = exceptionHandlerPathFeature?.Error;
 
-        context.Response.StatusCode = exception switch
-        {
-            InfrastructureNotFoundException => StatusCodes.Status404NotFound,
-            ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
-            _ => StatusCodes.Status500InternalServerError
-        };
+        var errorDetails = $"Exception: {ex?.GetType().Name}\n" +
+                           $"Message: {ex?.Message}\n" +
+                           $"StackTrace:\n{ex?.StackTrace}\n" +
+                           $"Path: {exceptionHandlerPathFeature?.Path}";
 
-        var result = JsonSerializer.Serialize(new { error = exception?.Message });
-
-        await context.Response.WriteAsync(result);
+        await context.Response.WriteAsync(errorDetails);
     });
 });
 app.UseResponseCompression();

@@ -15,7 +15,6 @@ using Primitives;
 // TODO: develop validation for this handler
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
 {
-    private readonly IFileService _fileService;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<ModifyProfileHandler> _logger;
     private readonly string[] _allowedImageMimeTypes;
@@ -26,13 +25,11 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
         UserManager<AppUser> userManager,
         ILogger<ModifyProfileHandler> logger,
         IOptions<FileSettings> options,
-        IFileService fileService,
         IFileCommandRepository fileCommandRepository) : base(
         httpContextAccessor, userManager)
     {
         this._userManager = userManager;
         this._logger = logger;
-        this._fileService = fileService;
         this._fileCommandRepository = fileCommandRepository;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
@@ -76,29 +73,29 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
                 throw new Exception($"Invalid Base64 string for ImageFileData: {ex.Message}");
             }
 
-            var filePath = await _fileService.UploadFileFromBytesAsync(
-                imageFileData,
-                command.ImageFileName,
-                command.ImageFileMimeType,
-                user.Id,
-                _allowedImageMimeTypes);
+            // var filePath = await _fileService.UploadFileFromBytesAsync(
+            //     imageFileData,
+            //     command.ImageFileName,
+            //     command.ImageFileMimeType,
+            //     user.Id,
+            //     _allowedImageMimeTypes);
 
-            var imageFile = FileEntity.Create(command.ImageFileName, filePath, imageFileData.Length,
-                command.ImageFileMimeType, user.Id);
-
-            if (imageFile == null)
-            {
-                _logger.LogError("Failed to create image file: {FileName}", command.ImageFileName);
-                throw new Exception("Failed to create image file.");
-            }
+            // var imageFile = FileEntity.Create(command.ImageFileName, filePath, imageFileData.Length,
+            //     command.ImageFileMimeType, user.Id);
+            //
+            // if (imageFile == null)
+            // {
+            //     _logger.LogError("Failed to create image file: {FileName}", command.ImageFileName);
+            //     throw new Exception("Failed to create image file.");
+            // }
 
             // Save the FileEntity to the database
-            await _fileCommandRepository.InsertAsync(imageFile, cancellationToken);
-
-            _logger.LogInformation("Image file inserted: FileId={FileId}, FileName={FileName}", imageFile.Id,
-                command.ImageFileName);
-
-            userBuilder.WithProfileImage(imageFile.Id, _allowedImageMimeTypes);
+            // await _fileCommandRepository.InsertAsync(imageFile, cancellationToken);
+            //
+            // _logger.LogInformation("Image file inserted: FileId={FileId}, FileName={FileName}", imageFile.Id,
+            //     command.ImageFileName);
+            //
+            // userBuilder.WithProfileImage(imageFile.Id, _allowedImageMimeTypes);
         }
 
 

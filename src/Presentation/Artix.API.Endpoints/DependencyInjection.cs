@@ -9,20 +9,20 @@ using Middlewares;
 
 public static class DependencyInjection
 {
-    public static void AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
+public static void AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
+{
+    services.AddCors(options =>
     {
-        var allowedDomains = configuration.GetSection("AllowedOrigins").Get<string[]>();
-        services.AddCors(options =>
+        options.AddPolicy("CorsPolicy", policy =>
         {
-            options.AddPolicy("CorsPolicy", policy =>
-            {
-                policy.WithOrigins(allowedDomains)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
-            });
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
         });
-    }
+    });
+}
 
 
     public static void UseCustomMiddlewares(this IApplicationBuilder app, IWebHostEnvironment env)

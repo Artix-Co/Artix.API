@@ -18,15 +18,13 @@ using Primitives;
 internal sealed class
     GetAllUsersAdminQueryHandler : QueryHandlerBase<GetAllUsersAdminQuery, PaginatedResult<AllUsersAdminDto>>
 {
-    private readonly IFileService _fileService;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<GetAllUsersAdminQueryHandler> _logger;
 
 
     public GetAllUsersAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        IFileService fileService, ILogger<GetAllUsersAdminQueryHandler> logger) : base(httpContextAccessor, userManager)
+     ILogger<GetAllUsersAdminQueryHandler> logger) : base(httpContextAccessor, userManager)
     {
-        this._fileService = fileService;
         this._userManager = userManager;
         this._logger = logger;
     }
@@ -101,10 +99,7 @@ internal sealed class
                         : null;
 
                 string profileImageBase64String = string.Empty;
-                if (user.Avatar is not null)
-                {
-                    profileImageBase64String = _fileService.GetFileBase64String(user.Avatar.FilePath);
-                }
+            
 
                 userDtos.Add(new AllUsersAdminDto(
                     FirstName: user.FirstName,

@@ -9,13 +9,6 @@ public sealed record UpgradeObjectCommand(
     string? SpecializedInformation,
     int? Tier,
     int? Version,
-    string? Model3DFileDataBase64,
-    string? Model3DFileName,
-    string? Model3DFileMimeType,
-    
-    
-    string? ImageFileDataBase64,
-    string? ImageFileName,
-    string? ImageFileMimeType,
-    string? HistoricalPeriod
+    Guid? Model3DUploadId,
+    Guid? ImageUploadId
 ) : ICommand;
