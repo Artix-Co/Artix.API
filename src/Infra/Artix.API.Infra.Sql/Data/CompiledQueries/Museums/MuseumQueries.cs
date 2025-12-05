@@ -84,7 +84,7 @@ internal static class MuseumQueries
                     {
                         Id = x.Object.BusinessId,
                         MuseumId = x.Museum.BusinessId,
-                        ImageFilePath = x.Museum.MuseumImages
+                        ImageFilePath = x.Object.ObjectImages
                             .Where(mi => mi.FileEntity != null &&
                                          !mi.FileEntity.IsDeleted &&
                                          allowedImagesTypes.Contains(mi.FileEntity.MimeType))
