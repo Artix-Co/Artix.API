@@ -39,14 +39,14 @@ public sealed class CompressionWorker : BackgroundService
                     continue;
                 }
 
-                if (await IsAlreadyProcessed(filePath))
+                if (await IsAlreadyProcessedAsync(filePath))
                 {
                     _logger.LogInformation("Skipped (already processed): {FilePath}", filePath);
                     continue;
                 }
 
-                await ProcessFile(filePath, stoppingToken);
-                await MarkAsProcessed(filePath);
+                await ProcessFileAsync(filePath, stoppingToken);
+                await MarkAsProcessedAsync(filePath);
             }
             catch (Exception ex)
             {
@@ -55,7 +55,7 @@ public sealed class CompressionWorker : BackgroundService
         }
     }
 
-    private async Task ProcessFile(string filePath, CancellationToken ct)
+    private async Task ProcessFileAsync(string filePath, CancellationToken ct)
     {
         _logger.LogInformation("Compressing: {FilePath}", filePath);
 
@@ -64,28 +64,30 @@ public sealed class CompressionWorker : BackgroundService
         try
         {
             await _compressor.CompressAsync(filePath, tempPath, ct);
-            File.Move(tempPath, filePath, overwrite: true);
+            File.Move(tempPath, filePath, true);
             _logger.LogInformation("Compression completed: {FilePath}", filePath);
         }
         catch (Exception ex)
         {
-            if (File.Exists(tempPath)) File.Delete(tempPath);
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
             _logger.LogError(ex, "Compression failed for {FilePath}", filePath);
-            throw; // برای retry بعدی
+            throw;
         }
     }
 
-    private async Task<bool> IsAlreadyProcessed(string filePath)
+    private async Task<bool> IsAlreadyProcessedAsync(string filePath)
     {
         var db = _redis.Connection.GetDatabase();
         return await db.SetContainsAsync(ProcessedSetKey, filePath);
     }
 
-    private async Task MarkAsProcessed(string filePath)
+    private async Task MarkAsProcessedAsync(string filePath)
     {
         var db = _redis.Connection.GetDatabase();
         await db.SetAddAsync(ProcessedSetKey, filePath);
-        // optional: expire after 30 days
         await db.KeyExpireAsync(ProcessedSetKey, TimeSpan.FromDays(30));
     }
 }

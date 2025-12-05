@@ -2,20 +2,26 @@ namespace Artix.API.Infra.FileService.Services;
 
 using System.Diagnostics;
 using System.IO.Compression;
+using Core.Contract.Configs.FileSettings;
 using Core.Contract.Primitives.Infra.File;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 public sealed class FileCompressor : IFileCompressor
 {
     private readonly ILogger<FileCompressor> _logger;
-
-    public FileCompressor(ILogger<FileCompressor> logger)
+    private readonly IOptions<FileSettings> _fileSettings;
+    
+    public FileCompressor(ILogger<FileCompressor> logger, IOptions<FileSettings> fileSettings)
     {
         _logger = logger;
+        _fileSettings = fileSettings;
     }
 
     public async Task CompressAsync(string sourcePath, string destPath, CancellationToken ct = default)
     {
+     
         var extension = Path.GetExtension(sourcePath).ToLowerInvariant();
 
         if (IsVideo(extension))
@@ -71,7 +77,7 @@ public sealed class FileCompressor : IFileCompressor
     {
         await using var sourceStream = File.OpenRead(source);
         await using var destStream = File.Create(dest);
-        await using var gzip = new GZipStream(destStream, CompressionLevel.Optimal);
+        await using var gzip = new GZipStream(destStream, CompressionLevel.SmallestSize);
         await sourceStream.CopyToAsync(gzip, ct);
     }
 }
