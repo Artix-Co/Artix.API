@@ -42,9 +42,4 @@
     <ProjectReference Include="..\..\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj" />
   </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="uploads\files\" />
-  </ItemGroup>
 </Project>

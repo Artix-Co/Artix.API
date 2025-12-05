@@ -138,7 +138,7 @@ using (var scope = app.Services.CreateScope())
     var sqlDataSeeder = services.GetRequiredService<SqlDataSeeder>();
     var mongoSeeder = services.GetRequiredService<MongoDataSeeder>();
 
-    await sqlDataRemover.Remove();
+    // await sqlDataRemover.Remove();
     await sqlDataSeeder.SeedAsync();
 
     await mongoSeeder.EnsureMongoMigrationAsync();

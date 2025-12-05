@@ -99,10 +99,10 @@ public static class HostingExtension
 
         services.AddRabbitMqService();
         services.AddIdentityService(configuration);
-
+        services.AddRedis();
         services.AddFileService();
 
-        services.AddRedis();
+  
 
         services.AddApplicationServices();
         services.AddContractServices();

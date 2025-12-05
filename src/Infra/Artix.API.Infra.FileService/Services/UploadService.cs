@@ -13,15 +13,14 @@ public class UploadService : IUploadService
 
     public UploadService(IUploadRepository repo, IFileStorage storage, IOptions<FileSettings> fileSettings)
     {
-        this._repo = repo;
-        this._storage = storage;
-        this._fileSettings = fileSettings.Value;
+        _repo = repo;
+        _storage = storage;
+        _fileSettings = fileSettings.Value;
     }
 
-    public async Task<UploadSession> InitiateAsync(string fileName, long totalSize, int chunkSize,
-        CancellationToken cancellationToken = default)
+    public async Task<UploadSession> InitiateAsync(string fileName, long totalSize, int chunkSize, CancellationToken cancellationToken = default)
     {
-        await this._storage.EnsureDirectoriesAsync(cancellationToken);
+        await _storage.EnsureDirectoriesAsync(cancellationToken);
         var session = new UploadSession
         {
             Id = Guid.NewGuid(),
@@ -29,27 +28,24 @@ public class UploadService : IUploadService
             TotalSize = totalSize,
             ChunkSize = chunkSize,
             TotalChunks = (int)Math.Ceiling((double)totalSize / chunkSize),
-            TempFolder = await this._storage.GetTempFolderAsync(Guid.NewGuid(), cancellationToken)
+            TempFolder = await _storage.GetTempFolderAsync(Guid.NewGuid(), cancellationToken)
         };
-        session.TempFolder = await this._storage.GetTempFolderAsync(session.Id, cancellationToken);
-        await this._repo.AddAsync(session, cancellationToken);
+        session.TempFolder = await _storage.GetTempFolderAsync(session.Id, cancellationToken);
+        await _repo.AddAsync(session, cancellationToken);
         return session;
     }
 
-    public async Task MarkChunkReceivedAsync(Guid uploadId, int chunkIndex,
-        CancellationToken cancellationToken = default)
+    public async Task MarkChunkReceivedAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken = default)
     {
-        var s = await this._repo.GetAsync(uploadId, cancellationToken);
+        var s = await _repo.GetAsync(uploadId, cancellationToken);
         if (s == null) throw new InvalidOperationException("not found");
         s.ReceivedChunks[chunkIndex] = true;
-        await this._repo.UpdateAsync(s, cancellationToken);
+        await _repo.UpdateAsync(s, cancellationToken);
     }
 
     public async Task MergeChunksAsync(Guid uploadId, CancellationToken ct = default)
     {
-        var session = await _repo.GetAsync(uploadId, ct)
-                      ?? throw new InvalidOperationException("Upload session not found.");
-
+        var session = await _repo.GetAsync(uploadId, ct) ?? throw new InvalidOperationException("Upload session not found.");
 
         var receivedCount = session.ReceivedChunks?.Count(kvp => kvp.Value) ?? 0;
         if (receivedCount != session.TotalChunks)
@@ -67,9 +63,8 @@ public class UploadService : IUploadService
         await _repo.UpdateAsync(session, ct);
     }
 
-
     public Task<UploadSession> GetStatusAsync(Guid uploadId, CancellationToken cancellationToken = default)
     {
-        return this._repo.GetAsync(uploadId, cancellationToken);
+        return _repo.GetAsync(uploadId, cancellationToken);
     }
 }
