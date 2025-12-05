@@ -6,20 +6,28 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core.Domain.Entities.Quiz;
 using DbContext;
+using Microsoft.Extensions.Logging;
 
- 
-
-public static class MongoDataSeeder
+public class MongoDataSeeder
 {
-    public static async Task EnsureMongoMigrationAsync(IMongoDatabase database)
+    private readonly IMongoDatabase _mongoDatabase;
+    private readonly MongoCommandContext _context;
+    private readonly ILogger<MongoDataSeeder> _logger;
+    public MongoDataSeeder(IMongoDatabase mongoDatabase, MongoCommandContext context, ILogger<MongoDataSeeder> logger)
     {
-        var collectionNames = await (await database.ListCollectionNamesAsync()).ToListAsync();
+        this._mongoDatabase = mongoDatabase;
+        this._context = context;
+        this._logger = logger;
+    }
+    public async Task EnsureMongoMigrationAsync()
+    {
+        var collectionNames = await (await this._mongoDatabase.ListCollectionNamesAsync()).ToListAsync();
         if (!collectionNames.Contains("Quizs"))
         {
-            await database.CreateCollectionAsync("Quizs");
+            await this._mongoDatabase.CreateCollectionAsync("Quizs");
         }
 
-        var collection = database.GetCollection<Quiz>("Quizs");
+        var collection = this._mongoDatabase.GetCollection<Quiz>("Quizs");
         var indexKeys = Builders<Quiz>.IndexKeys
             .Ascending(q => q.IsDeleted)
             .Ascending(q => q.RelatedFeature)
@@ -35,15 +43,15 @@ public static class MongoDataSeeder
         }
     }
 
-    public static async Task SeedQuizzesAsync(MongoCommandContext commandContext)
+    public async Task SeedQuizzesAsync()
     {
-        var collection = commandContext.GetCollection<Quiz>("Quizs");
+        var collection = this._context.GetCollection<Quiz>("Quizs");
 
         await collection.DeleteManyAsync(Builders<Quiz>.Filter.Empty);
 
         var quizzes = GenerateSampleQuizzes(10);
 
-        await commandContext.InsertManyAsync(quizzes);
+        await this._context.InsertManyAsync(quizzes);
     }
 
     private static List<Quiz> GenerateSampleQuizzes(int count)

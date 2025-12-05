@@ -4,7 +4,6 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Primitives.Infra.File;
 using Core.Domain.Entities.File;
 using Microsoft.Extensions.Options;
-using Utils.File;
 
 public class UploadService : IUploadService
 {

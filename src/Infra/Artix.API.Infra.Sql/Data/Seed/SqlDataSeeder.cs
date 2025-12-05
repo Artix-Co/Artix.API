@@ -16,8 +16,9 @@ using Core.Domain.Entities.TierConfig;
 using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
 using DbContexts;
+using Microsoft.Extensions.Logging;
 
-public static class SqlDataSeeder
+public class SqlDataSeeder
 {
     private const int USER_SEED_COUNT = 7;
     private const int MUSEUM_SEED_COUNT = 7;
@@ -26,13 +27,43 @@ public static class SqlDataSeeder
     private const int HISTORICAL_PERIOD_SEED_COUNT = 7;
     private const int APP_VERSION_SEED_COUNT = 4;
 
-    public static async Task SeedAsync(ArtixCommandDbContext context, UserManager<AppUser> userManager,
-        RoleManager<AppRole> roleManager)
+
+    private readonly ArtixCommandDbContext _context;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
+    private readonly ILogger<SqlDataSeeder> _logger;
+
+
+    public SqlDataSeeder(
+        ArtixCommandDbContext context,
+        UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager,
+        ILogger<SqlDataSeeder> logger)
     {
-        if (context == null) throw new ArgumentNullException(nameof(context));
+        _context = context;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _logger = logger;
+    }
+
+    public async Task SeedAsync()
+    {
+        try
+        {
+            await this._context.Database.MigrateAsync();
+            _logger.LogInformation("SQL migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Failed to apply SQL migrations.");
+            throw;
+        }
+
+
+
 
         // Check if database is already seeded
-        if (await context.Users.AnyAsync())
+        if (await this._context.Users.AnyAsync())
         {
             return; // Skip seeding if any users exist
         }
@@ -54,9 +85,9 @@ public static class SqlDataSeeder
 
         foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            if (!await _roleManager.RoleExistsAsync(role))
             {
-                var roleResult = await roleManager.CreateAsync(new AppRole(role));
+                var roleResult = await _roleManager.CreateAsync(new AppRole(role));
                 if (!roleResult.Succeeded)
                     throw new ApplicationException(
                         $"Failed to create role {role}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
@@ -77,13 +108,13 @@ public static class SqlDataSeeder
                 DisplayName = $"Fake User {i}"
             };
 
-            var createResult = await userManager.CreateAsync(user, "Heli@ghar771379");
+            var createResult = await _userManager.CreateAsync(user, "Heli@ghar771379");
             if (!createResult.Succeeded)
                 throw new ApplicationException(
                     $"User creation failed for {user.UserName}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
 
             var role = i == 0 ? "Admin" : "Client";
-            var roleResult = await userManager.AddToRoleAsync(user, role);
+            var roleResult = await _userManager.AddToRoleAsync(user, role);
             if (!roleResult.Succeeded)
                 throw new ApplicationException(
                     $"Role assignment failed for {user.UserName}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
@@ -92,7 +123,7 @@ public static class SqlDataSeeder
             {
                 var clientType = clientTypes[i % clientTypes.Count];
                 var claimResult =
-                    await userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClientType", clientType));
+                    await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClientType", clientType));
                 if (!claimResult.Succeeded)
                     throw new ApplicationException(
                         $"Claim assignment failed for {user.UserName}: {string.Join(", ", claimResult.Errors.Select(e => e.Description))}");
@@ -113,7 +144,7 @@ public static class SqlDataSeeder
             }
         }
 
-        context.Friendships.AddRange(friendships);
+        _context.Friendships.AddRange(friendships);
 
         #endregion
 
@@ -124,7 +155,7 @@ public static class SqlDataSeeder
             categories.Add(Category.Create($"Fake category {i}", $"Fake description category {i}"));
         }
 
-        context.Types.AddRange(categories);
+        _context.Types.AddRange(categories);
 
         #endregion
 
@@ -139,7 +170,7 @@ public static class SqlDataSeeder
             HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)",
                 new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
         });
-        context.HistoricalPeriods.AddRange(historicalPeriods.Take(HISTORICAL_PERIOD_SEED_COUNT));
+        _context.HistoricalPeriods.AddRange(historicalPeriods.Take(HISTORICAL_PERIOD_SEED_COUNT));
 
         #endregion
 
@@ -150,7 +181,7 @@ public static class SqlDataSeeder
             museums.Add(Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true));
         }
 
-        context.Museums.AddRange(museums);
+        _context.Museums.AddRange(museums);
 
         #endregion
 
@@ -166,7 +197,7 @@ public static class SqlDataSeeder
                 "Depicts a warrior in battle pose", 1, 1, false, true, ObjectSaleType.MemberShip)
         });
         objects = objects.Take(OBJECT_SEED_COUNT).ToList();
-        context.Objects.AddRange(objects);
+        _context.Objects.AddRange(objects);
 
         #endregion
 
@@ -177,7 +208,7 @@ public static class SqlDataSeeder
             objectTypes.Add(ObjectType.Create(objects[i], categories[i % categories.Count]));
         }
 
-        context.ObjectTypes.AddRange(objectTypes);
+        _context.ObjectTypes.AddRange(objectTypes);
 
         #endregion
 
@@ -189,14 +220,14 @@ public static class SqlDataSeeder
                 historicalPeriods[i % historicalPeriods.Count]));
         }
 
-        context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
+        _context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
 
         #endregion
 
         #region Seed MuseumObjects
 
         // برای جلوگیری از خطا، ابتدا موزه‌ها و آبجکت‌ها را ذخیره می‌کنیم تا Idهای واقعی تولید شوند
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         for (int i = 0; i < objects.Count; i++)
         {
@@ -205,7 +236,7 @@ public static class SqlDataSeeder
         }
 
         // ذخیره تغییرات نهایی (شامل روابط)
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         #endregion
 
@@ -218,12 +249,13 @@ public static class SqlDataSeeder
             AppVersion.Create(1, 0, 2, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 3, true, true, "First Version On Development Environment")
         });
-        context.AppVersions.AddRange(appVersions.Take(APP_VERSION_SEED_COUNT));
+        _context.AppVersions.AddRange(appVersions.Take(APP_VERSION_SEED_COUNT));
 
         #endregion
 
 
         #region Seed TierConfigs
+
         tierConfigs.AddRange(new[]
         {
             TierConfig.Create(
@@ -264,13 +296,14 @@ public static class SqlDataSeeder
             )
         });
 
-        context.TierConfigs.AddRange(tierConfigs);
+        _context.TierConfigs.AddRange(tierConfigs);
+
         #endregion
 
 
         #region Final Save for remaining entities
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         #endregion
     }

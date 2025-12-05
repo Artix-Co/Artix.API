@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Utils.List;
+﻿namespace Artix.API.Utils;
 
 
 

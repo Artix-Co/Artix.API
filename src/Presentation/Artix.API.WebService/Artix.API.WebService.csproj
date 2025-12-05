@@ -8,9 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    
-    
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   
     <PackageReference Include="Elastic.Serilog.Sinks" />
     <PackageReference Include="Elasticsearch.Net" />

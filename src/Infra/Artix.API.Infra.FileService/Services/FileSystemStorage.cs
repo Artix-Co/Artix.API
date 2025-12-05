@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Buffers;
 using Core.Contract.Configs.FileSettings;
-using Utils.File;
 using Core.Contract.Primitives.Infra.File;
 using Microsoft.Extensions.Options;
 using System.Buffers;
@@ -20,7 +19,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
-using Utils.File;
+using Utils;
 
 public class FileSystemStorage : IFileStorage
 {

@@ -1,4 +1,4 @@
-namespace Artix.API.Utils.File;
+namespace Artix.API.Utils;
 
 public static class FileNameHelper
 {

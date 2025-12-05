@@ -11,6 +11,7 @@ using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.Orchestration.ServiceDefaults;
 using Artix.API.WebService;
+using Artix.API.WebService.Extensions;
 using Elastic.Transport;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -24,75 +25,55 @@ using Serilog;
 using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.AddServiceDefaults();
 builder.Services.AddSignalR();
 
 
 var environment = builder.Environment;
+bool isDevelopmentEnv = environment.IsDevelopment();
 
 
-var keyStorePathKeys = environment.IsDevelopment()
-    ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
-    : "/app/dataprotection-keys";
-
-builder.Services.AddDataProtection()
-    .SetApplicationName("Artix")
-    .PersistKeysToFileSystem(new DirectoryInfo(keyStorePathKeys));
+builder.Services.AddArtixServices(builder.Configuration, isDevelopmentEnv);
 
 
-builder.Services.AddArtixServices(builder.Configuration);
+var elasticStatus = builder.Services.AddElasticsearch(builder.Configuration);
 
-builder.Services.AddSingleton<IElasticClient>(serviceProvider =>
+
+builder.Host.UseSerilog((ctx, services, logger) =>
 {
-    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var lc = new LoggerConfiguration()
+        .ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.FromLogContext()
 
-    var elasticUri = configuration["Elasticsearch:Uri"];
-    var username = configuration["Elasticsearch:Username"];
-    var password = configuration["Elasticsearch:Password"];
-    var indexFormat = configuration["Elasticsearch:IndexFormat"];
-    var requestTimeout = configuration["Elasticsearch:RequestTimeoutInMinutes"];
+        // ALWAYS console:
+        .WriteTo.Console();
 
-    if (int.TryParse(requestTimeout, out int requestInMinutes))
+    // if elastic is valid → add elastic sink
+    if (elasticStatus.IsValid)
     {
-        var settings = new ConnectionSettings(new Uri(elasticUri))
-            .DefaultIndex(indexFormat)
-            .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes))
-            .BasicAuthentication(username, password);
-
-        return new ElasticClient(settings);
-    }
-
-    throw new InvalidOperationException("Invalid Elasticsearch configuration.");
-});
-
-var elasticUri = builder.Configuration["Elasticsearch:Uri"];
-var username = builder.Configuration["Elasticsearch:Username"];
-var password = builder.Configuration["Elasticsearch:Password"];
-var indexFormat = builder.Configuration["Elasticsearch:IndexFormat"];
-var requestTimeout = builder.Configuration["Elasticsearch:RequestTimeoutInMinutes"];
-
-if (int.TryParse(requestTimeout, out int requestInMinutes))
-{
-    Log.Logger = new LoggerConfiguration()
-        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
+        lc.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticStatus.Uri))
         {
             AutoRegisterTemplate = true,
-            IndexFormat = indexFormat,
-            ModifyConnectionSettings = c => c.BasicAuthentication(username, password)
-                .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes)),
-        })
-        .ReadFrom.Configuration(builder.Configuration)
-        .CreateLogger();
-}
-else
-{
-    throw new InvalidOperationException("Invalid Elasticsearch request timeout configuration.");
-}
+            IndexFormat = elasticStatus.Index,
+            ModifyConnectionSettings = c =>
+                c.BasicAuthentication(
+                        elasticStatus.Settings.Username,
+                        elasticStatus.Settings.Password)
+                    .RequestTimeout(TimeSpan.FromMinutes(
+                        elasticStatus.Settings.RequestTimeoutInMinutes))
+        });
 
-builder.Host.UseSerilog();
+        Console.WriteLine($"[Elastic] Connected → {elasticStatus.Uri}");
+    }
+    else
+    {
+        Console.WriteLine("[Elastic] NOT Connected → Console logging only");
+    }
 
-builder.AddServiceDefaults();
-
+    logger.ReadFrom.Configuration(ctx.Configuration);
+    logger.WriteTo.Console();
+    lc.CreateLogger();
+});
 
 builder.WebHost.UseKestrel(options =>
 {
@@ -152,19 +133,6 @@ if (!Directory.Exists(filesPath))
 
 Log.Logger.Information("Serving static files from: {FilesPath}", filesPath);
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(filesPath),
-    RequestPath = "/files",
-    ServeUnknownFileTypes = true,
-    DefaultContentType = "application/octet-stream",
-    OnPrepareResponse = ctx =>
-    {
-        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000");
-        ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
-    }
-});
-
 
 app.Use(async (context, next) =>
 {
@@ -179,164 +147,77 @@ app.Use(async (context, next) =>
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var mongoDatabase = services.GetRequiredService<IMongoDatabase>();
-    var sqlCommandDbContext = services.GetRequiredService<ArtixCommandDbContext>();
-    var mongoCommandContext = services.GetRequiredService<MongoCommandContext>();
-    var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
 
+    var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
+    var sqlDataSeeder  = services.GetRequiredService<SqlDataSeeder>();
+    var mongoSeeder    = services.GetRequiredService<MongoDataSeeder>();
 
-    // اعمال migrationهای SQL
-    try
-    {
-        await sqlCommandDbContext.Database.MigrateAsync();
-        Log.Information("SQL migrations applied successfully.");
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Failed to apply SQL migrations.");
-        throw;
-    }
+    // await sqlDataRemover.Remove();
+    await sqlDataSeeder.SeedAsync();
 
-    // چک کردن و اعمال "migration" برای MongoDB
-    await MongoDataSeeder.EnsureMongoMigrationAsync(mongoDatabase);
-
-    Log.Information("Truncating and resetting all SQL tables (with FK support)...");
-
-// این روش کاملاً امن و بدون ارور FK هست
-    await sqlCommandDbContext.Database.ExecuteSqlRawAsync(@"
-    SET NOCOUNT ON;
-
-    -- مرحله ۱: غیرفعال کردن همه Foreign Keyها در کل دیتابیس
-    EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
-
-    -- مرحله ۲: DELETE به جای TRUNCATE (چون TRUNCATE با FK مشکل داره حتی با NOCHECK در بعضی موارد)
-    -- ولی ما DELETE + TRUNCATE ترکیب می‌کنیم برای جداول بدون FK مستقیم + Identity reset
-    DELETE FROM dbo.AppVersions; DBCC CHECKIDENT ('dbo.AppVersions', RESEED, 0);
-    DELETE FROM dbo.AspNetRoleClaims;
-    DELETE FROM dbo.AspNetRoles; DBCC CHECKIDENT ('dbo.AspNetRoles', RESEED, 0);
-    DELETE FROM dbo.AspNetUserClaims;
-    DELETE FROM dbo.AspNetUserLogins;
-    DELETE FROM dbo.AspNetUserRoles;
-    DELETE FROM dbo.AspNetUsers; DBCC CHECKIDENT ('dbo.AspNetUsers', RESEED, 0);
-    DELETE FROM dbo.AspNetUserTokens;
-    DELETE FROM dbo.CollectionItems;
-    DELETE FROM dbo.Collections; DBCC CHECKIDENT ('dbo.Collections', RESEED, 0);
-    DELETE FROM dbo.Files;
-    DELETE FROM dbo.Friendships;
-    DELETE FROM dbo.HistoricalPeriods; DBCC CHECKIDENT ('dbo.HistoricalPeriods', RESEED, 0);
-    DELETE FROM dbo.JournalEntries;
-    DELETE FROM dbo.MarketplaceItems;
-    DELETE FROM dbo.MuseumImages;
-    DELETE FROM dbo.MuseumObjects;
-    DELETE FROM dbo.Museums; DBCC CHECKIDENT ('dbo.Museums', RESEED, 0);
-    DELETE FROM dbo.Notifications;
-    DELETE FROM dbo.ObjectHistoricalPeriods;
-    DELETE FROM dbo.ObjectImages;
-    DELETE FROM dbo.ObjectModels;
-    DELETE FROM dbo.Objects; DBCC CHECKIDENT ('dbo.Objects', RESEED, 0);
-    DELETE FROM dbo.ObjectTypes;
-    DELETE FROM dbo.OTPs;
-    DELETE FROM dbo.OutboxMessages;
-    DELETE FROM dbo.Seasons;
-    DELETE FROM dbo.SeasonTasks;
-    DELETE FROM dbo.TierConfigs; DBCC CHECKIDENT ('dbo.TierConfigs', RESEED, 0);
-    DELETE FROM dbo.Types; DBCC CHECKIDENT ('dbo.Types', RESEED, 0);
-    DELETE FROM dbo.UserImages;
-    DELETE FROM dbo.UserJournalEntries;
-    DELETE FROM dbo.UserLoginHistories;
-    DELETE FROM dbo.UserMuseumKeys;
-    DELETE FROM dbo.UserNotification;
-    DELETE FROM dbo.UserScans;
-    DELETE FROM dbo.UserSeasonProgresses;
-    DELETE FROM dbo.UserStrikes;
-    DELETE FROM dbo.UserXps;
-    DELETE FROM dbo.VoiceTrackFiles;
-    DELETE FROM dbo.VoiceTracks;
-
-    -- مرحله ۳: دوباره فعال کردن همه FKها
-    EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
-");
-
-    Log.Information("All SQL tables cleaned and identity columns reset successfully!");
-
-    // Seeding داده‌های SQL
-    // await SqlDataSeeder.SeedAsync(sqlCommandDbContext, userManager, roleManager);
-
-    // Seeding داده‌های MongoDB
-    await MongoDataSeeder.SeedQuizzesAsync(mongoCommandContext);
+    await mongoSeeder.EnsureMongoMigrationAsync();
+    await mongoSeeder.SeedQuizzesAsync();
 }
 
-// app.UseExceptionHandler(config =>
-// {
-//     config.Run(async context =>
-//     {
-//         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-//
-//         context.Response.ContentType = "application/json";
-//
-//         context.Response.StatusCode = exception switch
-//         {
-//             InfrastructureNotFoundException => StatusCodes.Status404NotFound,
-//             ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
-//             _ => StatusCodes.Status500InternalServerError
-//         };
-//
-//         var result = JsonSerializer.Serialize(new { error = exception?.Message });
-//
-//         await context.Response.WriteAsync(result);
-//     });
-// });
 
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "text/plain; charset=utf-8";
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var ex = feature?.Error;
 
-        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-        var ex = exceptionHandlerPathFeature?.Error;
+        var statusCode = ex switch
+        {
+            InfrastructureNotFoundException => StatusCodes.Status404NotFound,
+            ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
 
-        var errorDetails = $"Exception: {ex?.GetType().Name}\n" +
-                           $"Message: {ex?.Message}\n" +
-                           $"StackTrace:\n{ex?.StackTrace}\n" +
-                           $"Path: {exceptionHandlerPathFeature?.Path}";
+            // اگر Exception لایه اپلیکیشن StatusCode دارد → بخوان
+            // برای Result Pattern چون اکثراً exception نمی‌اندازد، فقط روی Exception ها کار می‌کند.
 
-        await context.Response.WriteAsync(errorDetails);
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json; charset=utf-8";
+
+        // always log
+        Log.Error(ex,
+            "Unhandled exception. Path: {Path}, StatusCode: {StatusCode}",
+            feature?.Path, statusCode);
+
+        var response = new
+        {
+            error = ex?.Message,
+            exception = ex?.GetType().Name,
+            status = statusCode,
+            path = feature?.Path,
+
+#if DEBUG
+            stackTrace = ex?.StackTrace
+#endif
+        };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     });
 });
+
 app.UseResponseCompression();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(filesPath),
+    RequestPath = "/files",
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream",
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000");
+        ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+    }
+});
+
 app.UseCustomMiddlewares(app.Environment);
 
-var elasticClient = new ElasticClient(new ConnectionSettings(new Uri(elasticUri))
-    .BasicAuthentication(username, password)
-    .ServerCertificateValidationCallback(CertificateValidations.AllowAll)
-    .RequestTimeout(TimeSpan.FromMinutes(requestInMinutes)));
-
-var pingResponse = await elasticClient.PingAsync();
-
-if (pingResponse.IsValid)
-{
-    Log.Information("Connected to Elasticsearch");
-}
-else
-{
-    Log.Error("Failed to connect to Elasticsearch: {Reason}", pingResponse.OriginalException?.Message);
-}
-
-app.MapGet("/elastic-health", () =>
-{
-    BaseApiResponse<string> result = new BaseApiResponse<string>();
-    if (pingResponse.IsValid)
-    {
-        result.Data = "connected to elasticsearch";
-        return result;
-    }
-
-    result.Data = "not connected to elasticsearch";
-    return result;
-});
 
 Log.Logger.Information("Application started!");
 
@@ -345,7 +226,6 @@ if (true)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.MapOpenApi();
 }
 
 

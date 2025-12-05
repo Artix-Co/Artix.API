@@ -4,6 +4,7 @@ using Core.Contract.Primitives.Repositories;
 using Data;
 using Data.DbContexts;
 using Data.Interceptors;
+using Data.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,5 +37,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(ICommandRepository<>), typeof(CommandRepository<>));
         services.AddScoped(typeof(IQueryRepository<>), typeof(QueryRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
+        services.AddTransient<SqlDataRemover>();
+        services.AddTransient<SqlDataSeeder>();
+
+
     }
 }

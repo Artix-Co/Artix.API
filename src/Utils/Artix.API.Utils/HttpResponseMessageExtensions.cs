@@ -1,4 +1,4 @@
-namespace Artix.API.Utils.Http;
+namespace Artix.API.Utils;
 
 using System.Text.RegularExpressions;
 

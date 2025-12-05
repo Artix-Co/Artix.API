@@ -13,22 +13,15 @@ using Core.Contract.Configs.Redis;
 using Core.Contract.Primitives.CircuitBreaker;
 using Core.DomainService;
 using Endpoints;
-using Extensions;
-using Filters;
 using Infra.FileService;
 using Infra.Identity;
 using Infra.Mongo;
 using Infra.RabbitMQ;
 using Infra.Redis;
 using Infra.Sql;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.OpenApi.Models;
-using Nest;
-using Serilog;
-using Utils.Http;
-using ElasticsearchSinkOptions = Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions;
-
+using Utils;
 
 public sealed class CustomerApiClient
 {
@@ -47,29 +40,33 @@ public sealed class CustomerApiClient
     }
 }
 
-
 public static class HostingExtension
 {
-    public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration,
+        bool isDevelopmentEnvironment)
     {
+        var keyStorePathKeys = isDevelopmentEnvironment
+            ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
+            : "/app/dataprotection-keys";
+
+        services.AddDataProtection()
+            .SetApplicationName("Artix")
+            .PersistKeysToFileSystem(new DirectoryInfo(keyStorePathKeys));
+
         services.AddResponseCompression(options =>
         {
-            options.EnableForHttps = true;  
-            options.Providers.Add<GzipCompressionProvider>();  
-            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
-                "application/json"
-            ]);
+            options.EnableForHttps = true;
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes
+                .Concat(new[] { "application/json", "application/octet-stream", "application/wasm" });
         });
-        
-        
-        
-        services.Configure<GzipCompressionProviderOptions>(options =>
-        {
-            options.Level = CompressionLevel.Optimal;  
-        });
-        
-        
-        
+        services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Optimal);
+        services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Optimal);
+        services.AddResponseCompression();
+
+
+        services.Configure<GzipCompressionProviderOptions>(options => { options.Level = CompressionLevel.Optimal; });
+
+
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
         services.Configure<FileSettings>(configuration.GetSection("FileSettings"));
@@ -77,7 +74,7 @@ public static class HostingExtension
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
         services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
         services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
-       
+
         // Configure HSTS
         services.AddHsts(options =>
         {
@@ -86,7 +83,7 @@ public static class HostingExtension
             options.Preload = true;
         });
 
-        
+
         services.AddHttpClient<CustomerApiClient>(client =>
             {
                 client.BaseAddress = new Uri("https://external-api.example.com/");
@@ -96,7 +93,7 @@ public static class HostingExtension
             .AddPolicyHandler(PollyPolicies.GetTimeoutPolicy())
             .AddPolicyHandler(PollyPolicies.GetCircuitBreakerPolicy());
 
-        
+
         services.AddMemoryCache();
         services.AddResponseCaching();
 
@@ -109,58 +106,24 @@ public static class HostingExtension
 
         services.AddApplicationServices();
         services.AddContractServices();
-        services.AddElasticsearch(configuration);
-        services.AddCorsPolicy(configuration);
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+            });
+        });
         services.AddSqlServices(configuration);
         services.AddMongoServices(configuration);
 
         services.AddDomainServiceServices();
 
-       services.AddControllers(options =>
-        {
-            options.Conventions.Add(new RouteTokenTransformerConvention(
-                new LowercaseParameterTransformer()));
-        });
-
-
-        services.AddSwaggerGen(options =>
-        {
-            // Define the Bearer authentication scheme in Swagger
-            options.AddSecurityDefinition("Bearer",
-                new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "Please enter JWT with Bearer into field"
-                });
-
-
-            options.OperationFilter<AuthorizeCheckOperationFilter>();
-        });
-    }
-
-     
-    private static void AddElasticsearch(this IServiceCollection services, IConfiguration configuration)
-    {
-        var elasticsearchSettings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
-
-
-        var resolvedIndexName = string.Format(elasticsearchSettings.IndexFormat, DateTime.UtcNow);
-
-        var settings = new ConnectionSettings(new Uri(elasticsearchSettings.Uri))
-            .DefaultIndex(resolvedIndexName)
-            .BasicAuthentication(elasticsearchSettings.Username, elasticsearchSettings.Password)
-            .RequestTimeout(TimeSpan.FromMinutes(elasticsearchSettings.RequestTimeoutInMinutes))
-            .EnableDebugMode();
-
-
-        var client = new ElasticClient(settings);
-
-        services.AddSingleton<IElasticClient>(client);
-
-        services.AddResponseCompression(options => { options.EnableForHttps = true; });
+        services.AddEndpointsServices();
+        
     }
 }

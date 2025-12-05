@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using System;
 using Data.DbContext;
 using Data.Interceptors;
+using Data.Seed;
 using Primitives;
 
 public static class DependencyInjection
@@ -58,6 +59,7 @@ public static class DependencyInjection
 
         // Register UnitOfWork
         services.AddScoped<IUnitOfWork, MongoUnitOfWork>();
+       services.AddTransient<MongoDataSeeder>();  
  
     }
 }
