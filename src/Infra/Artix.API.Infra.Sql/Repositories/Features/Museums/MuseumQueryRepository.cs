@@ -39,14 +39,16 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         _fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
+
+    // TODO: use compiled query
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
 
         var museums = _queryDbContext.Museums
-            .Where(m => !m.IsDeleted &&
-                        (string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name)))
+            .Where(m => (string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name)))
+            .Include(m => m.MuseumObjects)
             .OrderBy(m => m.Name)
             .Select(m => new
             {
@@ -55,6 +57,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 m.Description,
                 m.CreatedAt,
                 m.IsActive,
+                ObjectCount = m.MuseumObjects.Count(),
                 ImageFilePath = m.MuseumImages
                     .Where(mi => mi.FileEntity != null &&
                                  !mi.FileEntity.IsDeleted &&
@@ -66,6 +69,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             .Select(x => new AllMuseumsClientDto(
                 x.BusinessId,
                 x.Name,
+                x.ObjectCount,
                 !string.IsNullOrEmpty(x.ImageFilePath)
                     ? $"{_fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
                     : null,
@@ -97,7 +101,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         _logger.LogInformation("Fetching museum with ID: {MuseumId}", dto.Id);
 
         var museum =
-            MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id, this._allowedImageMimeTypes, _fileServerBaseUrl);
+            MuseumQueries.GetDetailsByIdQuery(this._queryDbContext, dto.Id, this._allowedImageMimeTypes,
+                _fileServerBaseUrl);
 
         if (museum == null)
         {

@@ -40,7 +40,7 @@ internal sealed class GetMuseumByIdQueryHandler : QueryHandlerBase<GetMuseumDeta
         if (details == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(MuseumDetailsByIdDto), query.Id);
 
-        var recentItem = new RecentMuseumDto(details.BusinessId, details.ImageUrl, details.Name!);
+        var recentItem = new RecentMuseumDto(details.Id, details.ImageUrl, details.Name!);
         var currentList = await _museumCache.GetAsync(cacheKey) ?? new List<RecentMuseumDto>();
 
         var existingIndex = currentList.FindIndex(x => x.Id == recentItem.Id);

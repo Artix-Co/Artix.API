@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
 
 public sealed record MuseumDetailsByIdDto(
-    Guid BusinessId,
+    Guid Id,
     string? Name,
     string? ImageUrl,
     string? Description,
