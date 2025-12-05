@@ -25,61 +25,47 @@ using Serilog;
 using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "Artix.API")
+        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName);
+
+    var elasticStatus = services.GetService<ElasticsearchStatus>();
+    if (elasticStatus?.IsValid == true)
+    {
+        config.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticStatus.Uri))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = elasticStatus.Index,
+            ModifyConnectionSettings = c => c
+                .BasicAuthentication(elasticStatus.Settings.Username, elasticStatus.Settings.Password)
+                .RequestTimeout(TimeSpan.FromMinutes(elasticStatus.Settings.RequestTimeoutInMinutes))
+        });
+    }
+});
+
+
+Log.Information("Serilog fully configured with appsettings.json overrides");
+
 builder.AddServiceDefaults();
 builder.Services.AddSignalR();
-
 
 var environment = builder.Environment;
 bool isDevelopmentEnv = environment.IsDevelopment();
 
-
 builder.Services.AddArtixServices(builder.Configuration, isDevelopmentEnv);
 
-
-var elasticStatus = builder.Services.AddElasticsearch(builder.Configuration);
-
-
-builder.Host.UseSerilog((ctx, services, logger) =>
-{
-    var lc = new LoggerConfiguration()
-        .ReadFrom.Configuration(ctx.Configuration)
-        .Enrich.FromLogContext()
-
-        // ALWAYS console:
-        .WriteTo.Console();
-
-    // if elastic is valid → add elastic sink
-    if (elasticStatus.IsValid)
-    {
-        lc.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticStatus.Uri))
-        {
-            AutoRegisterTemplate = true,
-            IndexFormat = elasticStatus.Index,
-            ModifyConnectionSettings = c =>
-                c.BasicAuthentication(
-                        elasticStatus.Settings.Username,
-                        elasticStatus.Settings.Password)
-                    .RequestTimeout(TimeSpan.FromMinutes(
-                        elasticStatus.Settings.RequestTimeoutInMinutes))
-        });
-
-        Console.WriteLine($"[Elastic] Connected → {elasticStatus.Uri}");
-    }
-    else
-    {
-        Console.WriteLine("[Elastic] NOT Connected → Console logging only");
-    }
-
-    logger.ReadFrom.Configuration(ctx.Configuration);
-    logger.WriteTo.Console();
-    lc.CreateLogger();
-});
 
 builder.WebHost.UseKestrel(options =>
 {
     options.ListenAnyIP(80, listen => { listen.Protocols = HttpProtocols.Http1AndHttp2; });
 
+
     options.AddServerHeader = false;
+
 
     // ---- Limits ----
     options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024; // 8GB
@@ -100,7 +86,7 @@ builder.WebHost.UseKestrel(options =>
 
     options.AllowSynchronousIO = false;
 
-    if (builder.Environment.IsDevelopment())
+    if (isDevelopmentEnv)
     {
         options.ListenLocalhost(5274);
         options.ListenLocalhost(7013, x => x.UseHttps());
@@ -110,7 +96,7 @@ builder.WebHost.UseKestrel(options =>
 
 var app = builder.Build();
 
-Log.Logger.Information("Application built!");
+Log.Information("Application built successfully!");
 
 var storagePathConfig = builder.Configuration["FileSettings:StoragePath"] ?? "uploads/files";
 
@@ -149,10 +135,10 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
-    var sqlDataSeeder  = services.GetRequiredService<SqlDataSeeder>();
-    var mongoSeeder    = services.GetRequiredService<MongoDataSeeder>();
+    var sqlDataSeeder = services.GetRequiredService<SqlDataSeeder>();
+    var mongoSeeder = services.GetRequiredService<MongoDataSeeder>();
 
-    // await sqlDataRemover.Remove();
+    await sqlDataRemover.Remove();
     await sqlDataSeeder.SeedAsync();
 
     await mongoSeeder.EnsureMongoMigrationAsync();

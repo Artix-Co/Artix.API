@@ -22,13 +22,18 @@ public static class ElasticsearchExtensions
 
         var ping = client.Ping();
 
-        return new ElasticsearchStatus
+        var status = new ElasticsearchStatus
         {
             IsValid = ping.IsValid,
             Uri = elastic.Uri,
             Index = resolvedIndex,
             Settings = elastic
         };
+
+        // این خط حیاتیه → وضعیت رو به DI اضافه کن
+        services.AddSingleton(status);
+
+        return status;
     }
 }
 

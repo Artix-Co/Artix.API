@@ -1,12 +1,12 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Seed;
 
-using Object = Core.Domain.Entities.Object.Object;
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Domain.Entities.Object;
@@ -17,6 +17,7 @@ using Core.Domain.Entities.User.Enums;
 using Core.Domain.Entities.Version;
 using DbContexts;
 using Microsoft.Extensions.Logging;
+using Object = Core.Domain.Entities.Object.Object;
 
 public class SqlDataSeeder
 {
@@ -27,12 +28,10 @@ public class SqlDataSeeder
     private const int HISTORICAL_PERIOD_SEED_COUNT = 7;
     private const int APP_VERSION_SEED_COUNT = 4;
 
-
     private readonly ArtixCommandDbContext _context;
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
     private readonly ILogger<SqlDataSeeder> _logger;
-
 
     public SqlDataSeeder(
         ArtixCommandDbContext context,
@@ -48,55 +47,88 @@ public class SqlDataSeeder
 
     public async Task SeedAsync()
     {
+        using var activity = new Activity("SqlDataSeeder.SeedAll").Start();
+        _logger.LogInformation("SqlDataSeeder | Starting SQL data seeding process");
+
         try
         {
-            await this._context.Database.MigrateAsync();
-            _logger.LogInformation("SQL migrations applied successfully.");
+            await _context.Database.MigrateAsync();
+            _logger.LogInformation("SqlDataSeeder | SQL migrations applied successfully");
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to apply SQL migrations.");
+            _logger.LogError(ex, "SqlDataSeeder | Failed to apply SQL migrations");
             throw;
         }
 
-
-
-
-        // Check if database is already seeded
-        if (await this._context.Users.AnyAsync())
+        if (await _context.Users.AnyAsync())
         {
-            return; // Skip seeding if any users exist
+            _logger.LogWarning("SqlDataSeeder | Database already contains users → Skipping entire seeding process");
+            return;
         }
 
-        var roles = Enum.GetNames(typeof(Role)).ToList();
-        var clientTypes = Enum.GetNames(typeof(ClientType)).ToList();
-        var users = new List<AppUser>();
-        var friendships = new List<Friendship>();
-        var categories = new List<Category>();
-        var historicalPeriods = new List<HistoricalPeriod>();
-        var museums = new List<Museum>();
-        var objects = new List<Object>();
-        var objectTypes = new List<ObjectType>();
-        var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
-        var appVersions = new List<AppVersion>();
-        var tierConfigs = new List<TierConfig>();
+        _logger.LogInformation("SqlDataSeeder | Database is empty → Starting full seeding operation");
 
-        #region Seed Roles
+        try
+        {
+            await SeedRolesAsync();
+            await SeedUsersAndFriendshipsAsync();
+            await SeedCategoriesAsync();
+            await SeedHistoricalPeriodsAsync();
+            await SeedMuseumsAsync();
+            await SeedObjectsAsync();
+            await SeedObjectTypesAsync();
+            await SeedObjectHistoricalPeriodsAsync();
+            await SeedMuseumObjectsAsync();
+            await SeedAppVersionsAsync();
+            await SeedTierConfigsAsync();
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("SqlDataSeeder | All entities seeded and changes saved successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SqlDataSeeder | Error during seeding process");
+            throw;
+        }
+
+        _logger.LogWarning("SqlDataSeeder | SQL data seeding completed successfully");
+    }
+
+    private async Task SeedRolesAsync()
+    {
+        var roles = Enum.GetNames(typeof(Role)).ToList();
+        _logger.LogDebug("SqlDataSeeder | Starting role seeding | Total roles to check: {RoleCount}", roles.Count);
 
         foreach (var role in roles)
         {
             if (!await _roleManager.RoleExistsAsync(role))
             {
+                _logger.LogInformation("SqlDataSeeder | Role '{Role}' does not exist → Creating new role", role);
                 var roleResult = await _roleManager.CreateAsync(new AppRole(role));
                 if (!roleResult.Succeeded)
-                    throw new ApplicationException(
-                        $"Failed to create role {role}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+                {
+                    _logger.LogError("SqlDataSeeder | Failed to create role '{Role}': {Errors}", role,
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    throw new ApplicationException($"Failed to create role {role}");
+                }
+
+                _logger.LogInformation("SqlDataSeeder | Role '{Role}' created successfully", role);
+            }
+            else
+            {
+                _logger.LogDebug("SqlDataSeeder | Role '{Role}' already exists", role);
             }
         }
+    }
 
-        #endregion
+    private async Task SeedUsersAndFriendshipsAsync()
+    {
+        var clientTypes = Enum.GetNames(typeof(ClientType)).ToList();
+        var users = new List<AppUser>();
+        var friendships = new List<Friendship>();
 
-        #region Seed Users and Friendships
+        _logger.LogDebug("SqlDataSeeder | Starting user seeding | Target count: {UserCount}", USER_SEED_COUNT);
 
         for (int i = 0; i < USER_SEED_COUNT; i++)
         {
@@ -108,16 +140,23 @@ public class SqlDataSeeder
                 DisplayName = $"Fake User {i}"
             };
 
+            _logger.LogInformation("SqlDataSeeder | Creating user '{Username}'", user.UserName);
             var createResult = await _userManager.CreateAsync(user, "Heli@ghar771379");
             if (!createResult.Succeeded)
-                throw new ApplicationException(
-                    $"User creation failed for {user.UserName}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+            {
+                _logger.LogError("SqlDataSeeder | User creation failed for '{Username}': {Errors}", user.UserName,
+                    string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                throw new ApplicationException($"User creation failed for {user.UserName}");
+            }
 
             var role = i == 0 ? "Admin" : "Client";
             var roleResult = await _userManager.AddToRoleAsync(user, role);
             if (!roleResult.Succeeded)
-                throw new ApplicationException(
-                    $"Role assignment failed for {user.UserName}: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+            {
+                _logger.LogError("SqlDataSeeder | Role assignment failed for '{Username}': {Errors}", user.UserName,
+                    string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                throw new ApplicationException($"Role assignment failed for {user.UserName}");
+            }
 
             if (i != 0)
             {
@@ -125,14 +164,18 @@ public class SqlDataSeeder
                 var claimResult =
                     await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClientType", clientType));
                 if (!claimResult.Succeeded)
-                    throw new ApplicationException(
-                        $"Claim assignment failed for {user.UserName}: {string.Join(", ", claimResult.Errors.Select(e => e.Description))}");
+                {
+                    _logger.LogError("SqlDataSeeder | Claim assignment failed for '{Username}': {Errors}",
+                        user.UserName, string.Join(", ", claimResult.Errors.Select(e => e.Description)));
+                    throw new ApplicationException($"Claim assignment failed for {user.UserName}");
+                }
             }
 
             users.Add(user);
+            _logger.LogInformation("SqlDataSeeder | User '{Username}' created with role '{Role}'", user.UserName, role);
         }
 
-        // Create friendships efficiently
+        _logger.LogDebug("SqlDataSeeder | Starting friendship seeding");
         for (int i = 0; i < users.Count; i += 2)
         {
             if (i + 1 < users.Count)
@@ -145,21 +188,30 @@ public class SqlDataSeeder
         }
 
         _context.Friendships.AddRange(friendships);
+        _logger.LogInformation("SqlDataSeeder | Seeded {UserCount} users and {FriendshipCount} friendships",
+            users.Count, friendships.Count);
+    }
 
-        #endregion
-
-        #region Seed Categories
+    private async Task SeedCategoriesAsync()
+    {
+        var categories = new List<Category>();
+        _logger.LogDebug("SqlDataSeeder | Starting category seeding | Target count: {CategoryCount}",
+            CATEGORY_SEED_COUNT);
 
         for (int i = 0; i < CATEGORY_SEED_COUNT; i++)
         {
-            categories.Add(Category.Create($"Fake category {i}", $"Fake description category {i}"));
+            var category = Category.Create($"Fake category {i}", $"Fake description category {i}");
+            categories.Add(category);
         }
 
         _context.Types.AddRange(categories);
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} categories", categories.Count);
+    }
 
-        #endregion
-
-        #region Seed Historical Periods
+    private async Task SeedHistoricalPeriodsAsync()
+    {
+        var historicalPeriods = new List<HistoricalPeriod>();
+        _logger.LogDebug("SqlDataSeeder | Starting historical periods seeding");
 
         historicalPeriods.AddRange(new[]
         {
@@ -170,22 +222,30 @@ public class SqlDataSeeder
             HistoricalPeriod.Create("Greek Period", "Artifacts from ancient Greece (800–100 BC)",
                 new HistoricalDate(-800, 1, 1), new HistoricalDate(-100, 1, 1))
         });
+
         _context.HistoricalPeriods.AddRange(historicalPeriods.Take(HISTORICAL_PERIOD_SEED_COUNT));
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} historical periods", historicalPeriods.Count);
+    }
 
-        #endregion
-
-        #region Seed Museums
+    private async Task SeedMuseumsAsync()
+    {
+        var museums = new List<Museum>();
+        _logger.LogDebug("SqlDataSeeder | Starting museum seeding | Target count: {MuseumCount}", MUSEUM_SEED_COUNT);
 
         for (int i = 0; i < MUSEUM_SEED_COUNT; i++)
         {
-            museums.Add(Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true));
+            var museum = Museum.Create($"Fake museum {i}", $"A collection of fine arts, fake data {i}", isActive: true);
+            museums.Add(museum);
         }
 
         _context.Museums.AddRange(museums);
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} museums", museums.Count);
+    }
 
-        #endregion
-
-        #region Seed Objects
+    private async Task SeedObjectsAsync()
+    {
+        var objects = new List<Object>();
+        _logger.LogDebug("SqlDataSeeder | Starting object seeding");
 
         objects.AddRange(new[]
         {
@@ -196,37 +256,57 @@ public class SqlDataSeeder
             Object.Create("Bronze Statue", "QR_STATUE_001", "A statue from the Greek period",
                 "Depicts a warrior in battle pose", 1, 1, false, true, ObjectSaleType.MemberShip)
         });
+
         objects = objects.Take(OBJECT_SEED_COUNT).ToList();
         _context.Objects.AddRange(objects);
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} objects", objects.Count);
+    }
 
-        #endregion
+    private async Task SeedObjectTypesAsync()
+    {
+        var objectTypes = new List<ObjectType>();
+        var categories = await _context.Types.ToListAsync();
+        var objects = await _context.Objects.ToListAsync();
 
-        #region Seed ObjectTypes
+        _logger.LogDebug("SqlDataSeeder | Starting object types seeding");
 
         for (int i = 0; i < objects.Count; i++)
         {
-            objectTypes.Add(ObjectType.Create(objects[i], categories[i % categories.Count]));
+            var objectType = ObjectType.Create(objects[i], categories[i % categories.Count]);
+            objectTypes.Add(objectType);
         }
 
         _context.ObjectTypes.AddRange(objectTypes);
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} object types", objectTypes.Count);
+    }
 
-        #endregion
+    private async Task SeedObjectHistoricalPeriodsAsync()
+    {
+        var objectHistoricalPeriods = new List<ObjectHistoricalPeriod>();
+        var historicalPeriods = await _context.HistoricalPeriods.ToListAsync();
+        var objects = await _context.Objects.ToListAsync();
 
-        #region Seed ObjectHistoricalPeriods
+        _logger.LogDebug("SqlDataSeeder | Starting object historical periods seeding");
 
         for (int i = 0; i < objects.Count; i++)
         {
-            objectHistoricalPeriods.Add(ObjectHistoricalPeriod.Create(objects[i],
-                historicalPeriods[i % historicalPeriods.Count]));
+            var objectHistoricalPeriod =
+                ObjectHistoricalPeriod.Create(objects[i], historicalPeriods[i % historicalPeriods.Count]);
+            objectHistoricalPeriods.Add(objectHistoricalPeriod);
         }
 
         _context.ObjectHistoricalPeriods.AddRange(objectHistoricalPeriods);
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} object historical periods",
+            objectHistoricalPeriods.Count);
+    }
 
-        #endregion
+    private async Task SeedMuseumObjectsAsync()
+    {
+        var museums = await _context.Museums.ToListAsync();
+        var objects = await _context.Objects.ToListAsync();
 
-        #region Seed MuseumObjects
+        _logger.LogDebug("SqlDataSeeder | Starting museum objects assignment");
 
-        // برای جلوگیری از خطا، ابتدا موزه‌ها و آبجکت‌ها را ذخیره می‌کنیم تا Idهای واقعی تولید شوند
         await _context.SaveChangesAsync();
 
         for (int i = 0; i < objects.Count; i++)
@@ -235,12 +315,14 @@ public class SqlDataSeeder
             objects[i].AssignMuseum(museum.Id);
         }
 
-        // ذخیره تغییرات نهایی (شامل روابط)
         await _context.SaveChangesAsync();
+        _logger.LogInformation("SqlDataSeeder | Assigned objects to museums successfully");
+    }
 
-        #endregion
-
-        #region Seed AppVersions
+    private async Task SeedAppVersionsAsync()
+    {
+        var appVersions = new List<AppVersion>();
+        _logger.LogDebug("SqlDataSeeder | Starting app versions seeding");
 
         appVersions.AddRange(new[]
         {
@@ -249,12 +331,15 @@ public class SqlDataSeeder
             AppVersion.Create(1, 0, 2, true, false, "First Version On Development Environment"),
             AppVersion.Create(1, 0, 3, true, true, "First Version On Development Environment")
         });
+
         _context.AppVersions.AddRange(appVersions.Take(APP_VERSION_SEED_COUNT));
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} app versions", appVersions.Count);
+    }
 
-        #endregion
-
-
-        #region Seed TierConfigs
+    private async Task SeedTierConfigsAsync()
+    {
+        var tierConfigs = new List<TierConfig>();
+        _logger.LogDebug("SqlDataSeeder | Starting tier configs seeding");
 
         tierConfigs.AddRange(new[]
         {
@@ -297,14 +382,6 @@ public class SqlDataSeeder
         });
 
         _context.TierConfigs.AddRange(tierConfigs);
-
-        #endregion
-
-
-        #region Final Save for remaining entities
-
-        await _context.SaveChangesAsync();
-
-        #endregion
+        _logger.LogInformation("SqlDataSeeder | Seeded {Count} tier configs", tierConfigs.Count);
     }
 }
