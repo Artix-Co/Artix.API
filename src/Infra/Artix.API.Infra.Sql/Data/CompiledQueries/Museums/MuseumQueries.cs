@@ -56,27 +56,55 @@ internal static class MuseumQueries
     }
 
 
-    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<MuseumObjectDto>> GetMuseumObjectsQuery =
-        EF.CompileQuery((ArtixQueryDbContext context, Guid museumId) =>
-            context.MuseumObjects
-                .Join(
-                    context.Objects,
-                    mo => mo.ObjectId,
-                    o => o.Id,
-                    (mo, o) => new { MuseumObject = mo, Object = o })
-                .Join(
-                    context.Museums,
-                    x => x.MuseumObject.MuseumId,
-                    m => m.Id,
-                    (x, m) => new { x.Object, x.MuseumObject, Museum = m })
-                .Where(x => x.Museum.BusinessId == museumId)
-                .Select(x => new MuseumObjectDto(
-                    x.Object.BusinessId,
-                    x.Museum.BusinessId,
-                    x.Object.Name,
-                    x.Object.GeneralInformation,
-                    x.Object.CreatedAt
-                )));
+    internal static readonly Func<
+        ArtixQueryDbContext,
+        Guid,
+        IEnumerable<string>,
+        string,
+        IEnumerable<MuseumObjectDto>
+    > GetMuseumObjectsQuery =
+        EF.CompileQuery(
+            (ArtixQueryDbContext context,
+                    Guid museumId,
+                    IEnumerable<string> allowedImagesTypes,
+                    string fileServerBaseUrl) =>
+                context.MuseumObjects
+                    .Join(
+                        context.Objects,
+                        mo => mo.ObjectId,
+                        o => o.Id,
+                        (mo, o) => new { MuseumObject = mo, Object = o })
+                    .Join(
+                        context.Museums,
+                        x => x.MuseumObject.MuseumId,
+                        m => m.Id,
+                        (x, m) => new { x.Object, x.MuseumObject, Museum = m })
+                    .Where(x => x.Museum.BusinessId == museumId)
+                    .Select(x => new
+                    {
+                        Id = x.Object.BusinessId,
+                        MuseumId = x.Museum.BusinessId,
+                        ImageFilePath = x.Museum.MuseumImages
+                            .Where(mi => mi.FileEntity != null &&
+                                         !mi.FileEntity.IsDeleted &&
+                                         allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                            .Select(mi => mi.FileEntity.FilePath)
+                            .FirstOrDefault(),
+                        Name = x.Object.Name,
+                        Description = x.Object.GeneralInformation,
+                        CreatedAt = x.Object.CreatedAt
+                    })
+                    .Select(x => new MuseumObjectDto(
+                        x.Id,
+                        x.MuseumId,
+                        !string.IsNullOrEmpty(x.ImageFilePath)
+                            ? $"{fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
+                            : null,
+                        x.Name,
+                        x.Description,
+                        x.CreatedAt
+                    ))
+        );
 
 
     internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, MuseumDetailsByIdDto?>

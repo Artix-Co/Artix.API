@@ -91,7 +91,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     {
         _logger.LogInformation("Fetching objects for museum ID: {MuseumId}", dto.MuseumId);
 
-        var objects = MuseumQueries.GetMuseumObjectsQuery(_queryDbContext, dto.MuseumId);
+        var objects = MuseumQueries.GetMuseumObjectsQuery(_queryDbContext, dto.MuseumId, this._allowedImageMimeTypes,
+            this._fileServerBaseUrl);
 
         return objects;
     }
