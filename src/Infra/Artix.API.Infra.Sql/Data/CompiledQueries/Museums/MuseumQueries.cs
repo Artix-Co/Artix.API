@@ -12,48 +12,48 @@ using Object = Artix.API.Core.Domain.Entities.Object.Object;
 
 internal static class MuseumQueries
 {
-    internal static readonly
-        Func<ArtixQueryDbContext, GetAllMuseumsClientQuery, IEnumerable<AllMuseumsClientDto>>
-        GetAllMuseumsClientQuery =
-            EF.CompileQuery((ArtixQueryDbContext context, GetAllMuseumsClientQuery dto) =>
-                context.Museums
-                    .Where(m => string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name))
-                    .OrderBy(m => m.Name)
-                    .Include(m => m.MuseumImages)
-                    .ThenInclude(mi => mi.FileEntity)
-                    .AsSplitQuery()
-                    .Select(m => new AllMuseumsClientDto(
-                        m.BusinessId,
-                        m.Name,
-                        m.MuseumObjects.Count,
-                        m.MuseumImages
-                            .Where(mi =>
-                                mi.FileEntity.MimeType == "jpg" ||
-                                mi.FileEntity.MimeType == "png" ||
-                                mi.FileEntity.MimeType == "jpeg" ||
-                                mi.FileEntity.MimeType == "webp")
-                            .Select(mi => mi.FileEntity.FilePath)
-                            .FirstOrDefault(),
-                        m.Description,
-                        m.CreatedAt,
-                        m.IsActive
-                    ))
-            );
-
-
-    private static string TryReadFileAsBase64(string filePath)
-    {
-        try
-        {
-            return Convert.ToBase64String(File.ReadAllBytes(filePath));
-        }
-        catch (Exception ex)
-        {
-            // Log the error (e.g., using ILogger)
-            // _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
-            return null;
-        }
-    }
+    internal static readonly Func<
+        ArtixQueryDbContext,
+        string?,
+        IEnumerable<string>,
+        string,
+        IEnumerable<AllMuseumsClientDto>
+    > GetAllMuseumsClientQuery =
+        EF.CompileQuery((ArtixQueryDbContext context,
+                string? name,
+                IEnumerable<string> allowedImagesTypes,
+                string fileServerBaseUrl) =>
+            context.Museums
+                .Where(m => string.IsNullOrEmpty(name) || m.Name.Contains(name))
+                .OrderBy(m => m.Name)
+                .Select(m => new
+                {
+                    m.BusinessId,
+                    m.Name,
+                    ObjectCount = context.MuseumObjects.Count(o => o.MuseumId == m.Id),
+                    ImageFilePath = context.MuseumImages
+                        .Where(mi =>
+                            mi.MuseumId == m.Id &&
+                            !mi.FileEntity.IsDeleted &&
+                            allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                        .Select(mi => mi.FileEntity.FilePath)
+                        .FirstOrDefault(),
+                    m.Description,
+                    m.CreatedAt,
+                    m.IsActive
+                })
+                .Select(x => new AllMuseumsClientDto(
+                    x.BusinessId,
+                    x.Name,
+                    x.ObjectCount,
+                    !string.IsNullOrEmpty(x.ImageFilePath)
+                        ? $"{fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
+                        : null,
+                    x.Description,
+                    x.CreatedAt,
+                    x.IsActive
+                ))
+        );
 
 
     internal static readonly Func<
@@ -85,14 +85,13 @@ internal static class MuseumQueries
                         Id = x.Object.BusinessId,
                         MuseumId = x.Museum.BusinessId,
                         ImageFilePath = x.Object.ObjectImages
-                            .Where(mi => mi.FileEntity != null &&
-                                         !mi.FileEntity.IsDeleted &&
+                            .Where(mi => !mi.FileEntity.IsDeleted &&
                                          allowedImagesTypes.Contains(mi.FileEntity.MimeType))
                             .Select(mi => mi.FileEntity.FilePath)
                             .FirstOrDefault(),
-                        Name = x.Object.Name,
+                        x.Object.Name,
                         Description = x.Object.GeneralInformation,
-                        CreatedAt = x.Object.CreatedAt
+                        x.Object.CreatedAt
                     })
                     .Select(x => new MuseumObjectDto(
                         x.Id,

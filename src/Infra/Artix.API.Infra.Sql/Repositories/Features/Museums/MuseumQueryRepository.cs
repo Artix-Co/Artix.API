@@ -40,52 +40,28 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     }
 
 
-    // TODO: use compiled query
+    
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
+        var museums = MuseumQueries.GetAllMuseumsClientQuery(
+            _queryDbContext,
+            dto.Name,
+            _allowedImageMimeTypes,
+            _fileServerBaseUrl
+        );
 
-        var museums = _queryDbContext.Museums
-            .Where(m => (string.IsNullOrEmpty(dto.Name) || m.Name.Contains(dto.Name)))
-            .Include(m => m.MuseumObjects)
-            .OrderBy(m => m.Name)
-            .Select(m => new
-            {
-                m.BusinessId,
-                m.Name,
-                m.Description,
-                m.CreatedAt,
-                m.IsActive,
-                ObjectCount = m.MuseumObjects.Count(),
-                ImageFilePath = m.MuseumImages
-                    .Where(mi => mi.FileEntity != null &&
-                                 !mi.FileEntity.IsDeleted &&
-                                 this._allowedImageMimeTypes.Contains(mi.FileEntity.MimeType))
-                    .Select(mi => mi.FileEntity.FilePath)
-                    .FirstOrDefault()
-            })
-            .AsEnumerable()
-            .Select(x => new AllMuseumsClientDto(
-                x.BusinessId,
-                x.Name,
-                x.ObjectCount,
-                !string.IsNullOrEmpty(x.ImageFilePath)
-                    ? $"{_fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
-                    : null,
-                x.Description,
-                x.CreatedAt,
-                x.IsActive
-            ))
-            .ToList();
+        var museumsList = museums.ToArray();
 
-        if (!museums.Any())
+        if (museumsList.Length == 0)
         {
             throw InfrastructureNotFoundException.WithMessage("No museums found!");
         }
 
-        return museums;
+        return museumsList;
     }
+
 
     public IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto)
     {
@@ -123,7 +99,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             dto.NameFilter,
             dto.PageNumber,
             dto.PageSize
-        ).ToList().AsReadOnly();
+        ).ToArray().AsReadOnly();
 
         var totalCount = await _queryDbContext.Objects
             .Where(o => string.IsNullOrWhiteSpace(dto.NameFilter) || o.Name.Contains(dto.NameFilter))
