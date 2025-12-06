@@ -14,8 +14,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
-using Core.Contract.Features.Museums.Queries.GetAllMuseumsAdmin;
-using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
+using Core.Contract.Features.Museums.Queries.GetAllMuseums;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Data.CompiledQueries.Museums;
 using Data.DbContexts;
@@ -37,7 +37,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
-    public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
+    public IEnumerable<AllMuseumsDto> GetAllMuseumsClient(GetAllMuseumsQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
@@ -175,8 +175,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     }
 
 
-    public async Task<PaginatedResult<AllMuseumsAdminDto>> GetAllMuseumsAdminAsync(
-        GetAllMuseumsAdminQuery dto,
+    public async Task<PaginatedResult<PaginatedMuseumsDto>> GetAllMuseumsAdminAsync(
+        GetPaginateMuseumsQuery dto,
         CancellationToken cancellationToken = default)
     {
         var pageNumber = Math.Max(dto.PageNumber, 1);
@@ -226,7 +226,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             .Take(pageSize);
 
         var pagedItems = await query
-            .Select(m => new AllMuseumsAdminDto(
+            .Select(m => new PaginatedMuseumsDto(
                 m.BusinessId,
                 m.Name,
                 m.Description,
@@ -234,7 +234,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 m.IsActive))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResult<AllMuseumsAdminDto>(
+        return new PaginatedResult<PaginatedMuseumsDto>(
             Items: pagedItems,
             TotalCount: totalCount,
             PageNumber: pageNumber,

@@ -1,9 +1,8 @@
 namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.CreateAdmin;
 
-using Castle.Core.Logging;
 using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
-using Contract.Features.Museums.Commands;
+using Contract.Features.Museums.Admin.Commands;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.CreateAdmin;
 using Contract.Primitives.Infra.File;

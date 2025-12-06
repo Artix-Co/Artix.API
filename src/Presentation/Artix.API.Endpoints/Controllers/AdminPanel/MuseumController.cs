@@ -1,9 +1,8 @@
 namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
-using Core.Contract.Features.Museums.Commands.CreateAdmin;
-using Core.Contract.Features.Museums.Queries.GetAllMuseumsAdmin;
-using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
+using Core.Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,8 +17,8 @@ public sealed class MuseumController : AdminBaseController
 
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<AllMuseumsAdminDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAllMuseumsAdminQuery clientQuery)
+    [ProducesResponseType(typeof(Result<PaginatedResult<PaginatedMuseumsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetPaginateMuseumsQuery clientQuery)
     {
         var result = await this._mediator.Send(clientQuery);
         return this.Ok(result);
@@ -28,7 +27,7 @@ public sealed class MuseumController : AdminBaseController
     [Authorize]
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddNewMuseumAsync([FromBody] CreateNewMuseumAdminCommand command)
+    public async Task<IActionResult> AddNewMuseumAsync([FromBody] CreateNewMuseumCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);

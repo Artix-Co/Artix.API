@@ -22,4 +22,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Features\Museums\Admin\Queries\" />
+    <Folder Include="Features\Museums\Client\" />
+  </ItemGroup>
 </Project>

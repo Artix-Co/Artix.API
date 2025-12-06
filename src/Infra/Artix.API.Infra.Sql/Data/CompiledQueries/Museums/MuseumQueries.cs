@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Data.CompiledQueries.Museums;
 
-using Core.Contract.Features.Museums.Queries.GetAllMuseumsClient;
+using Core.Contract.Features.Museums.Queries.GetAllMuseums;
 using Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
@@ -17,7 +17,7 @@ internal static class MuseumQueries
         string?,
         IEnumerable<string>,
         string,
-        IEnumerable<AllMuseumsClientDto>
+        IEnumerable<AllMuseumsDto>
     > GetAllMuseumsClientQuery =
         EF.CompileQuery((ArtixQueryDbContext context,
                 string? name,
@@ -42,7 +42,7 @@ internal static class MuseumQueries
                     m.CreatedAt,
                     m.IsActive
                 })
-                .Select(x => new AllMuseumsClientDto(
+                .Select(x => new AllMuseumsDto(
                     x.BusinessId,
                     x.Name,
                     x.ObjectCount,

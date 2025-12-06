@@ -20,4 +20,11 @@
     <ProjectReference Include="..\Artix.API.Core.DomainService\Artix.API.Core.DomainService.csproj"/>
   </ItemGroup>
 
+ 
+
+  <ItemGroup>
+    <Folder Include="Features\Museums\Admin\Queries\" />
+    <Folder Include="Features\Museums\Client\" />
+  </ItemGroup>
+
 </Project>
