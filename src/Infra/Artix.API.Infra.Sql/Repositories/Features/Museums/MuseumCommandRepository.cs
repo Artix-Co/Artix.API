@@ -8,9 +8,8 @@ using Primitives;
 
 public sealed class MuseumCommandRepository : CommandRepository<Museum>, IMuseumCommandRepository
 {
-    public MuseumCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<MuseumCommandRepository> logger)
-        : base(commandDbContext)
+    public MuseumCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<CommandRepository<Museum>> logger)
+        : base(commandDbContext, logger)
     {
     }
- 
 }

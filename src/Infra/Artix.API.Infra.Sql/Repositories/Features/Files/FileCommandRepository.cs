@@ -8,8 +8,8 @@ using Primitives;
 
 public sealed class FileCommandRepository : CommandRepository<FileEntity>, IFileCommandRepository
 {
-    public FileCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<FileCommandRepository> logger)
-        : base(commandDbContext)
+    public FileCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<CommandRepository<FileEntity>> logger)
+        : base(commandDbContext, logger)
     {
     }
 }

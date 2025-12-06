@@ -9,8 +9,8 @@ using Primitives;
 public sealed class CollectionCommandRepository : CommandRepository<Collection>, ICollectionCommandRepository
 {
     public CollectionCommandRepository(ArtixCommandDbContext commandDbContext,
-        ILogger<CollectionCommandRepository> logger)
-        : base(commandDbContext)
+        ILogger<CommandRepository<Collection>> logger)
+        : base(commandDbContext, logger)
     {
     }
 }

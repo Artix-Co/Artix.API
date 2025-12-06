@@ -8,11 +8,9 @@ using Primitives;
 
 public sealed class VersionCommandRepository : CommandRepository<AppVersion>, IVersionCommandRepository
 {
-    private readonly ILogger<VersionCommandRepository> _logger;
-
-    public VersionCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<VersionCommandRepository> logger)
-        : base(commandDbContext)
+    public VersionCommandRepository(ArtixCommandDbContext commandDbContext,
+        ILogger<CommandRepository<AppVersion>> logger)
+        : base(commandDbContext, logger)
     {
-        _logger = logger;
     }
 }

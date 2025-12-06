@@ -8,11 +8,8 @@ using Primitives;
 
 public sealed class OTPCommandRepository : CommandRepository<OTP>, IOTPCommandRepository
 {
-    private readonly ILogger<OTPCommandRepository> _logger;
-
-    public OTPCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<OTPCommandRepository> logger)
-        : base(commandDbContext)
+    public OTPCommandRepository(ArtixCommandDbContext commandDbContext, ILogger<CommandRepository<OTP>> logger)
+        : base(commandDbContext, logger)
     {
-        _logger = logger;
     }
 }

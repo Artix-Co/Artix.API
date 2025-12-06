@@ -6,11 +6,18 @@ using Data;
 using Data.DbContexts;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
-public class CommandRepository<T>(ArtixCommandDbContext commandDbContext)
-    : ICommandRepository<T> where T : AggregateRoot
+public class CommandRepository<T> : ICommandRepository<T> where T : AggregateRoot
 {
-    protected readonly ArtixCommandDbContext _commandDbContext = commandDbContext;
+    protected readonly ArtixCommandDbContext _commandDbContext;
+    protected readonly ILogger<CommandRepository<T>> _logger;
+
+    public CommandRepository(ArtixCommandDbContext commandDbContext, ILogger<CommandRepository<T>> logger)
+    {
+        this._commandDbContext = commandDbContext;
+        this._logger = logger;
+    }
 
     #region Sync Methods
 
