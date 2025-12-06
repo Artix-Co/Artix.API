@@ -5,11 +5,13 @@ using Core.Contract.Features.Tiers.Queries.GetAll;
 using Core.Domain.Entities.TierConfig;
 using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 public sealed class TierQueryRepository : QueryRepository<TierConfig>, ITierQueryRepository
 {
-    public TierQueryRepository(ArtixQueryDbContext queryDbContext) : base(queryDbContext)
+    public TierQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<TierConfig>> logger) : base(
+        queryDbContext, logger)
     {
     }
 

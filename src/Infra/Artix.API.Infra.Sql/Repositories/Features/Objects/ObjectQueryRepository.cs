@@ -1,20 +1,17 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
-using System.Data;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Features.Objects.Queries;
 using Core.Contract.Features.Objects.Queries.GetAllObjectsAdmins;
 using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdAdmins;
 using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
-using Core.Contract.Primitives.Infra.File;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
@@ -24,18 +21,14 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
     private readonly string _fileServerBaseUrl;
-    private readonly ILogger<ObjectQueryRepository> _logger;
 
-    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<ObjectQueryRepository> logger,
-        IOptions<FileSettings> fileSettingOptions)
-        : base(queryDbContext)
+
+    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<Object>> logger, IOptions<FileSettings> fileSettingOptions) : base(queryDbContext, logger)
     {
-        this._logger = logger;
         this._allowed3DMimeTypes = fileSettingOptions.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
-
 
     public async Task<ObjectDetailsByIdClientDto> GetDetailsByIdAsync(
         GetObjectDetailsByIdClientQuery dto,

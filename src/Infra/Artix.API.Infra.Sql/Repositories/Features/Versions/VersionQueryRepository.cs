@@ -11,12 +11,10 @@ using Primitives;
 
 public sealed class VersionQueryRepository : QueryRepository<AppVersion>, IVersionQueryRepository
 {
-    private readonly ILogger<VersionQueryRepository> _logger;
-
-    public VersionQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<VersionQueryRepository> logger) : base(
-        queryDbContext)
+    public VersionQueryRepository(ArtixQueryDbContext queryDbContext,
+        ILogger<QueryRepository<AppVersion>> logger) : base(
+        queryDbContext, logger)
     {
-        this._logger = logger;
     }
 
     public async Task<LastVersionDto> GetLastAsync(

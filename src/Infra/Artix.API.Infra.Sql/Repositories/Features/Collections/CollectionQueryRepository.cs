@@ -4,11 +4,13 @@ using Core.Contract.Features.Collections.Queries;
 using Core.Contract.Features.Collections.Queries.GetUserCollection;
 using Core.Domain.Entities.Collection;
 using Data.DbContexts;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 public sealed class CollectionQueryRepository : QueryRepository<Collection>, ICollectionQueryRepository
 {
-    public CollectionQueryRepository(ArtixQueryDbContext queryDbContext) : base(queryDbContext)
+    public CollectionQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<Collection>> logger) :
+        base(queryDbContext, logger)
     {
     }
 

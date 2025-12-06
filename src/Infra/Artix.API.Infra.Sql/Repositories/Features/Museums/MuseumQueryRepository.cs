@@ -26,21 +26,17 @@ using Primitives;
 
 public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQueryRepository
 {
-    private readonly ILogger<MuseumQueryRepository> _logger;
     private readonly string _fileServerBaseUrl;
     private readonly string[] _allowedImageMimeTypes;
 
-    public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<MuseumQueryRepository> logger,
-        IOptions<FileSettings> fileSettingOptions)
-        : base(queryDbContext)
+
+    public MuseumQueryRepository(ArtixQueryDbContext queryDbContext, IOptions<FileSettings> fileSettingOptions,
+        ILogger<QueryRepository<Museum>> logger) : base(queryDbContext, logger)
     {
-        _logger = logger;
         this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
-        _fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
+        this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
-
-    
     public IEnumerable<AllMuseumsClientDto> GetAllMuseumsClient(GetAllMuseumsClientQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);

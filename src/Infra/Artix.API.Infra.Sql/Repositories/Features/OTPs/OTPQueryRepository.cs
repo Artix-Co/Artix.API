@@ -11,13 +11,9 @@ using Primitives;
 
 public sealed class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryRepository
 {
-    private readonly ILogger<OTPQueryRepository> _logger;
-
-
-    public OTPQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<OTPQueryRepository> logger) : base(
-        queryDbContext)
+    public OTPQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<OTP>> logger) : base(
+        queryDbContext, logger)
     {
-        this._logger = logger;
     }
 
     public async Task<LatestOTPByPhoneNumberDto> GetLatestByPhoneNumberAsync(GetLatestOTPByPhoneNumberQuery dto,
