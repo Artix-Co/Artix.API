@@ -4,67 +4,91 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Primitives.Infra.File;
 using Core.Domain.Entities.File;
 using Microsoft.Extensions.Options;
-
-public class UploadService : IUploadService
+public sealed class UploadService : IUploadService
 {
     private readonly IUploadRepository _repo;
     private readonly IFileStorage _storage;
     private readonly FileSettings _fileSettings;
 
-    public UploadService(IUploadRepository repo, IFileStorage storage, IOptions<FileSettings> fileSettings)
+    public UploadService(
+        IUploadRepository repo,
+        IFileStorage storage,
+        IOptions<FileSettings> fileSettings)
     {
         _repo = repo;
         _storage = storage;
         _fileSettings = fileSettings.Value;
     }
 
-    public async Task<UploadSession> InitiateAsync(string fileName, long totalSize, int chunkSize, CancellationToken cancellationToken = default)
+    public async Task<UploadSession> InitiateAsync(
+        string fileName,
+        long totalSize,
+        int chunkSize,
+        CancellationToken cancellationToken = default)
     {
         await _storage.EnsureDirectoriesAsync(cancellationToken);
+
+        var sessionId = Guid.NewGuid();
+
         var session = new UploadSession
         {
-            Id = Guid.NewGuid(),
+            Id = sessionId,
             FileName = Path.GetFileName(fileName),
             TotalSize = totalSize,
             ChunkSize = chunkSize,
             TotalChunks = (int)Math.Ceiling((double)totalSize / chunkSize),
-            TempFolder = await _storage.GetTempFolderAsync(Guid.NewGuid(), cancellationToken)
+
+            // فقط یک بار ساخته می‌شود و بر اساس sessionId
+            TempFolder = await _storage.GetTempFolderAsync(sessionId, cancellationToken)
         };
-        session.TempFolder = await _storage.GetTempFolderAsync(session.Id, cancellationToken);
+
         await _repo.AddAsync(session, cancellationToken);
         return session;
     }
 
-    public async Task MarkChunkReceivedAsync(Guid uploadId, int chunkIndex, CancellationToken cancellationToken = default)
+    public async Task MarkChunkReceivedAsync(Guid uploadId, int chunkIndex,
+        CancellationToken cancellationToken = default)
     {
-        var s = await _repo.GetAsync(uploadId, cancellationToken);
-        if (s == null) throw new InvalidOperationException("not found");
-        s.ReceivedChunks[chunkIndex] = true;
-        await _repo.UpdateAsync(s, cancellationToken);
+        var session = await _repo.GetAsync(uploadId, cancellationToken)
+                     ?? throw new InvalidOperationException("Upload session not found.");
+
+        session.ReceivedChunks[chunkIndex] = true;
+        await _repo.UpdateAsync(session, cancellationToken);
     }
 
     public async Task MergeChunksAsync(Guid uploadId, CancellationToken ct = default)
     {
-        var session = await _repo.GetAsync(uploadId, ct) ?? throw new InvalidOperationException("Upload session not found.");
+        var session = await _repo.GetAsync(uploadId, ct)
+                     ?? throw new InvalidOperationException("Upload session not found.");
 
-        var receivedCount = session.ReceivedChunks?.Count(kvp => kvp.Value) ?? 0;
+        var receivedCount = session.ReceivedChunks.Count(x => x.Value);
         if (receivedCount != session.TotalChunks)
-            throw new InvalidOperationException($"Cannot merge: only {receivedCount} of {session.TotalChunks} chunks received.");
+            throw new InvalidOperationException(
+                $"Cannot merge: only {receivedCount} of {session.TotalChunks} chunks received.");
 
         if (session.Completed)
             return;
 
-        var finalPath = await _storage.MergeAsync(uploadId, session.FileName, session.TotalChunks, ct);
+        // ⚡ فایل واقعی (نه gzip) ساخته می‌شود
+        var physicalPath = await _storage.MergeAsync(
+            uploadId,
+            session.FileName,
+            session.TotalChunks,
+            ct);
 
-        session.MergedFilePath = finalPath;
-        session.FinalFileName = Path.GetFileName(finalPath);
+        session.PhysicalFilePath = physicalPath;
+
+        // ⚡ مسیر پایدار برای استفاده از StaticFiles / files/{name}
+        // مهم → نباید Path.Combine استفاده شود
+        session.VirtualFilePath =
+            $"/files/{session.FileName}".Replace("\\", "/");
+
         session.Completed = true;
 
         await _repo.UpdateAsync(session, ct);
     }
 
-    public Task<UploadSession> GetStatusAsync(Guid uploadId, CancellationToken cancellationToken = default)
-    {
-        return _repo.GetAsync(uploadId, cancellationToken);
-    }
+    public Task<UploadSession> GetStatusAsync(Guid uploadId,
+        CancellationToken cancellationToken = default)
+        => _repo.GetAsync(uploadId, cancellationToken);
 }

@@ -53,7 +53,7 @@ internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateN
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Museum image upload session not completed.");
 
-            var filePath = upload.MergedFilePath;
+            var filePath = upload.PhysicalFilePath;
 
             var fileInfo = new FileInfo(filePath);
 

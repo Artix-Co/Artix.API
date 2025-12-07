@@ -32,7 +32,8 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
         UserManager<AppUser> userManager,
         IObjectCommandRepository objectCommandRepository,
         IOptions<FileSettings> options,
-        IMuseumCommandRepository museumCommandRepository, IFileCommandRepository fileCommandRepository, IUploadService uploadService, ILogger<CreateNewObjectAdminCommandHandler> logger) : base(
+        IMuseumCommandRepository museumCommandRepository, IFileCommandRepository fileCommandRepository,
+        IUploadService uploadService, ILogger<CreateNewObjectAdminCommandHandler> logger) : base(
         httpContextAccessor,
         userManager)
     {
@@ -67,7 +68,10 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
             command.ObjectSaleType
         );
         obj.AssignMuseum(museum.Id);
-       
+
+        // -------------------------------
+        // 3D Model
+        // -------------------------------
         if (command.Model3DUploadId.HasValue)
         {
             var upload = await _uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
@@ -75,34 +79,28 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object 3D upload session not completed.");
 
-            var filePath = upload.MergedFilePath;
-          
-            var fileInfo = new FileInfo(filePath);
+            var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
-            
-            var model3DMimeType = _allowed3DMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
-            if (!_allowed3DMimeTypes.Contains(model3DMimeType))
-                throw new InvalidOperationException($"Invalid 3D file mime type: {model3DMimeType}");
+            if (!_allowed3DMimeTypes.Contains(ext))
+                throw new InvalidOperationException($"Invalid 3D file mime type: {ext}");
 
-            
-            
             var fileEntity = FileEntity.Create(
-                fileInfo.Name,
-                fileInfo.FullName,
-                fileInfo.Length,
-                model3DMimeType,
+                upload.FileName,
+                upload.PhysicalFilePath, // ثابت و قابل اتکا
+                upload.TotalSize, // اندازه فایل واقعی قبل از compress
+                ext,
                 userId
             );
 
             await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
-            obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
-            
-            
-            _logger.LogInformation("3D file attached to object: ObjectId={ObjectId}, FileId={FileId}",
-                obj.Id, fileEntity.Id);
+            obj.Assign3DModel(fileEntity.Id, _allowed3DMimeTypes);
+
+            _logger.LogInformation("3D file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
         }
 
-        
+        // -------------------------------
+        // Image
+        // -------------------------------
         if (command.ImageUploadId.HasValue)
         {
             var upload = await _uploadService.GetStatusAsync(command.ImageUploadId.Value, cancellationToken);
@@ -110,35 +108,28 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object image upload session not completed.");
 
-            var filePath = upload.MergedFilePath;
-          
-            var fileInfo = new FileInfo(filePath);
+            var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
-            
-            var imageMimeType = _allowedImageMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
-            if (!_allowedImageMimeTypes.Contains(imageMimeType))
-                throw new InvalidOperationException($"Invalid image file mime type: {imageMimeType}");
+            if (!_allowedImageMimeTypes.Contains(ext))
+                throw new InvalidOperationException($"Invalid image file mime type: {ext}");
 
-            
-            
             var fileEntity = FileEntity.Create(
-                fileInfo.Name,
-                fileInfo.FullName,
-                fileInfo.Length,
-                imageMimeType,
+                upload.FileName,
+                upload.PhysicalFilePath,
+                upload.TotalSize,
+                ext,
                 userId
             );
 
             await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
-            obj.AssignImage(fileEntity.Id, this._allowedImageMimeTypes);
-            
-            _logger.LogInformation("Image file attached to object: ObjectId={ObjectId}, FileId={FileId}",
-                obj.Id, fileEntity.Id);
+            obj.AssignImage(fileEntity.Id, _allowedImageMimeTypes);
+
+            _logger.LogInformation("Image file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
         }
 
-        
+        // -------------------------------
 
-        await this._objectCommandRepository.InsertAsync(obj, cancellationToken);
+        await _objectCommandRepository.InsertAsync(obj, cancellationToken);
         return obj.BusinessId;
     }
 }

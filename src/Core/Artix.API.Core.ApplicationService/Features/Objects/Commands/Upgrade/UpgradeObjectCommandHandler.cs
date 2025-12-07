@@ -77,7 +77,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object 3D upload session not completed.");
 
-            var filePath = upload.MergedFilePath;
+            var filePath = upload.PhysicalFilePath;
           
             var fileInfo = new FileInfo(filePath);
 
@@ -112,7 +112,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object image upload session not completed.");
 
-            var filePath = upload.MergedFilePath;
+            var filePath = upload.PhysicalFilePath;
           
             var fileInfo = new FileInfo(filePath);
 
