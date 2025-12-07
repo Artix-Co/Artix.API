@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
@@ -189,6 +190,43 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.UseResponseCompression();
+app.Use(async (context, next) =>
+{
+    var requestPath = context.Request.Path.Value;
+
+    // فقط مسیرهای داخل /files را چک کن
+    if (requestPath != null &&
+        requestPath.StartsWith("/files/", StringComparison.OrdinalIgnoreCase) &&
+        requestPath.EndsWith(".glb", StringComparison.OrdinalIgnoreCase))
+    {
+        // مسیر داخل فولدر فیزیکی
+        var relativePath = requestPath.Replace("/files/", "", StringComparison.OrdinalIgnoreCase);
+
+        var physicalPath = Path.Combine(filesPath, relativePath);
+        var gzipPath = physicalPath + ".gz";
+
+        if (!System.IO.File.Exists(physicalPath) && System.IO.File.Exists(gzipPath))
+        {
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "model/gltf-binary";
+            context.Response.Headers["Content-Disposition"] = $"inline; filename=\"{Path.GetFileName(physicalPath)}\"";
+            context.Response.Headers["Cache-Control"] = "public, max-age=31536000";
+            context.Response.Headers["Accept-Ranges"] = "bytes";
+
+            await using var fs = System.IO.File.OpenRead(gzipPath);
+            await using var gzip = new GZipStream(fs, CompressionMode.Decompress);
+
+            await gzip.CopyToAsync(context.Response.Body);
+            return;
+        }
+    }
+
+    await next();
+});
+
+
+
+app.UseCustomMiddlewares(app.Environment);
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(filesPath),
@@ -201,8 +239,6 @@ app.UseStaticFiles(new StaticFileOptions
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
     }
 });
-
-app.UseCustomMiddlewares(app.Environment);
 
 
 Log.Logger.Information("Application started!");
