@@ -44,8 +44,11 @@ public static class DependencyInjection
         services.AddScoped(typeof(ICommandRepository<>), typeof(CommandRepository<>));
         services.AddScoped(typeof(IQueryRepository<>), typeof(QueryRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+        
+        
+        services.AddTransient<SqlMigration>();
         services.AddTransient<SqlDataRemover>();
         services.AddTransient<SqlDataSeeder>();
+    
     }
 }

@@ -50,16 +50,7 @@ public class SqlDataSeeder
         using var activity = new Activity("SqlDataSeeder.SeedAll").Start();
         _logger.LogInformation("SqlDataSeeder | Starting SQL data seeding process");
 
-        try
-        {
-            await _context.Database.MigrateAsync();
-            _logger.LogInformation("SqlDataSeeder | SQL migrations applied successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "SqlDataSeeder | Failed to apply SQL migrations");
-            throw;
-        }
+     
 
         if (await _context.Users.AnyAsync())
         {
