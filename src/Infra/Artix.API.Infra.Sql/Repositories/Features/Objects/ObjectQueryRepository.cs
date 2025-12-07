@@ -23,7 +23,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     private readonly string _fileServerBaseUrl;
 
 
-    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<Object>> logger, IOptions<FileSettings> fileSettingOptions) : base(queryDbContext, logger)
+    public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<Object>> logger,
+        IOptions<FileSettings> fileSettingOptions) : base(queryDbContext, logger)
     {
         this._allowed3DMimeTypes = fileSettingOptions.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
@@ -95,6 +96,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         var pageSize = Math.Max(dto.PageSize, 1);
 
         var query = _queryDbContext.Objects
+            .OrderByDescending(o => o.CreatedAt)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
@@ -241,11 +243,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
 
         // Process 3D model file
         string model3DBase64 = "";
-      
+
 
         // Process image file
         string imageBase64 = "";
-  
+
 
         // Map related entities to DTOs
         var objectTypes = query.ObjectTypes
