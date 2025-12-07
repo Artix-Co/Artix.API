@@ -33,7 +33,7 @@ public sealed class CompressionWorker : BackgroundService
             {
                 var filePath = await _jobScheduler.DequeueBlockingAsync("compression", stoppingToken);
 
-                if (filePath is null)
+                if (string.IsNullOrEmpty(filePath))
                 {
                     await Task.Delay(1000, stoppingToken);
                     continue;
@@ -55,28 +55,43 @@ public sealed class CompressionWorker : BackgroundService
         }
     }
 
-    private async Task ProcessFileAsync(string filePath, CancellationToken ct)
+    private async Task ProcessFileAsync(string originalPath, CancellationToken ct)
     {
-        _logger.LogInformation("Compressing: {FilePath}", filePath);
+        var ext = Path.GetExtension(originalPath).ToLowerInvariant();
 
-        var tempPath = filePath + ".compressing";
+        // این فرمت‌ها اصلاً نباید فشرده بشن – فقط کپی میشن (یا هیچ کاری نمی‌کنیم)
+        if (IsBinaryOrAlreadyCompressed(ext))
+        {
+            _logger.LogInformation("Skipping compression (binary/already compressed): {FilePath}", originalPath);
+            return;
+        }
+
+        var tempPath = originalPath + ".compressing";
 
         try
         {
-            await _compressor.CompressAsync(filePath, tempPath, ct);
-            File.Move(tempPath, filePath, true);
-            _logger.LogInformation("Compression completed: {FilePath}", filePath);
+            await _compressor.CompressAsync(originalPath, tempPath, ct);
+
+            // فقط وقتی واقعاً فشرده شد، جایگزین می‌کنیم
+            File.Replace(tempPath, originalPath, null);
+            _logger.LogInformation("Compression successful (replaced): {FilePath}", originalPath);
         }
-        catch (Exception ex)
+        catch
         {
-            if (File.Exists(tempPath))
-            {
-                File.Delete(tempPath);
-            }
-            _logger.LogError(ex, "Compression failed for {FilePath}", filePath);
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+            _logger.LogError("Compression failed – original file untouched: {FilePath}", originalPath);
             throw;
         }
     }
+
+    private static bool IsBinaryOrAlreadyCompressed(string ext) => ext switch
+    {
+        ".glb" or ".gltf" or ".fbx" or ".obj" or ".zip" or ".rar" or ".7z" or ".gz" or ".bz2" or
+            ".mp4" or ".avi" or ".mov" or ".mkv" or ".webm" or
+            ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" or ".bmp" or
+            ".pdf" or ".docx" or ".xlsx" or ".pptx" or ".exe" or ".dll" => true,
+        _ => false
+    };
 
     private async Task<bool> IsAlreadyProcessedAsync(string filePath)
     {

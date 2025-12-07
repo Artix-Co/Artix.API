@@ -4,80 +4,73 @@ using System.Diagnostics;
 using System.IO.Compression;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Primitives.Infra.File;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 public sealed class FileCompressor : IFileCompressor
 {
     private readonly ILogger<FileCompressor> _logger;
-    private readonly IOptions<FileSettings> _fileSettings;
-    
+
     public FileCompressor(ILogger<FileCompressor> logger, IOptions<FileSettings> fileSettings)
     {
         _logger = logger;
-        _fileSettings = fileSettings;
     }
 
     public async Task CompressAsync(string sourcePath, string destPath, CancellationToken ct = default)
     {
-     
-        var extension = Path.GetExtension(sourcePath).ToLowerInvariant();
+        var ext = Path.GetExtension(sourcePath).ToLowerInvariant();
 
-        if (IsVideo(extension))
+        // فقط متن‌ها و فایل‌های بزرگ غیرباینری رو GZip می‌کنیم
+        if (IsTextOrCompressible(ext))
+        {
+            await CompressWithGZipAsync(sourcePath, destPath, ct);
+        }
+        else if (IsVideo(ext))
         {
             await CompressVideoAsync(sourcePath, destPath, ct);
         }
-        else if (IsImage(extension))
-        {
-            await CompressImageAsync(sourcePath, destPath, ct);
-        }
         else
         {
-            await CompressGenericAsync(sourcePath, destPath, ct);
+            // برای بقیه (مثل عکس‌ها) فقط کپی می‌کنیم – حجم کم نمیشه ولی حداقل خراب هم نمیشه
+            File.Copy(sourcePath, destPath, true);
         }
     }
 
-    private static bool IsVideo(string ext) => ext is ".mp4" or ".avi" or ".mov" or ".mkv";
+    private static bool IsVideo(string ext) => ext is ".mp4" or ".avi" or ".mov" or ".mkv" or ".webm";
 
-    private static bool IsImage(string ext) => ext is ".jpg" or ".jpeg" or ".png" or ".gif";
+    private static bool IsTextOrCompressible(string ext) => ext switch
+    {
+        ".json" or ".txt" or ".csv" or ".xml" or ".html" or ".css" or ".js" or ".log" or ".svg" => true,
+        _ => false
+    };
 
     private async Task CompressVideoAsync(string source, string dest, CancellationToken ct)
     {
-        var processInfo = new ProcessStartInfo
+        var psi = new ProcessStartInfo
         {
             FileName = "ffmpeg",
-            Arguments = $"-i \"{source}\" -vcodec libx265 -crf 28 \"{dest}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
+            Arguments = $"-i \"{source}\" -vcodec libx265 -crf 28 -preset fast \"{dest}\"",
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            RedirectStandardError = true
         };
 
-        using var process = new Process { StartInfo = processInfo };
-        process.Start();
-        await process.WaitForExitAsync(ct);
+        using var p = Process.Start(psi)!;
+        await p.WaitForExitAsync(ct);
 
-        if (process.ExitCode != 0)
+        if (p.ExitCode != 0)
         {
-            var error = await process.StandardError.ReadToEndAsync(ct);
-            _logger.LogError("FFmpeg error: {Error}", error);
+            var err = await p.StandardError.ReadToEndAsync(ct);
+            _logger.LogError("FFmpeg failed: {Error}", err);
             throw new InvalidOperationException("Video compression failed");
         }
     }
 
-    private async Task CompressImageAsync(string source, string dest, CancellationToken ct)
+    private static async Task CompressWithGZipAsync(string source, string dest, CancellationToken ct)
     {
-        using var input = File.OpenRead(source);
-        using var output = File.OpenWrite(dest);
-        await input.CopyToAsync(output, ct);
-    }
-
-    private async Task CompressGenericAsync(string source, string dest, CancellationToken ct)
-    {
-        await using var sourceStream = File.OpenRead(source);
-        await using var destStream = File.Create(dest);
-        await using var gzip = new GZipStream(destStream, CompressionLevel.SmallestSize);
-        await sourceStream.CopyToAsync(gzip, ct);
+        await using var input = File.OpenRead(source);
+        await using var output = File.Create(dest);
+        await using var gzip = new GZipStream(output, CompressionLevel.SmallestSize);
+        await input.CopyToAsync(gzip, ct);
     }
 }
