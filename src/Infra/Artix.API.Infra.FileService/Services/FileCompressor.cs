@@ -127,6 +127,31 @@ public async Task CompressAsync(string absolutePath, CancellationToken cancellat
             return;
         }
 
+        if (ext == ".jpg" || ext == ".jpeg" || ext == ".png")
+        {
+            var gzPath = absolutePath + ".gz";
+
+            if (!File.Exists(gzPath))
+                await CompressWithGZipAsync(absolutePath, gzPath, cancellationToken);
+
+            var oldSize = new FileInfo(absolutePath).Length;
+            var newSize = new FileInfo(gzPath).Length;
+
+            if (newSize < oldSize)
+            {
+                File.Delete(absolutePath);
+                _logger.LogInformation("Image compressed and original removed: {Old} -> {New}", oldSize, newSize);
+            }
+            else
+            {
+                File.Delete(gzPath);
+                _logger.LogInformation("Image compression ineffective. Kept original.");
+            }
+
+            return;
+        }
+
+        
         // ------------------------------------------------------------
         // 4) Other files → gzip next to original (no replace)
         // ------------------------------------------------------------

@@ -192,37 +192,47 @@ app.UseExceptionHandler(errorApp =>
 app.UseResponseCompression();
 app.Use(async (context, next) =>
 {
-    var requestPath = context.Request.Path.Value;
-
-    // فقط مسیرهای داخل /files را چک کن
-    if (requestPath != null &&
-        requestPath.StartsWith("/files/", StringComparison.OrdinalIgnoreCase) &&
-        requestPath.EndsWith(".glb", StringComparison.OrdinalIgnoreCase))
+    if (context.Request.Path.StartsWithSegments("/files", out var remaining))
     {
-        // مسیر داخل فولدر فیزیکی
-        var relativePath = requestPath.Replace("/files/", "", StringComparison.OrdinalIgnoreCase);
+        var relativePath = remaining.Value.TrimStart('/');
 
         var physicalPath = Path.Combine(filesPath, relativePath);
         var gzipPath = physicalPath + ".gz";
 
-        if (!System.IO.File.Exists(physicalPath) && System.IO.File.Exists(gzipPath))
+        var ext = Path.GetExtension(physicalPath).ToLowerInvariant();
+
+        if (!File.Exists(physicalPath) && File.Exists(gzipPath))
         {
             context.Response.StatusCode = 200;
-            context.Response.ContentType = "model/gltf-binary";
-            context.Response.Headers["Content-Disposition"] = $"inline; filename=\"{Path.GetFileName(physicalPath)}\"";
+            context.Response.ContentType = GetMime(ext);
             context.Response.Headers["Cache-Control"] = "public, max-age=31536000";
             context.Response.Headers["Accept-Ranges"] = "bytes";
 
-            await using var fs = System.IO.File.OpenRead(gzipPath);
+            await using var fs = File.OpenRead(gzipPath);
             await using var gzip = new GZipStream(fs, CompressionMode.Decompress);
-
             await gzip.CopyToAsync(context.Response.Body);
+
             return;
         }
     }
 
     await next();
 });
+
+
+// MIME TABLE
+static string GetMime(string ext) => ext switch
+{
+    ".glb"  => "model/gltf-binary",
+    ".gltf" => "model/gltf+json",
+    ".json" => "application/json",
+    ".jpeg" => "image/jpeg",
+    ".jpg"  => "image/jpeg",
+    ".png"  => "image/png",
+    ".webp" => "image/webp",
+    _       => "application/octet-stream"
+};
+
 
 
 
