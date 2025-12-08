@@ -1,32 +1,24 @@
 using System.IO.Compression;
-using System.Text.Json;
 using Artix.API.Core.ApplicationService.Exceptions;
-using Artix.API.Core.Contract.Primitives.Models;
-using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Endpoints;
-using Artix.API.Infra.Mongo.Data.DbContext;
 using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
-using Artix.API.Infra.Sql.Data.DbContexts;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.Orchestration.ServiceDefaults;
 using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
-using Elastic.Transport;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using MongoDB.Driver;
-using Nest;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ------------------------------------
+// Serilog Configuration
+// ------------------------------------
 builder.Host.UseSerilog((context, services, config) =>
 {
     config.ReadFrom.Configuration(context.Configuration)
@@ -48,9 +40,6 @@ builder.Host.UseSerilog((context, services, config) =>
     }
 });
 
-
-Log.Information("Serilog fully configured with appsettings.json overrides");
-
 builder.AddServiceDefaults();
 builder.Services.AddSignalR();
 
@@ -59,32 +48,23 @@ bool isDevelopmentEnv = environment.IsDevelopment();
 
 builder.Services.AddArtixServices(builder.Configuration, isDevelopmentEnv);
 
-
+// ------------------------------------
+// Kestrel
+// ------------------------------------
 builder.WebHost.UseKestrel(options =>
 {
     options.ListenAnyIP(80, listen => { listen.Protocols = HttpProtocols.Http1AndHttp2; });
-
-
     options.AddServerHeader = false;
 
-
-    // ---- Limits ----
-    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024; // 8GB
+    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024;
     options.Limits.MaxConcurrentConnections = 500;
     options.Limits.MaxConcurrentUpgradedConnections = 50;
-
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
-
-    options.Limits.MinRequestBodyDataRate =
-        new MinDataRate(100, TimeSpan.FromSeconds(10));
-
-    options.Limits.MinResponseDataRate =
-        new MinDataRate(100, TimeSpan.FromSeconds(10));
-
+    options.Limits.MinRequestBodyDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
+    options.Limits.MinResponseDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
     options.Limits.MaxRequestBufferSize = 1024 * 1024;
     options.Limits.MaxResponseBufferSize = 1024 * 1024;
-
     options.AllowSynchronousIO = false;
 
     if (isDevelopmentEnv)
@@ -94,64 +74,97 @@ builder.WebHost.UseKestrel(options =>
     }
 });
 
-
 var app = builder.Build();
 
-Log.Information("Application built successfully!");
+// --------------------------------------------------
+// FINAL — NO ENV — STORAGE PATH NORMALIZATION LOGIC
+// --------------------------------------------------
+string rawStoragePath = builder.Configuration["FileSettings:StoragePath"] ?? "uploads/files";
 
-var storagePathConfig = builder.Configuration["FileSettings:StoragePath"] ?? "uploads/files";
-
-string filesPath;
-
-if (Path.IsPathRooted(storagePathConfig))
+static string NormalizePath(string path, string contentRoot)
 {
-    filesPath = storagePathConfig;
-}
-else
-{
-    filesPath = Path.Combine(builder.Environment.ContentRootPath, storagePathConfig);
-}
+    if (string.IsNullOrWhiteSpace(path))
+        return Path.Combine(contentRoot, "uploads", "files");
 
-if (!Directory.Exists(filesPath))
-{
-    Log.Logger.Warning("Files directory does not exist: {Path}. Creating...", filesPath);
-    Directory.CreateDirectory(filesPath);
-}
+    path = path.Trim();
 
-Log.Logger.Information("Serving static files from: {FilesPath}", filesPath);
-
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/files"))
+    // Expand "~"
+    if (path.StartsWith("~"))
     {
-        context.Response.Headers.Append("Accept-Ranges", "bytes");
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var relative = path.Substring(1).TrimStart('/', '\\');
+        return Path.GetFullPath(Path.Combine(home, relative));
     }
+
+    // If relative → make absolute
+    if (!Path.IsPathRooted(path))
+    {
+        return Path.GetFullPath(Path.Combine(contentRoot, path));
+    }
+
+    // Already absolute
+    return Path.GetFullPath(path);
+}
+
+string filesPath = NormalizePath(rawStoragePath, builder.Environment.ContentRootPath);
+
+// Ensure folder exists & writable
+try
+{
+    if (!Directory.Exists(filesPath))
+    {
+        Log.Warning("Files directory missing: {Path}. Creating...", filesPath);
+        Directory.CreateDirectory(filesPath);
+    }
+
+    var test = Path.Combine(filesPath, ".write_test");
+    File.WriteAllText(test, "ok");
+    File.Delete(test);
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Cannot access storage folder: {Path}", filesPath);
+    throw;
+}
+
+Log.Information("✔ FILE STORAGE RESOLVED → {Path}", filesPath);
+
+// --------------------------------------------------
+// Add Accept-Ranges for files
+// --------------------------------------------------
+app.Use(async (ctx, next) =>
+{
+    if (ctx.Request.Path.StartsWithSegments("/files"))
+        ctx.Response.Headers.Append("Accept-Ranges", "bytes");
 
     await next();
 });
 
+// --------------------------------------------------
+// DB Migrations & Seeding
+// --------------------------------------------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
-    var sqlDataSeeder = services.GetRequiredService<SqlDataSeeder>();
-    var sqlMigration = services.GetRequiredService<SqlMigration>();
+    //var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
+    //var sqlDataSeeder = services.GetRequiredService<SqlDataSeeder>();
+    //var sqlMigration = services.GetRequiredService<SqlMigration>();
     var mongoSeeder = services.GetRequiredService<MongoDataSeeder>();
 
 
+    // await sqlMigration.MigrateAsync();
+    // await sqlDataSeeder.SeedAsync();
+    // await sqlDataRemover.Remove();
 
-    await sqlMigration.MigrateAsync();
-    await sqlDataSeeder.SeedAsync();
-    await sqlDataRemover.Remove();
-    
-    
+
     await mongoSeeder.EnsureMongoMigrationAsync();
     await mongoSeeder.SeedQuizzesAsync();
 }
 
-
+// --------------------------------------------------
+// Global Exception Handler
+// --------------------------------------------------
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -159,64 +172,77 @@ app.UseExceptionHandler(errorApp =>
         var feature = context.Features.Get<IExceptionHandlerPathFeature>();
         var ex = feature?.Error;
 
-        var statusCode = ex switch
+        var status = ex switch
         {
-            InfrastructureNotFoundException => StatusCodes.Status404NotFound,
-            ApplicationServiceNotFoundException => StatusCodes.Status404NotFound,
-
-            // اگر Exception لایه اپلیکیشن StatusCode دارد → بخوان
-            // برای Result Pattern چون اکثراً exception نمی‌اندازد، فقط روی Exception ها کار می‌کند.
-
-            _ => StatusCodes.Status500InternalServerError
+            InfrastructureNotFoundException => 404,
+            ApplicationServiceNotFoundException => 404,
+            _ => 500
         };
 
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "application/json; charset=utf-8";
+        context.Response.StatusCode = status;
+        context.Response.ContentType = "application/json";
 
-        // always log
         Log.Error(ex,
-            "Unhandled exception. Path: {Path}, StatusCode: {StatusCode}",
-            feature?.Path, statusCode);
+            "Unhandled error. Path: {Path}, Status: {StatusCode}",
+            feature?.Path, status);
 
-        var response = new
+        var json = new
         {
             error = ex?.Message,
             exception = ex?.GetType().Name,
-            status = statusCode,
-            path = feature?.Path,
-
+            status,
+            path = feature?.Path
 #if DEBUG
-            stackTrace = ex?.StackTrace
+            ,
+            stack = ex?.StackTrace
 #endif
         };
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        await context.Response.WriteAsJsonAsync(json);
     });
 });
 
 app.UseResponseCompression();
-app.Use(async (context, next) =>
+
+// --------------------------------------------------
+// GZip fallback for .gz
+// --------------------------------------------------
+app.Use(async (ctx, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/files", out var remaining))
+    if (ctx.Request.Path.StartsWithSegments("/files", out var remaining))
     {
-        var relativePath = remaining.Value.TrimStart('/');
+        var rel = remaining.Value.TrimStart('/');
 
-        var physicalPath = Path.Combine(filesPath, relativePath);
-        var gzipPath = physicalPath + ".gz";
-
-        var ext = Path.GetExtension(physicalPath).ToLowerInvariant();
-
-        if (!File.Exists(physicalPath) && File.Exists(gzipPath))
+        if (rel.Contains(".."))
         {
-            context.Response.StatusCode = 200;
-            context.Response.ContentType = GetMime(ext);
-            context.Response.Headers["Cache-Control"] = "public, max-age=31536000";
-            context.Response.Headers["Accept-Ranges"] = "bytes";
+            ctx.Response.StatusCode = 400;
+            return;
+        }
 
-            await using var fs = File.OpenRead(gzipPath);
+        var full = Path.Combine(filesPath, rel);
+        var gz = full + ".gz";
+        var ext = Path.GetExtension(full).ToLowerInvariant();
+
+        if (!File.Exists(full) && File.Exists(gz))
+        {
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = ext switch
+            {
+                ".glb" => "model/gltf-binary",
+                ".gltf" => "model/gltf+json",
+                ".json" => "application/json",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
+
+            ctx.Response.Headers["Cache-Control"] = "public,max-age=31536000";
+            ctx.Response.Headers["Accept-Ranges"] = "bytes";
+
+            await using var fs = File.OpenRead(gz);
             await using var gzip = new GZipStream(fs, CompressionMode.Decompress);
-            await gzip.CopyToAsync(context.Response.Body);
-
+            await gzip.CopyToAsync(ctx.Response.Body);
             return;
         }
     }
@@ -224,24 +250,9 @@ app.Use(async (context, next) =>
     await next();
 });
 
-
-// MIME TABLE
-static string GetMime(string ext) => ext switch
-{
-    ".glb"  => "model/gltf-binary",
-    ".gltf" => "model/gltf+json",
-    ".json" => "application/json",
-    ".jpeg" => "image/jpeg",
-    ".jpg"  => "image/jpeg",
-    ".png"  => "image/png",
-    ".webp" => "image/webp",
-    _       => "application/octet-stream"
-};
-
-
-
-
-app.UseCustomMiddlewares(app.Environment);
+// --------------------------------------------------
+// Static Files → /files
+// --------------------------------------------------
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(filesPath),
@@ -255,9 +266,7 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-
-Log.Logger.Information("Application started!");
-
+app.UseCustomMiddlewares(app.Environment);
 
 if (true)
 {
@@ -265,19 +274,14 @@ if (true)
     app.UseSwaggerUI();
 }
 
-
 app.UseResponseCaching();
-
-
 app.UseRouting();
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapHealthChecks("/health");
 app.MapControllers();
-
-
 app.MapHub<NotificationHub>("/notificationHub");
-
 
 app.Run();

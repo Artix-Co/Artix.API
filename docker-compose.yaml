@@ -91,7 +91,7 @@ services:
       dockerfile: Dockerfile
     container_name: artix-api
     ports:
-      - "8080:80"                
+      - "8080:80"
     depends_on:
       redis:
         condition: service_healthy
@@ -102,7 +102,6 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DOTNET_RUNNING_IN_CONTAINER: "true"
-      # هیچ ASPNETCORE_URLS لازم نیست → Kestrel طبق داکرفایل روی 80 گوش میده
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
       - file_storage:/app/files
@@ -110,7 +109,7 @@ services:
       - internal_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]  # چون داخل کانتینر روی 80 هست
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 15s
       timeout: 10s
       retries: 5
