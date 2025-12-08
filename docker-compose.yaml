@@ -26,11 +26,11 @@ services:
       - internal_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 20s
+      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -47,6 +47,11 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
 
   mongodb:
     image: mongo:latest
@@ -62,11 +67,16 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      test: [ "CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   redis:
     image: redis:7
@@ -74,43 +84,20 @@ services:
     user: root
     ports:
       - "6377:6377"
-    volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass "Heli@ghar771379"
+    command: redis-server --save "" --appendonly no --requirepass "Heli@ghar771379"
     networks:
       - internal_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "Heli@ghar771379", "--no-auth-warning", "PING"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  cluster-watcher:
-    image: alpine:3.19
-    container_name: cluster-watcher
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      sqlserver:
-        condition: service_started
-    command: >
-      sh -c "
-        echo '🔍 Checking cluster health...';
-        sleep 3;
-        echo '✔ RabbitMQ is stable';
-        echo '✔ MongoDB is stable';
-        echo '✔ Redis is stable';
-        echo '✔ SQL Server started';
-        echo '🚀 All clusters stable.';
-      "
-    networks:
-      - internal_net
-    restart: "no"
+      test: [ "CMD", "redis-cli", "-a", "Heli@ghar771379", "PING" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   app1:
     build:
@@ -119,23 +106,31 @@ services:
     container_name: artix-api
     ports:
       - "8080:80"
-    depends_on:
-      cluster-watcher:
-        condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DOTNET_RUNNING_IN_CONTAINER: "true"
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
       - file_storage:/app/files
+    depends_on:
+      - rabbitmq
+      - mongodb
+      - redis
+      - sqlserver
     networks:
       - internal_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      test: [ "CMD", "curl", "-f", "http://localhost/health || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 8G
+    
     extra_hosts:
       - "elasticsearch.drlink.ir:192.168.2.40"
