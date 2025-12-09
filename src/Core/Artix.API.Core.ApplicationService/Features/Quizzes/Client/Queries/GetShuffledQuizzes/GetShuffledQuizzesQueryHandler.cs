@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Quizzes.Queries.GetShuffledQuizzes;
+﻿namespace Artix.API.Core.ApplicationService.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Quizzes.Queries;
