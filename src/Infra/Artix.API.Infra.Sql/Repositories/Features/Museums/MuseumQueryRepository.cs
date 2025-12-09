@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
+using Core.Contract.Features.Museums;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
 using Core.Contract.Features.Museums.Client.Queries;
 using Core.Contract.Features.Museums.Client.Queries.GetAll;

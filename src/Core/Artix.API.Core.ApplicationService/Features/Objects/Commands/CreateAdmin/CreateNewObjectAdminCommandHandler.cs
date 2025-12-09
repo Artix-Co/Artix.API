@@ -2,6 +2,7 @@ namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.CreateAdmi
 
 using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
+using Contract.Features.Museums;
 using Contract.Features.Museums.Admin.Commands;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.CreateAdmin;

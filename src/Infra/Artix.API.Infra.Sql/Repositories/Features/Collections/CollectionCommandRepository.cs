@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Collections;
 
-using Core.Contract.Features.Collections.Commands;
+using Core.Contract.Features.Collections;
 using Core.Domain.Entities.Collection;
 using Data.DbContexts;
 using Microsoft.Extensions.Logging;

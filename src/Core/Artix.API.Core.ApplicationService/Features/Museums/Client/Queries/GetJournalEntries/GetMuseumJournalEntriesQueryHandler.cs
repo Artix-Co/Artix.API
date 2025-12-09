@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetJournalEntries;
 
+using Contract.Features.Museums;
 using Contract.Features.Museums.Client.Queries;
 using Contract.Features.Museums.Client.Queries.GetJournalEntries;
 using Contract.Features.Museums.Queries;

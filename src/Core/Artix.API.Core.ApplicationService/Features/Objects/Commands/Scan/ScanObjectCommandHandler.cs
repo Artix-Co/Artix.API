@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
 
+using Contract.Features.Museums;
 using Contract.Features.Museums.Admin.Commands;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Scan;

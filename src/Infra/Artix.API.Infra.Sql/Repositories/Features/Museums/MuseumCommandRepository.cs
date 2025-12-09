@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Museums;
 
+using Core.Contract.Features.Museums;
 using Core.Contract.Features.Museums.Admin.Commands;
 using Core.Domain.Entities.Museum;
 using Data.DbContexts;

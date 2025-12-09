@@ -23,6 +23,7 @@
  
 
   <ItemGroup>
+    <Folder Include="Features\Collections\Client\" />
     <Folder Include="Features\Museums\Admin\Queries\" />
     <Folder Include="Features\Museums\Client\" />
   </ItemGroup>

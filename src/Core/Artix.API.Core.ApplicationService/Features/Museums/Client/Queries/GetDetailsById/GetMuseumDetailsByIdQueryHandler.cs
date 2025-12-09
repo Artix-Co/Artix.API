@@ -6,6 +6,7 @@ using Artix.API.Core.Contract.Features.Caches.Museums;
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Museums;
 using Contract.Features.Museums.Client.Queries;
 using Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Domain.Entities.User;

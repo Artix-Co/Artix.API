@@ -1,6 +1,5 @@
-﻿namespace Artix.API.Core.Contract.Features.Collections.Queries.GetUserCollection;
+﻿namespace Artix.API.Core.Contract.Features.Collections.Client.Queries.GetUserCollection;
 
 using Primitives.Handlers;
-using Primitives.Models;
 
 public sealed record GetUserCollectionsQuery(long UserId) : IQuery<IEnumerable<UserCollectionDto>>;

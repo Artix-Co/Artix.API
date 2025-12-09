@@ -1,15 +1,15 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries;
+﻿namespace Artix.API.Core.Contract.Features.Museums;
 
 using Artix.API.Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
-using Domain.Entities.Museum;
-using GetAll;
-using GetDetailByIds;
-using GetJournalEntries;
-using GetKeyStatus;
-using GetObjects;
-using Museums.Queries.GetObjects;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetAll;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetKeyStatus;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetObjects;
+using Queries.GetObjects;
 using Primitives.Models;
 using Primitives.Repositories;
+using Domain.Entities.Museum;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {

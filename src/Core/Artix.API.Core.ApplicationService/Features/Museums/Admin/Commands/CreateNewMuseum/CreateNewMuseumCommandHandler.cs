@@ -6,6 +6,7 @@ using Artix.API.Core.Contract.Features.Files.Commands;
 
 using Artix.API.Core.Contract.Primitives.Infra.File;
 using Artix.API.Core.Domain.Entities.File;
+using Contract.Features.Museums;
 using Contract.Features.Museums.Admin.Commands;
 using Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
 using Domain.Entities.Museum;

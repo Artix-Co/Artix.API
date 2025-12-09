@@ -1,7 +1,7 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Admin.Commands;
+﻿namespace Artix.API.Core.Contract.Features.Museums;
 
-using Domain.Entities.Museum;
 using Primitives.Repositories;
+using Domain.Entities.Museum;
 
 public interface IMuseumCommandRepository : ICommandRepository<Museum>
 {

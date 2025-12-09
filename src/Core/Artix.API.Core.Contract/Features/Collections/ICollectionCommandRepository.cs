@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Collections.Commands;
+﻿namespace Artix.API.Core.Contract.Features.Collections;
 
 using Domain.Entities.Collection;
 using Primitives.Repositories;

@@ -1,14 +1,13 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Collections.Queries.GetByUserId;
+﻿namespace Artix.API.Core.ApplicationService.Features.Collections.Client.Queries.GetByUserId;
 
-using Contract.Features.Collections.Queries;
-using Contract.Features.Collections.Queries.GetCollectionByUserId;
-using Contract.Features.Collections.Queries.GetUserCollection;
+using Contract.Features.Collections;
+using Contract.Features.Collections.Client.Queries.GetCollectionByUserId;
+using Contract.Features.Collections.Client.Queries.GetUserCollection;
+using Primitives;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
-using Primitives;
 
 internal sealed class
     GetAllCollectionsByUserIdQueryHandler : QueryHandlerBase<GetCollectionsByUserIdQuery,
