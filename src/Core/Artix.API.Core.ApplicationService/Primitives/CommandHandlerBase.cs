@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 public abstract class CommandHandlerBase<TCommand> : ICommandHandler<TCommand>
     where TCommand : ICommand
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<AppUser> _userManager;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
+    protected readonly UserManager<AppUser> _userManager;
 
     protected CommandHandlerBase(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager)
     {

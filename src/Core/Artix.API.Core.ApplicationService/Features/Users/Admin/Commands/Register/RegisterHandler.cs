@@ -1,30 +1,28 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.RegisterAdmin;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Admin.Commands.Register;
 
 using System.Security.Claims;
-using Contract.Features.Users.Commands.RegisterAdmins;
-using Domain.Entities.User;
+using Artix.API.Core.ApplicationService.Primitives;
+using Artix.API.Core.Contract.Features.Users.Commands.RegisterAdmins;
+using Artix.API.Core.Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Primitives;
 
 // TODO: develop validation for this handler
-internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCommand>
+internal sealed class RegisterHandler : CommandHandlerBase<RegisterAdminCommand>
 {
-    private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
 
 
-    public RegisterAdminHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+    public RegisterHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager) : base(httpContextAccessor, userManager)
     {
-        this._userManager = userManager;
         this._roleManager = roleManager;
     }
 
     public override async Task<Guid> Handle(RegisterAdminCommand command, CancellationToken cancellationToken)
     {
-        var existingUser = await _userManager.Users
+        var existingUser = await this._userManager.Users
             .FirstOrDefaultAsync(u => u.UserName == command.Username, cancellationToken);
 
         if (existingUser != null)
@@ -32,10 +30,10 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
 
         const string adminRole = "Admin";
 
-        var roleExists = await _roleManager.RoleExistsAsync(adminRole);
+        var roleExists = await this._roleManager.RoleExistsAsync(adminRole);
         if (!roleExists)
         {
-            var roleCreateResult = await _roleManager.CreateAsync(new AppRole(adminRole));
+            var roleCreateResult = await this._roleManager.CreateAsync(new AppRole(adminRole));
             if (!roleCreateResult.Succeeded)
                 throw new ApplicationException("Failed to create Client role: " +
                                                string.Join(", ", roleCreateResult.Errors.Select(e => e.Description)));
@@ -46,17 +44,16 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
             UserName = command.Username, Email = command.Email, DisplayName = command.DisplayName
         };
 
-        var createResult = await _userManager.CreateAsync(newUser, command.Password);
+        var createResult = await this._userManager.CreateAsync(newUser, command.Password);
         if (!createResult.Succeeded)
             throw new ApplicationException("User creation failed: " +
                                            string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
-        var roleResult = await _userManager.AddToRoleAsync(newUser, adminRole);
+        var roleResult = await this._userManager.AddToRoleAsync(newUser, adminRole);
         if (!roleResult.Succeeded)
             throw new ApplicationException("Role assignment failed: " +
                                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 
-   
 
         // افزودن Claimهای سفارشی
         var claims = new List<Claim>
@@ -70,10 +67,11 @@ internal sealed class RegisterAdminHandler : CommandHandlerBase<RegisterAdminCom
             new Claim("group", "admin_team"), // گروه تیمی
             new Claim("group_permission", "admin_team_full_access") // دسترسی گروهی
         };
-        
-        var claimResult = await _userManager.AddClaimsAsync(newUser, claims);
+
+        var claimResult = await this._userManager.AddClaimsAsync(newUser, claims);
         if (!claimResult.Succeeded)
-            throw new ApplicationException($"Claim assignment failed: {string.Join(", ", claimResult.Errors.Select(e => e.Description))}");
+            throw new ApplicationException(
+                $"Claim assignment failed: {string.Join(", ", claimResult.Errors.Select(e => e.Description))}");
         return newUser.BusinessId;
     }
 }

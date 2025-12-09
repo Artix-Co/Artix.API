@@ -1,34 +1,27 @@
-namespace Artix.API.Core.ApplicationService.Features.Users.Queries.GetAllUsersAdmin;
+namespace Artix.API.Core.ApplicationService.Features.Users.Admin.Queries.GetPaginatedUsers;
 
-using Contract.Features.Users.Queries.GetAllUsersAdmin;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Users.Queries.GetAllUsersAdmin;
+using Artix.API.Core.Contract.Primitives.Models;
 using Domain.Entities.User;
 using Domain.Entities.User.Enums;
 using DPG.Core.Contract.Primitives.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Primitives;
 
 internal sealed class
-    GetAllUsersAdminQueryHandler : QueryHandlerBase<GetAllUsersAdminQuery, PaginatedResult<AllUsersAdminDto>>
+    GetPaginatedUsersQueryHandler : QueryHandlerBase<GetAllUsersAdminQuery, PaginatedResult<AllUsersAdminDto>>
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<GetAllUsersAdminQueryHandler> _logger;
-
-
-    public GetAllUsersAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-     ILogger<GetAllUsersAdminQueryHandler> logger) : base(httpContextAccessor, userManager)
+    public GetPaginatedUsersQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) :
+        base(httpContextAccessor, userManager)
     {
-        this._userManager = userManager;
-        this._logger = logger;
     }
 
     public override async Task<Result<PaginatedResult<AllUsersAdminDto>>> Handle(GetAllUsersAdminQuery query,
         CancellationToken cancellationToken)
     {
-        var usersQuery = _userManager.Users.AsQueryable();
+        var usersQuery = this._userManager.Users.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query.GlobalSearch))
         {
@@ -81,13 +74,14 @@ internal sealed class
         var userDtos = new List<AllUsersAdminDto>();
         foreach (var user in users)
         {
-            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == user.Email, cancellationToken);
+            var appUser =
+                await this._userManager.Users.FirstOrDefaultAsync(u => u.Email == user.Email, cancellationToken);
 
             if (appUser != null)
             {
-                var roles = await _userManager.GetRolesAsync(appUser);
+                var roles = await this._userManager.GetRolesAsync(appUser);
 
-                var claims = await _userManager.GetClaimsAsync(appUser);
+                var claims = await this._userManager.GetClaimsAsync(appUser);
                 var clientTypeClaim = claims.FirstOrDefault(c => c.Type == "ClientType")?.Value;
                 ClientType? plan =
                     clientTypeClaim != null && Enum.TryParse<ClientType>(clientTypeClaim, out var parsedPlan)
@@ -95,7 +89,7 @@ internal sealed class
                         : null;
 
                 string profileImageBase64String = string.Empty;
-            
+
 
                 userDtos.Add(new AllUsersAdminDto(
                     FirstName: user.FirstName,

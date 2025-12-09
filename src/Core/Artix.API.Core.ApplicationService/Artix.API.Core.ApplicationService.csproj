@@ -31,6 +31,9 @@
     <Folder Include="Features\Objects\Client\Commands\" />
     <Folder Include="Features\Objects\Client\Queries\" />
     <Folder Include="Features\Quizzes\Client\" />
+    <Folder Include="Features\Users\Admin\Commands\" />
+    <Folder Include="Features\Users\Admin\Queries\" />
+    <Folder Include="Features\Users\Client\Queries\" />
   </ItemGroup>
 
 </Project>

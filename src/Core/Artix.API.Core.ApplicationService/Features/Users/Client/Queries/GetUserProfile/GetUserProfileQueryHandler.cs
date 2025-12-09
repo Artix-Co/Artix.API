@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Queries.GetClientUserProfile;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Queries.GetUserProfile;
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Users.Queries.GetClientUserProfile;
@@ -8,11 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 // TODO: develop validator for this handler
-internal sealed class GetClientUserProfileQueryHandler : QueryHandlerBase<GetClientUserProfileQuery, ClientUserProfileDto>
+internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetClientUserProfileQuery, ClientUserProfileDto>
 {
-
-
-    public GetClientUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
+    public GetUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
     }
 

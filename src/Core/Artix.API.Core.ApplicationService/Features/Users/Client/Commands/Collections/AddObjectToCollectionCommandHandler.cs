@@ -1,11 +1,10 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.Collections;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.Collections;
 
-using Contract.Features.Users.Commands.Collections;
+using Primitives;
+using Artix.API.Core.Contract.Features.Users.Commands.Collections;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Primitives;
-
 
 // TODO: develop validation for this handler
 internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<AddObjectToCollectionCommand>

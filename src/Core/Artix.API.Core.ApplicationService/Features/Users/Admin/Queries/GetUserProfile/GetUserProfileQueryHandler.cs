@@ -1,4 +1,4 @@
-namespace Artix.API.Core.ApplicationService.Features.Users.Queries.GetAdminUserProfile;
+namespace Artix.API.Core.ApplicationService.Features.Users.Admin.Queries.GetUserProfile;
 
 using System.Security.Claims;
 using Contract.Features.Users.Queries.GetAdminUserProfile;
@@ -8,26 +8,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
 
-internal sealed class GetAdminUserProfileQueryHandler : QueryHandlerBase<GetAdminUserProfileQuery, AdminUserProfileDto>
+internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetAdminUserProfileQuery, AdminUserProfileDto>
 {
-    private readonly UserManager<AppUser> _userManager;
-
-
-    public GetAdminUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
+    public GetUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
-        this._userManager = userManager;
     }
 
     public override async Task<Result<AdminUserProfileDto>> Handle(GetAdminUserProfileQuery query,
         CancellationToken cancellationToken)
     {
-        var userInfo = await GetCurrentUserAsync(cancellationToken);
+        var userInfo = await this.GetCurrentUserAsync(cancellationToken);
         var file = userInfo.GetProfileImage();
 
         var profileImageBase64String = "";
  
 
-        var claims = await _userManager.GetClaimsAsync(userInfo);
+        var claims = await this._userManager.GetClaimsAsync(userInfo);
         if (claims == null)
             return Result<AdminUserProfileDto>.Failure("Claims not found");
 

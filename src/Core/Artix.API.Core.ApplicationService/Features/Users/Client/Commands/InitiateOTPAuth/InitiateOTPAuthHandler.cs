@@ -1,14 +1,14 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.InitiateOTPAuth;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.InitiateOTPAuth;
 
-using Contract.Features.OTPs.Commands;
-using Contract.Features.Users.Commands.InitiateOTPAuth;
-using Contract.Primitives.Infra.Redis;
+using Primitives;
+using Artix.API.Core.Contract.Features.OTPs.Commands;
+using Artix.API.Core.Contract.Features.Users.Commands.InitiateOTPAuth;
+using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Domain.Entities.OTP;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Primitives;
 
 // TODO: develop validation for this handler
 internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAuthCommand>
@@ -23,14 +23,14 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
         ISessionStore sessionStore,
         IOTPCommandRepository otpCommandRepository) : base(httpContextAccessor, userManager)
     {
-        _userManager = userManager;
-        _sessionStore = sessionStore;
-        _otpCommandRepository = otpCommandRepository;
+        this._userManager = userManager;
+        this._sessionStore = sessionStore;
+        this._otpCommandRepository = otpCommandRepository;
     }
 
     public override async Task<Guid> Handle(InitiateOTPAuthCommand command, CancellationToken cancellationToken)
     {
-        var userExists = await _userManager.Users
+        var userExists = await this._userManager.Users
             .AnyAsync(u => u.PhoneNumber == command.PhoneNumber, cancellationToken);
 
         var purpose = userExists ? "Login" : "Registration";
@@ -42,9 +42,9 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
 
         var sessionData = new { Code = otp.Code, Purpose = purpose, Attempts = 0 };
         var json = System.Text.Json.JsonSerializer.Serialize(sessionData);
-        await _sessionStore.SetSessionAsync($"otp:{command.PhoneNumber}", json, 300, cancellationToken);
+        await this._sessionStore.SetSessionAsync($"otp:{command.PhoneNumber}", json, 300, cancellationToken);
 
-        await _otpCommandRepository.InsertAsync(otp, cancellationToken);
+        await this._otpCommandRepository.InsertAsync(otp, cancellationToken);
 
         return businessId;
     }

@@ -1,16 +1,14 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Commands.Modify;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.Modify;
 
+using Primitives;
 using Contract.Configs.FileSettings;
-using Contract.Features.Files.Commands;
-using Contract.Features.Users.Commands.Modify;
-using Contract.Primitives.Infra.File;
-using Domain.Entities.File;
+using Artix.API.Core.Contract.Features.Files.Commands;
+using Artix.API.Core.Contract.Features.Users.Commands.Modify;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Primitives;
 
 // TODO: develop validation for this handler
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
@@ -36,7 +34,7 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
 
     public override async Task<Guid> Handle(ModifyProfileCommand command, CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
 
         var userBuilder = new AppUser.AppUserBuilder(user)
             .WithUsername(command.Username)
@@ -48,11 +46,11 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
             !string.IsNullOrWhiteSpace(command.ImageFileName) &&
             !string.IsNullOrWhiteSpace(command.ImageFileMimeType))
         {
-            _logger.LogInformation("Processing image upload for {FileName}", command.ImageFileName);
+            this._logger.LogInformation("Processing image upload for {FileName}", command.ImageFileName);
 
-            if (!_allowedImageMimeTypes.Contains(command.ImageFileMimeType))
+            if (!this._allowedImageMimeTypes.Contains(command.ImageFileMimeType))
             {
-                _logger.LogError("Invalid MIME type for image: {MimeType}", command.ImageFileMimeType);
+                this._logger.LogError("Invalid MIME type for image: {MimeType}", command.ImageFileMimeType);
                 throw new Exception($"Invalid MIME type for image: {command.ImageFileMimeType}");
             }
 
@@ -69,7 +67,7 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
             }
             catch (FormatException ex)
             {
-                _logger.LogError(ex, "Invalid Base64 for image: {FileName}", command.ImageFileName);
+                this._logger.LogError(ex, "Invalid Base64 for image: {FileName}", command.ImageFileName);
                 throw new Exception($"Invalid Base64 string for ImageFileData: {ex.Message}");
             }
 
@@ -103,14 +101,14 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
 
         if (!string.IsNullOrWhiteSpace(command.Password))
         {
-            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var passwordResult = await _userManager.ResetPasswordAsync(user, resetToken, command.Password);
+            var resetToken = await this._userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResult = await this._userManager.ResetPasswordAsync(user, resetToken, command.Password);
             if (!passwordResult.Succeeded)
                 throw new ApplicationException("Password update failed: " +
                                                string.Join(", ", passwordResult.Errors.Select(e => e.Description)));
         }
 
-        await _userManager.UpdateAsync(updatedUser);
+        await this._userManager.UpdateAsync(updatedUser);
 
         return user.BusinessId;
     }
