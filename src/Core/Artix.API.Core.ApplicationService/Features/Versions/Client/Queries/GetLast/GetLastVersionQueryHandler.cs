@@ -1,10 +1,10 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Versions.Queries.GetLast;
+﻿namespace Artix.API.Core.ApplicationService.Features.Versions.Client.Queries.GetLast;
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Versions.Queries;
 using Artix.API.Core.Contract.Features.Versions.Queries.GetLast;
+using Artix.API.Core.Contract.Primitives.Models;
 using Domain.Entities.User;
-using Contract.Primitives.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 

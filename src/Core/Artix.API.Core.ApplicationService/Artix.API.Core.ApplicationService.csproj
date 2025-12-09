@@ -34,6 +34,7 @@
     <Folder Include="Features\Users\Admin\Commands\" />
     <Folder Include="Features\Users\Admin\Queries\" />
     <Folder Include="Features\Users\Client\Queries\" />
+    <Folder Include="Features\Versions\Client\" />
   </ItemGroup>
 
 </Project>
