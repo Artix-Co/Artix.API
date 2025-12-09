@@ -1,21 +1,21 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetAllObjectsAdmins;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Admin.Queries.GetAll;
 
-using Contract.Features.Objects.Queries;
-using Contract.Features.Objects.Queries.GetAllObjectsAdmins;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Objects.Queries;
+using Artix.API.Core.Contract.Features.Objects.Queries.GetAllObjectsAdmins;
+using Artix.API.Core.Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Primitives;
 
 // TODO: develop validator
 internal sealed class
-    GetAllObjectsAdminQueryHandler : QueryHandlerBase<GetAllObjectsAdminQuery, PaginatedResult<AllObjectsAdminDto>>
+    GetAllObjectsQueryHandler : QueryHandlerBase<GetAllObjectsAdminQuery, PaginatedResult<AllObjectsAdminDto>>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
 
 
-    public GetAllObjectsAdminQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository) : base(httpContextAccessor, userManager)
+    public GetAllObjectsQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, IObjectQueryRepository objectQueryRepository) : base(httpContextAccessor, userManager)
     {
         this._objectQueryRepository = objectQueryRepository;
     }

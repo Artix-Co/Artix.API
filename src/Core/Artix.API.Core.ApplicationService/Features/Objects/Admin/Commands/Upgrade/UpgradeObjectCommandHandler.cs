@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Upgrade;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Admin.Commands.Upgrade;
 
 using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
@@ -33,22 +33,22 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         ILogger<UpgradeObjectCommandHandler> logger,
         IFileCommandRepository fileCommandRepository) : base(httpContextAccessor, userManager)
     {
-        _objectCommandRepository = objectCommandRepository;
-        _allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
-        _allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
-        _logger = logger;
-        _uploadService = uploadService;
-        _fileCommandRepository = fileCommandRepository;
+        this._objectCommandRepository = objectCommandRepository;
+        this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
+        this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
+        this._logger = logger;
+        this._uploadService = uploadService;
+        this._fileCommandRepository = fileCommandRepository;
     }
 
     public override async Task<Guid> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting upgrade for object {ObjectId}", command.Id);
+        this._logger.LogInformation("Starting upgrade for object {ObjectId}", command.Id);
 
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
         long userId = user.Id;
 
-        var obj = await _objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
+        var obj = await this._objectCommandRepository.GetByIdAsync(command.Id, cancellationToken);
         if (obj == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(obj), command.Id);
 
@@ -72,7 +72,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
   
         if (command.Model3DUploadId.HasValue)
         {
-            var upload = await _uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
+            var upload = await this._uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
 
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object 3D upload session not completed.");
@@ -82,8 +82,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             var fileInfo = new FileInfo(filePath);
 
             
-            var model3DMimeType = _allowed3DMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
-            if (!_allowed3DMimeTypes.Contains(model3DMimeType))
+            var model3DMimeType = this._allowed3DMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
+            if (!this._allowed3DMimeTypes.Contains(model3DMimeType))
                 throw new InvalidOperationException($"Invalid 3D file mime type: {model3DMimeType}");
 
             
@@ -96,18 +96,18 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 userId
             );
 
-            await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
 
             obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
-            await _objectCommandRepository.UpdateAsync(obj, cancellationToken);
-            _logger.LogInformation("3D file attached to object: ObjectId={ObjectId}, FileId={FileId}",
+            await this._objectCommandRepository.UpdateAsync(obj, cancellationToken);
+            this._logger.LogInformation("3D file attached to object: ObjectId={ObjectId}, FileId={FileId}",
                 obj.Id, fileEntity.Id);
         }
 
         
         if (command.ImageUploadId.HasValue)
         {
-            var upload = await _uploadService.GetStatusAsync(command.ImageUploadId.Value, cancellationToken);
+            var upload = await this._uploadService.GetStatusAsync(command.ImageUploadId.Value, cancellationToken);
 
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object image upload session not completed.");
@@ -117,8 +117,8 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
             var fileInfo = new FileInfo(filePath);
 
             
-            var imageMimeType = _allowedImageMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
-            if (!_allowedImageMimeTypes.Contains(imageMimeType))
+            var imageMimeType = this._allowedImageMimeTypes.Contains(fileInfo.Extension) ? fileInfo.Extension : null;
+            if (!this._allowedImageMimeTypes.Contains(imageMimeType))
                 throw new InvalidOperationException($"Invalid image file mime type: {imageMimeType}");
 
             
@@ -131,12 +131,12 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
                 userId
             );
 
-            await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
 
             obj.AssignImage(fileEntity.Id, this._allowedImageMimeTypes);
-            await _objectCommandRepository.UpdateAsync(obj, cancellationToken);
+            await this._objectCommandRepository.UpdateAsync(obj, cancellationToken);
             
-            _logger.LogInformation("Image file attached to object: ObjectId={ObjectId}, FileId={FileId}",
+            this._logger.LogInformation("Image file attached to object: ObjectId={ObjectId}, FileId={FileId}",
                 obj.Id, fileEntity.Id);
         }
 

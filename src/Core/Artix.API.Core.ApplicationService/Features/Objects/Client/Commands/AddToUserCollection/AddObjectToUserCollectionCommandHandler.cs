@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.AddToUserCollection;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Commands.AddToUserCollection;
 
 using Contract.Features.Collections;
 using Contract.Features.Objects.Commands;
@@ -28,29 +28,29 @@ internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBa
     }
     public override async Task<Guid> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
 
-        var collection = await _collectionCommandRepository.GetByIdAsync(command.CollectionId, cancellationToken);
+        var collection = await this._collectionCommandRepository.GetByIdAsync(command.CollectionId, cancellationToken);
         if (collection == null || collection.UserId != user.Id)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(collection), command.CollectionId);
 
-        var @object = await _objectCommandRepository.GetByIdAsync(command.ObjectId, cancellationToken);
+        var @object = await this._objectCommandRepository.GetByIdAsync(command.ObjectId, cancellationToken);
         if (@object == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(@object), command.ObjectId);
 
         @object.AddToCollection(collection);
 
-        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await this._unitOfWork.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
+            await this._objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
-            await _unitOfWork.CommitAsync(cancellationToken);
+            await this._unitOfWork.CommitAsync(cancellationToken);
         }
         catch
         {
-            await _unitOfWork.RollbackAsync(cancellationToken);
+            await this._unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }
 

@@ -1,34 +1,37 @@
-namespace Artix.API.Core.ApplicationService.Features.Objects.Events;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Events;
 
 using Contract.Features.Notifications.Commands.AddUserNotification;
 using Domain.Entities.Notification.Enums;
 using Domain.Entities.Object.Events;
 using DomainService.Interfaces.Notification;
+using DomainService.Interfaces.TierCalculator;
 using DomainService.Interfaces.XPRules;
 using Primitives;
 
-internal sealed class FirstUserScanEventHandler : NotificationHandlerBase<FirstUserScanEvent>
+internal sealed class RepeatUserScanEventHandler : NotificationHandlerBase<RepeatUserScanEvent>
 {
     private readonly INotificationServiceProvider _notificationServiceProvider;
     private readonly IXpRulesService _xpRulesService;
 
-    public FirstUserScanEventHandler(INotificationServiceProvider notificationServiceProvider,
-        IXpRulesService xpRulesService)
+
+    public RepeatUserScanEventHandler(INotificationServiceProvider notificationServiceProvider,
+        IXpRulesService xpRulesService, ITierCalculatorService tierCalculatorService)
     {
         this._notificationServiceProvider = notificationServiceProvider;
         this._xpRulesService = xpRulesService;
     }
 
-    protected override async Task HandleEventAsync(FirstUserScanEvent domainEvent,
+    protected override async Task HandleEventAsync(RepeatUserScanEvent domainEvent,
         CancellationToken cancellationToken)
     {
-        await this._xpRulesService.CalculateXpForFirstScanAsync(domainEvent.UserId, domainEvent.BusinessId,
+        await this._xpRulesService.CalculateXpForRepeatScanAsync(domainEvent.UserId, domainEvent.ObjectBusinessId,
             cancellationToken: cancellationToken);
+
         var userNotification = new AddUserNotificationCommand
         (
             domainEvent.UserId,
             "notification from service provider",
-            "you scanned an obj for the first time!",
+            "you scanned an obj is repeated!",
             NotificationType.InApp,
             null
         );

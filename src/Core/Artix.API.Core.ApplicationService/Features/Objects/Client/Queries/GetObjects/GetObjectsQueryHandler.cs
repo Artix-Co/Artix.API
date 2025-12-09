@@ -1,11 +1,9 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetObjects;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Queries.GetObjects;
 
 using Primitives;
-using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Features.Museums;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
 using Artix.API.Core.Contract.Primitives.Models;
-using Contract.Features.Museums;
-using Contract.Features.Museums.Client.Queries;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

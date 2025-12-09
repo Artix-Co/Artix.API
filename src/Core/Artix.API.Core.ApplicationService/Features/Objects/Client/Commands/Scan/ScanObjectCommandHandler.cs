@@ -1,7 +1,6 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.Scan;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Commands.Scan;
 
 using Contract.Features.Museums;
-using Contract.Features.Museums.Admin.Commands;
 using Contract.Features.Objects.Commands;
 using Contract.Features.Objects.Commands.Scan;
 using Contract.Primitives.Infra.Redis;
@@ -26,22 +25,22 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         IRequestRatePolicy requestRatePolicy)
         : base(httpContextAccessor, userManager)
     {
-        _museumCommandRepository = museumCommandRepository;
-        _objectCommandRepository = objectCommandRepository;
-        _requestRatePolicy = requestRatePolicy;
+        this._museumCommandRepository = museumCommandRepository;
+        this._objectCommandRepository = objectCommandRepository;
+        this._requestRatePolicy = requestRatePolicy;
     }
 
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
 
         var rateKey = $"scan:{user.Id}";
-        var allowed = await _requestRatePolicy.IsAllowedAsync(rateKey, cancellationToken);
+        var allowed = await this._requestRatePolicy.IsAllowedAsync(rateKey, cancellationToken);
 
         if (!allowed)
             throw new TooManyRequestsException("You are scanning too fast. Please wait a few seconds.");
 
-        var museum = await _museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
+        var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
 
@@ -51,7 +50,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
 
         user.ProcessScan(@object);
 
-        await _objectCommandRepository.UpdateAsync(@object, cancellationToken);
+        await this._objectCommandRepository.UpdateAsync(@object, cancellationToken);
 
         return @object.BusinessId;
     }

@@ -1,23 +1,22 @@
-namespace Artix.API.Core.ApplicationService.Features.Objects.Commands.CreateAdmin;
+namespace Artix.API.Core.ApplicationService.Features.Objects.Admin.Commands.CreateNewObject;
 
-using Contract.Configs.FileSettings;
-using Contract.Features.Files.Commands;
-using Contract.Features.Museums;
-using Contract.Features.Museums.Admin.Commands;
-using Contract.Features.Objects.Commands;
-using Contract.Features.Objects.Commands.CreateAdmin;
-using Contract.Primitives.Infra.File;
-using Domain.Entities.File;
-using Domain.Entities.Object;
-using Domain.Entities.User;
 using Exceptions;
+using Primitives;
+using Contract.Configs.FileSettings;
+using Artix.API.Core.Contract.Features.Files.Commands;
+using Artix.API.Core.Contract.Features.Museums;
+using Artix.API.Core.Contract.Features.Objects.Commands;
+using Artix.API.Core.Contract.Features.Objects.Commands.CreateAdmin;
+using Artix.API.Core.Contract.Primitives.Infra.File;
+using Artix.API.Core.Domain.Entities.File;
+using Artix.API.Core.Domain.Entities.Object;
+using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Primitives;
 
-internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<CreateNewObjectAdminCommand>
+internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateNewObjectAdminCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly IMuseumCommandRepository _museumCommandRepository;
@@ -25,16 +24,16 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
     private readonly IUploadService _uploadService;
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
-    private readonly ILogger<CreateNewObjectAdminCommandHandler> _logger;
+    private readonly ILogger<CreateNewObjectCommandHandler> _logger;
 
 
-    public CreateNewObjectAdminCommandHandler(
+    public CreateNewObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
         IObjectCommandRepository objectCommandRepository,
         IOptions<FileSettings> options,
         IMuseumCommandRepository museumCommandRepository, IFileCommandRepository fileCommandRepository,
-        IUploadService uploadService, ILogger<CreateNewObjectAdminCommandHandler> logger) : base(
+        IUploadService uploadService, ILogger<CreateNewObjectCommandHandler> logger) : base(
         httpContextAccessor,
         userManager)
     {
@@ -49,7 +48,7 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
 
     public override async Task<Guid> Handle(CreateNewObjectAdminCommand command, CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
         var userId = user.Id;
         var museum = await this._museumCommandRepository.GetByIdAsync(command.MuseumId, cancellationToken);
         if (museum == null)
@@ -75,14 +74,14 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
         // -------------------------------
         if (command.Model3DUploadId.HasValue)
         {
-            var upload = await _uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
+            var upload = await this._uploadService.GetStatusAsync(command.Model3DUploadId.Value, cancellationToken);
 
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object 3D upload session not completed.");
 
             var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
-            if (!_allowed3DMimeTypes.Contains(ext))
+            if (!this._allowed3DMimeTypes.Contains(ext))
                 throw new InvalidOperationException($"Invalid 3D file mime type: {ext}");
 
             var fileEntity = FileEntity.Create(
@@ -93,10 +92,10 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
                 userId
             );
 
-            await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
-            obj.Assign3DModel(fileEntity.Id, _allowed3DMimeTypes);
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
 
-            _logger.LogInformation("3D file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
+            this._logger.LogInformation("3D file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
         }
 
         // -------------------------------
@@ -104,14 +103,14 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
         // -------------------------------
         if (command.ImageUploadId.HasValue)
         {
-            var upload = await _uploadService.GetStatusAsync(command.ImageUploadId.Value, cancellationToken);
+            var upload = await this._uploadService.GetStatusAsync(command.ImageUploadId.Value, cancellationToken);
 
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Object image upload session not completed.");
 
             var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
-            if (!_allowedImageMimeTypes.Contains(ext))
+            if (!this._allowedImageMimeTypes.Contains(ext))
                 throw new InvalidOperationException($"Invalid image file mime type: {ext}");
 
             var fileEntity = FileEntity.Create(
@@ -122,15 +121,15 @@ internal sealed class CreateNewObjectAdminCommandHandler : CommandHandlerBase<Cr
                 userId
             );
 
-            await _fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
-            obj.AssignImage(fileEntity.Id, _allowedImageMimeTypes);
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            obj.AssignImage(fileEntity.Id, this._allowedImageMimeTypes);
 
-            _logger.LogInformation("Image file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
+            this._logger.LogInformation("Image file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
         }
 
         // -------------------------------
 
-        await _objectCommandRepository.InsertAsync(obj, cancellationToken);
+        await this._objectCommandRepository.InsertAsync(obj, cancellationToken);
         return obj.BusinessId;
     }
 }
