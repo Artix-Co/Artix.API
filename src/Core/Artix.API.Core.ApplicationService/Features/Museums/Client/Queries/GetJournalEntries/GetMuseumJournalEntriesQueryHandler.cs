@@ -1,12 +1,12 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetMuseumJournalEntries;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetJournalEntries;
 
+using Contract.Features.Museums.Client.Queries;
+using Contract.Features.Museums.Client.Queries.GetJournalEntries;
 using Contract.Features.Museums.Queries;
-using Contract.Features.Museums.Queries.GetMuseumJournalEntries;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using Primitives;
 
 // TODO: develop validator for this handler

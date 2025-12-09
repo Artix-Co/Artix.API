@@ -1,12 +1,13 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetMuseumObjects;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetObjects;
 
-using Contract.Features.Museums.Queries;
-using Contract.Features.Museums.Queries.GetMuseumObjects;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Museums.Client.Queries;
+using Contract.Features.Museums.Client.Queries.GetObjects;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Primitives;
 
 // TODO: develop validator for this handler
 internal sealed class

@@ -1,4 +1,4 @@
-namespace Artix.API.Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
+namespace Artix.API.Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
 
 using Primitives.Models;
 

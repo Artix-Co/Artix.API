@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumObjects;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetObjects;
 
 using Primitives.Handlers;
 

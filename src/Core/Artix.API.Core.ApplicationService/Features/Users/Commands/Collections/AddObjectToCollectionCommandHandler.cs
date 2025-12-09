@@ -2,7 +2,6 @@
 
 using Contract.Features.Users.Commands.Collections;
 using Domain.Entities.User;
-using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;

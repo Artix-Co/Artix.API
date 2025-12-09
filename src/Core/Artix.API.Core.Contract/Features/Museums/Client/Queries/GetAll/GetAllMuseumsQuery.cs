@@ -1,5 +1,5 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetAllMuseums;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetAll;
 
-using Artix.API.Core.Contract.Primitives.Handlers;
+using Primitives.Handlers;
 
 public sealed record GetAllMuseumsQuery(string? Name) : IQuery<IEnumerable<AllMuseumsDto>>;

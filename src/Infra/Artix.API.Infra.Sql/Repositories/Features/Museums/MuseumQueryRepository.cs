@@ -1,9 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Museums;
 
 using Artix.API.Core.Contract.Features.Museums.Queries;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumObjects;
 using Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
 using Artix.API.Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Museum;
@@ -14,9 +11,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
-using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
-using Core.Contract.Features.Museums.Queries.GetAllMuseums;
-using Core.Contract.Features.Museums.Queries.GetDetailByIds;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
+using Core.Contract.Features.Museums.Client.Queries;
+using Core.Contract.Features.Museums.Client.Queries.GetAll;
+using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
+using Core.Contract.Features.Museums.Client.Queries.GetKeyStatus;
+using Core.Contract.Features.Museums.Client.Queries.GetObjects;
 using Data.CompiledQueries.Museums;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;

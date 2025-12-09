@@ -1,13 +1,13 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetObjects;
+﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Queries.GetObjects;
 
-using Contract.Features.Museums.Queries;
-using Contract.Features.Museums.Queries.GetObjects;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
+using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Museums.Client.Queries;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
-using Primitives;
 
 // TODO: develop validator for this handler
 internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQuery, PaginatedResult<AllObjectDto>>
@@ -23,7 +23,7 @@ internal sealed class GetObjectsQueryHandler : QueryHandlerBase<GetAllObjectsQue
     public override async Task<Result<PaginatedResult<AllObjectDto>>> Handle(GetAllObjectsQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await _museumQueryRepository.GetAllObjectsAsync(query, cancellationToken);
+        var result = await this._museumQueryRepository.GetAllObjectsAsync(query, cancellationToken);
 
 
         return Result<PaginatedResult<AllObjectDto>>.Success(result);

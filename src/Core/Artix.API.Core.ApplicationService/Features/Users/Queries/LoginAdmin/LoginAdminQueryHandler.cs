@@ -8,7 +8,6 @@ using Domain.Entities.User;
 using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 
 // TODO: develop validator for this handler
 

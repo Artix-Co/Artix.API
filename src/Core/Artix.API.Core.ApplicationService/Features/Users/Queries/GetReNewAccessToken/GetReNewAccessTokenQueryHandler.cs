@@ -7,7 +7,6 @@ using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 
 // TODO: develop validator for this handler
 internal sealed class GetReNewAccessTokenQueryHandler : QueryHandlerBase<GetReNewAccessTokenQuery, ReNewAccessTokenDto>

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumKeyStatus;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetKeyStatus;
 
 using Primitives.Handlers;
 

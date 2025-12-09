@@ -1,9 +1,10 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Admin.Queries.GetAllMuseums;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Admin.Queries.GetPaginateMuseums;
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Museums.Queries;
 using Artix.API.Core.Contract.Primitives.Models;
-using Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
+using Contract.Features.Museums.Admin.Queries.GetPaginate;
+using Contract.Features.Museums.Client.Queries;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

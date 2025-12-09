@@ -1,13 +1,13 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries;
 
-using Admin.Queries.GetPaginateMuseums;
+using Artix.API.Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
 using Domain.Entities.Museum;
-using GetAllMuseums;
+using GetAll;
 using GetDetailByIds;
-using GetMuseumJournalEntries;
-using GetMuseumKeyStatus;
-using GetMuseumObjects;
+using GetJournalEntries;
+using GetKeyStatus;
 using GetObjects;
+using Museums.Queries.GetObjects;
 using Primitives.Models;
 using Primitives.Repositories;
 

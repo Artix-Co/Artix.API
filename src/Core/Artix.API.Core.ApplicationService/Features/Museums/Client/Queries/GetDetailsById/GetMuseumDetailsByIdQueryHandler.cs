@@ -1,13 +1,14 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetDetailByIds;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetDetailsById;
 
-using Artix.API.Core.ApplicationService.Exceptions;
-using Artix.API.Core.ApplicationService.Primitives;
+using Exceptions;
+using Primitives;
 using Artix.API.Core.Contract.Features.Caches.Museums;
 using Artix.API.Core.Contract.Features.Museums.Queries;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
-using Artix.API.Core.Domain.Entities.User;
+using Contract.Features.Museums.Client.Queries;
+using Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

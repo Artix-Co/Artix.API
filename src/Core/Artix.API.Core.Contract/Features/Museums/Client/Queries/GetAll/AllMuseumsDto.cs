@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetAllMuseums;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetAll;
 
 public sealed record AllMuseumsDto(
     Guid Id,

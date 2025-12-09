@@ -1,14 +1,12 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Versions.Queries.GetLast;
 
-using Artix.API.Core.ApplicationService.Primitives;
-using Artix.API.Core.Contract.Features.Versions.Commands;
+using Primitives;
 using Artix.API.Core.Contract.Features.Versions.Queries;
 using Artix.API.Core.Contract.Features.Versions.Queries.GetLast;
-using Artix.API.Core.Domain.Entities.User;
+using Domain.Entities.User;
 using Contract.Primitives.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 
 internal sealed class
     GetLastVersionQueryHandler : QueryHandlerBase<GetLastVersionQuery,

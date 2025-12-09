@@ -1,13 +1,13 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetMuseumKeyStatus;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetKeyStatus;
 
-using Contract.Features.Museums.Queries;
-using Contract.Features.Museums.Queries.GetMuseumKeyStatus;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Museums.Queries;
+using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Museums.Client.Queries;
+using Contract.Features.Museums.Client.Queries.GetKeyStatus;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
-using Primitives;
 
 // TODO: develop validator for this handler
 internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseumKeyStatusQuery, MuseumKeyStatusDto>

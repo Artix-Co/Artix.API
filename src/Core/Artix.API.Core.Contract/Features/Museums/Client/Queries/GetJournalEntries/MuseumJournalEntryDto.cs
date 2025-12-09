@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetMuseumJournalEntries;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
 
 public sealed record MuseumJournalEntryDto(
     Guid Id,

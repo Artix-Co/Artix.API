@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Infra.Sql.Data.CompiledQueries.Museums;
 
-using Core.Contract.Features.Museums.Queries.GetAllMuseums;
-using Core.Contract.Features.Museums.Queries.GetDetailByIds;
-using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
+using Core.Contract.Features.Museums.Client.Queries.GetAll;
+using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Core.Contract.Features.Museums.Client.Queries.GetObjects;
 using Core.Contract.Features.Museums.Queries.GetObjects;
 using Core.Contract.Primitives.Models;
 using DbContexts;

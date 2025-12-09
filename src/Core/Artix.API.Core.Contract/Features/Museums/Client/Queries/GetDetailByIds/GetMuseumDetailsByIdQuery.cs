@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetDetailByIds;
+﻿namespace Artix.API.Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 
 using Primitives.Handlers;
 

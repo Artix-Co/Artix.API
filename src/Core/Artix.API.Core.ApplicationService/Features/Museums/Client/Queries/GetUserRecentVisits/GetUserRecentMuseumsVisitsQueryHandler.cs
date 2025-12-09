@@ -1,14 +1,14 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Queries.GetUserRecentMuseumsVisits;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetUserRecentVisits;
 
-using Contract.Features.Caches.Museums;
-using Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
-using Contract.Primitives.Infra.Redis;
-using Contract.Primitives.Models;
+using Primitives;
+using Artix.API.Core.Contract.Features.Caches.Museums;
+using Artix.API.Core.Contract.Primitives.Infra.Redis;
+using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Museums.Client.Queries.GetUserRecentVisits;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Primitives;
 
 // TODO: develop validator for this handler
 internal sealed class
@@ -24,21 +24,21 @@ internal sealed class
         ICacheRepository<List<RecentMuseumDto>> museumCache,
         ILogger<GetUserRecentMuseumsVisitsQueryHandler> logger) : base(httpContextAccessor, userManager)
     {
-        _museumCache = museumCache;
-        _logger = logger;
+        this._museumCache = museumCache;
+        this._logger = logger;
     }
 
     public override async Task<Result<IEnumerable<UserRecentMuseumsVisitDto>>> Handle(
         GetUserRecentMuseumsVisitQuery query,
         CancellationToken cancellationToken)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
+        var user = await this.GetCurrentUserAsync(cancellationToken);
         var cacheKey = $"recent-museums:{user.Id}";
 
-        var cached = await _museumCache.GetAsync(cacheKey);
+        var cached = await this._museumCache.GetAsync(cacheKey);
         if (cached != null)
         {
-            _logger.LogInformation("Cache hit for recent museums UserId={UserId}", user.Id);
+            this._logger.LogInformation("Cache hit for recent museums UserId={UserId}", user.Id);
             var result = cached.Select(dto => new UserRecentMuseumsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,
@@ -47,7 +47,7 @@ internal sealed class
             return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
         }
 
-        _logger.LogInformation("Cache miss for recent museums UserId={UserId}", user.Id);
+        this._logger.LogInformation("Cache miss for recent museums UserId={UserId}", user.Id);
         return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(Enumerable.Empty<UserRecentMuseumsVisitDto>());
     }
 }

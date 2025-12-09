@@ -1,10 +1,10 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
-using Core.Contract.Features.Museums.Queries.GetAllMuseums;
-using Core.Contract.Features.Museums.Queries.GetDetailByIds;
-using Core.Contract.Features.Museums.Queries.GetMuseumObjects;
-using Core.Contract.Features.Museums.Queries.GetUserRecentMuseumsVisits;
+using Core.Contract.Features.Museums.Client.Queries.GetAll;
+using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Core.Contract.Features.Museums.Client.Queries.GetObjects;
+using Core.Contract.Features.Museums.Client.Queries.GetUserRecentVisits;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
