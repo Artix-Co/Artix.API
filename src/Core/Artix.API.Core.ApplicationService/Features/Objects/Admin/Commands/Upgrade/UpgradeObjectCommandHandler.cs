@@ -2,8 +2,8 @@
 
 using Contract.Configs.FileSettings;
 using Contract.Features.Files.Commands;
-using Contract.Features.Objects.Commands;
-using Contract.Features.Objects.Commands.Upgrade;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Admin.Commands.Upgrade;
 using Contract.Primitives.Infra.File;
 using Domain.Entities.File;
 using Domain.Entities.User;

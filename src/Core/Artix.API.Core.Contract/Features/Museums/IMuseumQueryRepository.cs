@@ -6,10 +6,10 @@ using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetKeyStatus;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetObjects;
-using Queries.GetObjects;
 using Primitives.Models;
 using Primitives.Repositories;
 using Domain.Entities.Museum;
+using Objects.Client.Queries.GetAll;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {

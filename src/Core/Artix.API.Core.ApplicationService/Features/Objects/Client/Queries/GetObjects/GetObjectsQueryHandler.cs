@@ -2,8 +2,8 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Museums;
-using Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Objects.Client.Queries.GetAll;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetUserRecentObjectsVisits;
 
 using Primitives.Handlers;
 

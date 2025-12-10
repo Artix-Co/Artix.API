@@ -1,9 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetJournalEntries;
 
 using Contract.Features.Museums;
-using Contract.Features.Museums.Client.Queries;
 using Contract.Features.Museums.Client.Queries.GetJournalEntries;
-using Contract.Features.Museums.Queries;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;

@@ -1,9 +1,9 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdAdmins;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 
-using Domain.Entities.Object.Enums;
-using Museums.Queries.GetObjects;
+using Artix.API.Core.Domain.Entities.Object.Enums;
+using Client.Queries.GetAll;
 
-public record ObjectDetailsByIdAdminDto(
+public sealed record ObjectDetailsByIdDto(
     Guid Id,
     string Name,
     string? GeneralInformation,

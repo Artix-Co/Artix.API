@@ -1,9 +1,9 @@
-namespace Artix.API.Core.Contract.Features.Objects.Commands.CreateAdmin;
+namespace Artix.API.Core.Contract.Features.Objects.Admin.Commands.CreateNewObject;
 
-using Domain.Entities.Object.Enums;
 using Primitives.Handlers;
+using Artix.API.Core.Domain.Entities.Object.Enums;
 
-public sealed record CreateNewObjectAdminCommand(
+public sealed record CreateNewObjectCommand(
     string Name,
     string? GeneralInformation,
     string? SpecializedInformation,

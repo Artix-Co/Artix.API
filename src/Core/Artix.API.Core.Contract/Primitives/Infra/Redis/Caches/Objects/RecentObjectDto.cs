@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Core.Contract.Features.Caches.Objects;
 
 using System.Text.Json.Serialization;
-using Features.Museums.Queries.GetObjects;
+using Features.Objects.Client.Queries.GetAll;
 
 public class RecentObjectDto : RecentBaseEntity
 {

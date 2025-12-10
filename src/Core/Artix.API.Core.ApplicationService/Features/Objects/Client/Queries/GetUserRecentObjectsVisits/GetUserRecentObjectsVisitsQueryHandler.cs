@@ -2,9 +2,9 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.Caches.Objects;
-using Artix.API.Core.Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Objects.Client.Queries.GetUserRecentObjectsVisits;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

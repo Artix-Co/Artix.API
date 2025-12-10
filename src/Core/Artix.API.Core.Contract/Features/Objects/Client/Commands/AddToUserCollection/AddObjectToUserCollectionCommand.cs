@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Commands.AddToUserCollection;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Commands.AddToUserCollection;
 
 using Primitives.Handlers;
 

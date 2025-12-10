@@ -1,15 +1,15 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Admin.Queries.GetObjectDetailsById;
 
 using Primitives;
-using Artix.API.Core.Contract.Features.Objects.Queries;
-using Artix.API.Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdAdmins;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 internal sealed class
-    GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdAdminQuery, ObjectDetailsByIdAdminDto>
+    GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
 
@@ -19,10 +19,10 @@ internal sealed class
         this._objectQueryRepository = objectQueryRepository;
     }
 
-    public override async Task<Result<ObjectDetailsByIdAdminDto>> Handle(GetObjectDetailsByIdAdminQuery query,
+    public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._objectQueryRepository.GetObjectDetailsByIdAdminAsync(query, cancellationToken);
-        return Result<ObjectDetailsByIdAdminDto>.Success(result);
+        return Result<ObjectDetailsByIdDto>.Success(result);
     }
 }

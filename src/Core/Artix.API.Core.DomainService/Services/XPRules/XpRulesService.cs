@@ -1,6 +1,6 @@
 namespace Artix.API.Core.DomainService.Services.XPRules;
 
-using Contract.Features.Objects.Commands;
+using Contract.Features.Objects;
 using Contract.Primitives.Infra.Redis;
 using Domain.Entities.Object;
 using Domain.Entities.User;

@@ -1,12 +1,11 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
-using Core.Contract.Features.Museums.Queries.GetObjects;
-using Core.Contract.Features.Objects.Commands.AddToUserCollection;
-using Core.Contract.Features.Objects.Commands.Scan;
-
-using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
-using Core.Contract.Features.Objects.Queries.GetUserRecentObjectsVisits;
+using Core.Contract.Features.Objects.Client.Commands.AddToUserCollection;
+using Core.Contract.Features.Objects.Client.Commands.Scan;
+using Core.Contract.Features.Objects.Client.Queries.GetAll;
+using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
+using Core.Contract.Features.Objects.Client.Queries.GetUserRecentObjectsVisits;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,10 +37,10 @@ public sealed class ObjectController : ClientBaseController
 
     [Authorize]
     [HttpGet("by-id")]
-    [ProducesResponseType(typeof(Result<ObjectDetailsByIdClientDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailsByIdClientQuery clientQuery)
+    [ProducesResponseType(typeof(Result<ObjectDetailsByIdDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailsByIdQuery query)
     {
-        var result = await this._mediator.Send(clientQuery);
+        var result = await this._mediator.Send(query);
         return this.Ok(result);
     }
 

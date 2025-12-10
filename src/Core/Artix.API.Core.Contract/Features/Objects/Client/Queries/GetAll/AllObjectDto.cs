@@ -1,6 +1,6 @@
-﻿namespace Artix.API.Core.Contract.Features.Museums.Queries.GetObjects;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetAll;
 
-using Domain.Entities.Object.ValueObjects;
+using Artix.API.Core.Domain.Entities.Object.ValueObjects;
 
 public sealed record AllObjectDto(
     Guid Id,

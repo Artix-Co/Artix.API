@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Commands.Upgrade;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Admin.Commands.Upgrade;
 
 using Primitives.Handlers;
 

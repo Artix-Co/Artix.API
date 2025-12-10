@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Commands.Scan;
 
 using Contract.Features.Museums;
-using Contract.Features.Objects.Commands;
-using Contract.Features.Objects.Commands.Scan;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Client.Commands.Scan;
 using Contract.Primitives.Infra.Redis;
 using Domain.Entities.User;
 using Exceptions;

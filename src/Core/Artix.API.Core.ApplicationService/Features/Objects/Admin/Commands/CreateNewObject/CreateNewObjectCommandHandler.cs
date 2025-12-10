@@ -5,18 +5,18 @@ using Primitives;
 using Contract.Configs.FileSettings;
 using Artix.API.Core.Contract.Features.Files.Commands;
 using Artix.API.Core.Contract.Features.Museums;
-using Artix.API.Core.Contract.Features.Objects.Commands;
-using Artix.API.Core.Contract.Features.Objects.Commands.CreateAdmin;
 using Artix.API.Core.Contract.Primitives.Infra.File;
 using Artix.API.Core.Domain.Entities.File;
 using Artix.API.Core.Domain.Entities.Object;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Admin.Commands.CreateNewObject;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateNewObjectAdminCommand>
+internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateNewObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly IMuseumCommandRepository _museumCommandRepository;
@@ -46,7 +46,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 
-    public override async Task<Guid> Handle(CreateNewObjectAdminCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(CreateNewObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userId = user.Id;

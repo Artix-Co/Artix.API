@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
-using Core.Contract.Features.Objects.Commands;
+using Core.Contract.Features.Objects;
 using Core.Domain.Entities.Museum;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;

@@ -3,17 +3,17 @@
 using Exceptions;
 using Primitives;
 using Artix.API.Core.Contract.Features.Caches.Objects;
-using Artix.API.Core.Contract.Features.Objects.Queries;
-using Artix.API.Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
-internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdClientQuery, ObjectDetailsByIdClientDto>
+internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;
@@ -31,14 +31,14 @@ internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObj
         this._logger = logger;
     }
 
-    public override async Task<Result<ObjectDetailsByIdClientDto>> Handle(GetObjectDetailsByIdClientQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var cacheKey = $"recent-objects:{user.Id}";
 
         var details = await this._objectQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
         if (details == null)
-            throw ApplicationServiceNotFoundException.ForEntity(nameof(ObjectDetailsByIdClientDto), query.Id);
+            throw ApplicationServiceNotFoundException.ForEntity(nameof(ObjectDetailsByIdDto), query.Id);
 
         var recentItem = new RecentObjectDto(
             id: details.Id,
@@ -64,6 +64,6 @@ internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObj
             query.Id,
             user.Id);
 
-        return Result<ObjectDetailsByIdClientDto>.Success(details);
+        return Result<ObjectDetailsByIdDto>.Success(details);
     }
 }

@@ -1,11 +1,11 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Objects;
 
 using Core.Contract.Configs.FileSettings;
-using Core.Contract.Features.Museums.Queries.GetObjects;
-using Core.Contract.Features.Objects.Queries;
-using Core.Contract.Features.Objects.Queries.GetAllObjectsAdmins;
-using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdAdmins;
-using Core.Contract.Features.Objects.Queries.GetObjectDetailsByIdClients;
+using Core.Contract.Features.Objects;
+using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
+using Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects;
+using Core.Contract.Features.Objects.Client.Queries.GetAll;
+using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
+using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
+using ObjectDetailsByIdDto = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.ObjectDetailsByIdDto;
 
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
@@ -31,8 +33,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
-    public async Task<ObjectDetailsByIdClientDto> GetDetailsByIdAsync(
-        GetObjectDetailsByIdClientQuery dto,
+    public async Task<ObjectDetailsByIdDto> GetDetailsByIdAsync(
+        GetObjectDetailsByIdQuery dto,
         CancellationToken cancellationToken = default)
     {
         var query = await _queryDbContext.Objects
@@ -76,7 +78,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.ImageFilePath)}"
             : null;
 
-        return new ObjectDetailsByIdClientDto(
+        return new ObjectDetailsByIdDto(
             Id: query.BusinessId,
             Name: query.Name,
             GeneralInformation: query.GeneralInformation,
@@ -88,8 +90,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     }
 
 
-    public async Task<PaginatedResult<AllObjectsAdminDto>> GetAllObjectsAdminAsync(
-        GetAllObjectsAdminQuery dto,
+    public async Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAdminAsync(
+        GetPaginateObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         var pageNumber = Math.Max(dto.PageNumber, 1);
@@ -173,7 +175,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .ToListAsync(cancellationToken);
 
         // تبدیل به AllObjectsAdminDto در سمت کلاینت
-        var resultItems = pagedItems.Select(item => new AllObjectsAdminDto(
+        var resultItems = pagedItems.Select(item => new PaginateObjectsDto(
             item.BusinessId,
             item.Name,
             item.GeneralInformation,
@@ -183,7 +185,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             item.Version
         )).ToList();
 
-        return new PaginatedResult<AllObjectsAdminDto>(
+        return new PaginatedResult<PaginateObjectsDto>(
             Items: resultItems.AsReadOnly(),
             TotalCount: totalCount,
             PageNumber: pageNumber,
@@ -193,8 +195,8 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     }
 
 
-    public async Task<ObjectDetailsByIdAdminDto> GetObjectDetailsByIdAdminAsync(
-        GetObjectDetailsByIdAdminQuery dto, CancellationToken cancellationToken = default)
+    public async Task<Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto> GetObjectDetailsByIdAdminAsync(
+        Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery dto, CancellationToken cancellationToken = default)
     {
         // Validate input
         if (dto?.Id == null)
@@ -267,7 +269,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .ToList();
 
         // Return DTO
-        return new ObjectDetailsByIdAdminDto(
+        return new Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto(
             Id: query.BusinessId,
             Name: query.Name,
             GeneralInformation: query.GeneralInformation,

@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Tests.Integration.Core.DomainService.XPRules;
 
+using API.Core.Contract.Features.Objects;
 using API.Core.Contract.Primitives.Infra.Redis;
-using Artix.API.Core.Contract.Features.Objects.Commands;
 using Artix.API.Core.Domain.Entities.User;
 using Artix.API.Core.DomainService.Interfaces.TierCalculator;
 using Artix.API.Core.DomainService.Interfaces.XPRules;

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Commands.Scan;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Commands.Scan;
 
 using Primitives.Handlers;
 

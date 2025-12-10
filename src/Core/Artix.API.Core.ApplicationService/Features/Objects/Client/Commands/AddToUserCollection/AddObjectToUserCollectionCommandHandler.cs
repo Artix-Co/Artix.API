@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Commands.AddToUserCollection;
 
 using Contract.Features.Collections;
-using Contract.Features.Objects.Commands;
-using Contract.Features.Objects.Commands.AddToUserCollection;
+using Contract.Features.Objects;
+using Contract.Features.Objects.Client.Commands.AddToUserCollection;
 using Contract.Primitives.Repositories;
 using Domain.Entities.User;
 using Exceptions;
