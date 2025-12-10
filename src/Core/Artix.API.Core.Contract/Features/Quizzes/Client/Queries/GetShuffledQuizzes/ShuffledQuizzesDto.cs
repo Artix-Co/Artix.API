@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Quizzes.Queries.GetShuffledQuizzes;
+﻿namespace Artix.API.Core.Contract.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 
 public sealed record ShuffledQuizzesDto(
     Guid Id,

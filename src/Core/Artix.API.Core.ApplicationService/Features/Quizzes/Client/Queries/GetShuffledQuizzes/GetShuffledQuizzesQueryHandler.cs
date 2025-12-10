@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 
 using Primitives;
-using Artix.API.Core.Contract.Features.Quizzes.Queries;
-using Artix.API.Core.Contract.Features.Quizzes.Queries.GetShuffledQuizzes;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Quizzes;
+using Contract.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Mongo.Repositories.Features.Quiz;
 
-using Core.Contract.Features.Quizes.Commands;
+using Core.Contract.Features.Quizzes;
 using Core.Domain.Entities.Quest;
 using Core.Domain.Entities.Quiz;
 using Data.DbContext;

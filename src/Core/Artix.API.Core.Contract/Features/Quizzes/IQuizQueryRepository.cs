@@ -1,7 +1,7 @@
-﻿namespace Artix.API.Core.Contract.Features.Quizzes.Queries;
+﻿namespace Artix.API.Core.Contract.Features.Quizzes;
 
+using Client.Queries.GetShuffledQuizzes;
 using Domain.Entities.Quiz;
-using GetShuffledQuizzes;
 using Primitives.Repositories;
 
 public interface IQuizQueryRepository : IQueryRepository<Quiz>

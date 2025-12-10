@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
-using Core.Contract.Features.Quizzes.Queries.GetShuffledQuizzes;
+using Core.Contract.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;

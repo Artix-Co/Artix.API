@@ -1,11 +1,8 @@
-﻿ 
- 
-
-namespace Artix.API.Infra.Mongo.Repositories.Features.Quiz;
+﻿namespace Artix.API.Infra.Mongo.Repositories.Features.Quiz;
 
 using Artix.API.Core.Domain.Entities.Quiz;
-using Core.Contract.Features.Quizzes.Queries;
-using Core.Contract.Features.Quizzes.Queries.GetShuffledQuizzes;
+using Core.Contract.Features.Quizzes;
+using Core.Contract.Features.Quizzes.Client.Queries.GetShuffledQuizzes;
 using Data.DbContext;
 using Primitives;
 using Microsoft.Extensions.Logging;

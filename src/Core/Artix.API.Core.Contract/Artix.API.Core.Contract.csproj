@@ -30,5 +30,6 @@
     <Folder Include="Features\Objects\Admin\Commands\" />
     <Folder Include="Features\Objects\Admin\Queries\" />
     <Folder Include="Features\Objects\Client\Commands\" />
+    <Folder Include="Features\Quizzes\Client\" />
   </ItemGroup>
 </Project>

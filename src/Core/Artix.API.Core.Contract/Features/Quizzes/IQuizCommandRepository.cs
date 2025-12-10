@@ -1,7 +1,6 @@
-﻿namespace Artix.API.Core.Contract.Features.Quizes.Commands;
+﻿namespace Artix.API.Core.Contract.Features.Quizzes;
 
 using Primitives.Repositories;
-using Domain.Entities.Quest;
 using Domain.Entities.Quiz;
 
 public interface IQuizCommandRepository : ICommandRepository<Quiz>
