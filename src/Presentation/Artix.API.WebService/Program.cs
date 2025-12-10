@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using Artix.API.Core.ApplicationService.Exceptions;
+using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
 using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
@@ -8,6 +9,7 @@ using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.Orchestration.ServiceDefaults;
 using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.FileProviders;
@@ -15,6 +17,9 @@ using Serilog;
 using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
 
 // ------------------------------------
 // Serilog Configuration
@@ -46,7 +51,16 @@ builder.Services.AddSignalR();
 var environment = builder.Environment;
 bool isDevelopmentEnv = environment.IsDevelopment();
 
-builder.Services.AddArtixServices(builder.Configuration, isDevelopmentEnv);
+var keyStorePathKeys = isDevelopmentEnv
+    ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
+    : "/app/dataprotection-keys";
+
+builder.Services.AddDataProtection()
+    .SetApplicationName("Artix")
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStorePathKeys));
+
+
+builder.Services.AddArtixServices(builder.Configuration);
 
 // ------------------------------------
 // Kestrel
@@ -162,9 +176,7 @@ using (var scope = app.Services.CreateScope())
     await mongoSeeder.SeedQuizzesAsync();
 }
 
-// --------------------------------------------------
-// Global Exception Handler
-// --------------------------------------------------
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -186,19 +198,32 @@ app.UseExceptionHandler(errorApp =>
             "Unhandled error. Path: {Path}, Status: {StatusCode}",
             feature?.Path, status);
 
-        var json = new
+        var baseResponse = new ErrorResponse
         {
-            error = ex?.Message,
-            exception = ex?.GetType().Name,
-            status,
-            path = feature?.Path
-#if DEBUG
-            ,
-            stack = ex?.StackTrace
-#endif
+            Error = ex?.Message,
+            Exception = ex?.GetType().Name,
+            Status = status,
+            Path = feature?.Path
         };
 
-        await context.Response.WriteAsJsonAsync(json);
+        // Only include stack trace in Development
+        if (isDevelopmentEnv)
+        {
+            var detailed = new
+            {
+                baseResponse.Error,
+                baseResponse.Exception,
+                baseResponse.Status,
+                baseResponse.Path,
+                Stack = ex?.ToString()
+            };
+
+            await context.Response.WriteAsJsonAsync(detailed);
+            return;
+        }
+
+        // Production: no stack, clean output
+        await context.Response.WriteAsJsonAsync(baseResponse);
     });
 });
 

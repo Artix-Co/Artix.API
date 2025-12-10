@@ -131,9 +131,12 @@ internal sealed class ApiVersionCheckMiddleware
     {
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
-        var wrapped = new BaseApiResponse<object> { IsSuccess = false, Message = message, Errors = null };
-        await context.Response.WriteAsync(JsonSerializer.Serialize(wrapped));
+
+        var result = Result<object>.Failure(message);
+
+        await context.Response.WriteAsJsonAsync(result);
     }
+
 
     private bool TryParseVersion(string versionString, out AppVersion clientVersion)
     {

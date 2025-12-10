@@ -42,16 +42,9 @@ public sealed class CustomerApiClient
 
 public static class HostingExtension
 {
-    public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration,
-        bool isDevelopmentEnvironment)
+    public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var keyStorePathKeys = isDevelopmentEnvironment
-            ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
-            : "/app/dataprotection-keys";
 
-        services.AddDataProtection()
-            .SetApplicationName("Artix")
-            .PersistKeysToFileSystem(new DirectoryInfo(keyStorePathKeys));
 
         services.AddResponseCompression(options =>
         {

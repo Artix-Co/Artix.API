@@ -1,28 +1,25 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Models;
 public sealed class Result<T>
 {
-    public bool IsSuccess { get; }
-    public T? Data { get; }
-    public string? ErrorMessage { get; }
-    public Exception? Exception { get; }
+    public bool IsSuccess { get; init; }
+    public T? Data { get; init; }
+    public string? ErrorMessage { get; init; }
 
-    private Result(bool isSuccess, T? data = default, string? errorMessage = null, Exception? exception = null)
+    private Result(bool isSuccess, T? data = default, string? errorMessage = null)
     {
-        this.IsSuccess = isSuccess;
-        this.Data = data;
-        this.ErrorMessage = errorMessage;
-        this.Exception = exception;
+        IsSuccess = isSuccess;
+        Data = data;
+        ErrorMessage = errorMessage;
     }
 
-    public static Result<T> Success(T data) => new Result<T>(true, data);
+    public static Result<T> Success(T data)
+        => new Result<T>(true, data);
 
-    public static Result<T> Failure(string errorMessage, Exception? exception = null)
-        => new Result<T>(false, default, errorMessage, exception);
+    public static Result<T> Failure(string errorMessage)
+        => new Result<T>(false, default, errorMessage);
 
     public override string ToString()
-    {
-        return this.IsSuccess
-            ? $"Success: {this.Data}"
-            : $"Failure: {this.ErrorMessage}, Exception: {this.Exception?.Message}";
-    }
+        => IsSuccess
+            ? $"Success: {Data}"
+            : $"Failure: {ErrorMessage}";
 }

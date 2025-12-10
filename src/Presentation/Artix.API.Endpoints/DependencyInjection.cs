@@ -16,15 +16,20 @@ public static class DependencyInjection
     public static void AddEndpointsServices(this IServiceCollection services)
     {
         services.AddControllers(options =>
-        {
-            options.Conventions.Add(new RouteTokenTransformerConvention(
-                new LowercaseParameterTransformer()));
-        }).AddJsonOptions(o => o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
+            {
+                options.Conventions.Add(new RouteTokenTransformerConvention(
+                    new LowercaseParameterTransformer()));
+            })
+            .AddJsonOptions(o =>
+            {
+                o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
 
         services.AddSwaggerGen(options =>
         {
-            
+            // Fix for duplicate SchemaId collisions
+            options.CustomSchemaIds(type => type.FullName);
+
             options.AddSecurityDefinition("Bearer",
                 new OpenApiSecurityScheme
                 {
@@ -36,10 +41,10 @@ public static class DependencyInjection
                     Description = "Please enter JWT with Bearer into field"
                 });
 
-
             options.OperationFilter<AuthorizeCheckOperationFilter>();
         });
     }
+
 
 
     public static void UseCustomMiddlewares(this IApplicationBuilder app, IWebHostEnvironment env)
