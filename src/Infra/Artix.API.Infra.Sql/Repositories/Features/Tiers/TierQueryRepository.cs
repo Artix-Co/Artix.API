@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Infra.Sql.Repositories.Features.Tiers;
 
-using Core.Contract.Features.Tiers.Queries;
-using Core.Contract.Features.Tiers.Queries.GetAll;
+using Core.Contract.Features.Tiers;
+using Core.Contract.Features.Tiers.Client.Queries.GetAll;
 using Core.Domain.Entities.TierConfig;
 using Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -21,10 +21,7 @@ public sealed class TierQueryRepository : QueryRepository<TierConfig>, ITierQuer
     {
         return await this._queryDbContext.TierConfigs
             .OrderByDescending(c => c.Priority)
-            .Select(tc => new AllTierDto(
-                tc.Id,
-                tc.BusinessId,
-                tc.MinScanCount,
+            .Select(tc => new AllTierDto(tc.MinScanCount,
                 tc.RequiredUpgraded,
                 tc.RequiredInCollection,
                 tc.MinDaysSinceAcquired,

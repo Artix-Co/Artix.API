@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Tiers.Queries.GetAll;
+﻿namespace Artix.API.Core.Contract.Features.Tiers.Client.Queries.GetAll;
 
 using Primitives.Handlers;
 

@@ -1,8 +1,8 @@
 ﻿namespace Artix.API.Core.DomainService.Services.TierCalculator;
 
 using System.Security.Claims;
-using Contract.Features.Tiers.Queries;
-using Contract.Features.Tiers.Queries.GetAll;
+using Contract.Features.Tiers;
+using Contract.Features.Tiers.Client.Queries.GetAll;
 using Domain.Entities.Museum;
 using Domain.Entities.Object;
 using Domain.Entities.User;

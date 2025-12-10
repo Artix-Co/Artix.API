@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Core.Contract.Features.Tiers.Queries;
+﻿namespace Artix.API.Core.Contract.Features.Tiers;
 
-using Domain.Entities.TierConfig;
-using GetAll;
+using Client.Queries.GetAll;
 using Primitives.Repositories;
+using Domain.Entities.TierConfig;
 
 public interface ITierQueryRepository : IQueryRepository<TierConfig>
 {

@@ -1,10 +1,8 @@
-﻿namespace Artix.API.Core.Contract.Features.Tiers.Queries.GetAll;
+﻿namespace Artix.API.Core.Contract.Features.Tiers.Client.Queries.GetAll;
 
-using Domain.Entities.Object.Enums;
+using Artix.API.Core.Domain.Entities.Object.Enums;
 
 public sealed record AllTierDto(
-    long Id,
-    Guid BusinessId,
     int MinScanCount,
     bool? RequiredUpgraded,
     bool? RequiredInCollection,
