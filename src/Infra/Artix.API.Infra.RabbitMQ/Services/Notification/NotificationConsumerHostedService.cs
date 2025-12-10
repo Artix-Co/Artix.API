@@ -2,90 +2,128 @@
 
 using System.Text.Json;
 using Core.Contract.Primitives.Infra.RabbitMQ;
-using Services;
-using Sql.Data.DbContexts;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Sql.Data.DbContexts;
 
 internal sealed class NotificationConsumerHostedService : BackgroundService
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IConnection _connection;
-    private readonly IChannel _channel;
+    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly ILogger<NotificationConsumerHostedService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
+    private IChannel? _channel;
+
     public NotificationConsumerHostedService(
-        RabbitMqConnectionFactory factory,
+        IConnection connection,
         IHubContext<NotificationHub> hubContext,
+        ILogger<NotificationConsumerHostedService> logger,
         IServiceScopeFactory scopeFactory)
     {
-        this._hubContext = hubContext;
-        this._scopeFactory = scopeFactory;
-        this._connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        this._channel = this._connection.CreateChannelAsync().GetAwaiter().GetResult();
-
-        // تعریف exchange
-        this._channel.ExchangeDeclareAsync("notifications", ExchangeType.Topic, durable: true);
-
-        // تعریف queue برای کاربران
-        this._channel.QueueDeclareAsync("user_notifications", durable: true, exclusive: false, autoDelete: false);
-        this._channel.QueueBindAsync("user_notifications", "notifications", "notifications.user.*");
-
-        // تعریف queue برای broadcast
-        this._channel.QueueDeclareAsync("all_notifications", durable: true, exclusive: false, autoDelete: false);
-        this._channel.QueueBindAsync("all_notifications", "notifications", "notifications.all");
+        _connection = connection;
+        _hubContext = hubContext;
+        _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var consumer = new AsyncEventingBasicConsumer(this._channel);
-        consumer.ReceivedAsync += async (model, ea) =>
+        _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
+
+        await DeclareTopologyAsync(stoppingToken);
+
+        var consumer = new AsyncEventingBasicConsumer(_channel);
+        consumer.ReceivedAsync += async (_, ea) =>
         {
-            var body = ea.Body.ToArray();
-            var message = JsonSerializer.Deserialize<NotificationMessage>(body);
-            if (message == null) return;
-
-            if (ea.RoutingKey.StartsWith("notifications.user."))
+            try
             {
-                await this._hubContext.Clients.Group(message.UserId.ToString())
-                    .SendAsync("ReceiveNotification", message, cancellationToken);
-            }
-            else if (ea.RoutingKey == "notifications.all")
-            {
-                await this._hubContext.Clients.All.SendAsync("ReceiveNotification", message, cancellationToken);
-            }
+                var message = JsonSerializer.Deserialize<NotificationMessage>(ea.Body.Span);
+                if (message == null) return;
 
-            using var scope = this._scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
-            var notification = await dbContext.Notifications
+                if (ea.RoutingKey == "notifications.all")
+                {
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", message, stoppingToken);
+                }
+                else if (ea.RoutingKey.StartsWith("notifications.user."))
+                {
+                    var userId = ea.RoutingKey["notifications.user.".Length..];
+                    await _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", message, stoppingToken);
+                }
+
+                await TryMarkAsDeliveredAsync(message.NotificationId, stoppingToken);
+                await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing notification message");
+                await _channel.BasicNackAsync(ea.DeliveryTag, false, true, stoppingToken);
+            }
+        };
+
+        await _channel.BasicConsumeAsync("all_notifications", false, consumer, stoppingToken);
+        await _channel.BasicConsumeAsync("user_notifications", false, consumer, stoppingToken);
+
+        await Task.Delay(Timeout.Infinite, stoppingToken);
+    }
+
+    private async Task DeclareTopologyAsync(CancellationToken ct)
+    {
+        await _channel.ExchangeDeclareAsync("notifications", ExchangeType.Topic, durable: true, cancellationToken: ct);
+
+        await _channel.QueueDeclareAsync("all_notifications", durable: true, exclusive: false, autoDelete: false,
+            cancellationToken: ct);
+        await _channel.QueueDeclareAsync("user_notifications", durable: true, exclusive: false, autoDelete: false,
+            cancellationToken: ct);
+
+        await _channel.QueueBindAsync("all_notifications", "notifications", "notifications.all", cancellationToken: ct);
+        await _channel.QueueBindAsync("user_notifications", "notifications", "notifications.user.*",
+            cancellationToken: ct);
+    }
+
+    private async Task TryMarkAsDeliveredAsync(Guid notificationId, CancellationToken ct)
+    {
+        try
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+
+            var notification = await db.Notifications
                 .Include(n => n.UserNotifications)
-                .FirstOrDefaultAsync(n => n.BusinessId == message.NotificationId, cancellationToken);
+                .FirstOrDefaultAsync(n => n.BusinessId == notificationId, ct);
+
             if (notification != null)
             {
                 notification.MarkAsSent();
-                await dbContext.SaveChangesAsync(cancellationToken);
+                await db.SaveChangesAsync(ct);
             }
-
-            await this._channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken);
-        };
-
-        await this._channel.BasicConsumeAsync(queue: "user_notifications", autoAck: false, consumer: consumer,
-            cancellationToken);
-        await this._channel.BasicConsumeAsync(queue: "all_notifications", autoAck: false, consumer: consumer,
-            cancellationToken);
-
-        await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to mark notification {Id} as delivered", notificationId);
+        }
     }
 
-
-    public override void Dispose()
+    public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        this._channel.CloseAsync();
-        this._connection.CloseAsync();
-        base.Dispose();
+        if (_channel != null)
+        {
+            try
+            {
+                await _channel.CloseAsync(cancellationToken);
+            }
+            catch
+            {
+            }
+
+            _channel.Dispose();
+        }
+
+        await base.StopAsync(cancellationToken);
     }
 }

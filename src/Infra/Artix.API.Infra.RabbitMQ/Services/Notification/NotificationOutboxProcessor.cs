@@ -11,83 +11,93 @@ internal sealed class NotificationOutboxProcessor : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly INotificationProducer _producer;
+    private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
 
-    public NotificationOutboxProcessor(IServiceScopeFactory scopeFactory, INotificationProducer producer)
+    public NotificationOutboxProcessor(
+        IServiceScopeFactory scopeFactory,
+        INotificationProducer producer)
     {
         _scopeFactory = scopeFactory;
-        this._producer = producer;
+        _producer = producer;
     }
 
-
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
 
-            var pendingNotifications = await dbContext.Notifications
+            var notifications = await db.Notifications
                 .Include(n => n.UserNotifications)
-                .Where(n =>
+                .Where(n => 
                     n.Status == NotificationStatus.Pending &&
-                    (n.ExpirationDate == null || n.ExpirationDate > DateTime.UtcNow)
-                )
-                .OrderBy(n => n.Priority)
+                    (n.ExpirationDate == null || n.ExpirationDate > DateTime.UtcNow))
+                .OrderByDescending(n => n.Priority)
                 .ThenBy(n => n.CreatedAt)
                 .Take(100)
-                .ToListAsync(cancellationToken);
+                .ToListAsync(stoppingToken);
 
-            foreach (var notification in pendingNotifications)
+            if (!notifications.Any())
+            {
+                await Task.Delay(_interval, stoppingToken);
+                continue;
+            }
+
+            foreach (var n in notifications)
             {
                 try
                 {
-                    if (notification.IsBroadcast)
+                    if (n.IsBroadcast)
                     {
-                        var message = new NotificationMessage(
-                            notification.BusinessId,
+                        var msg = new NotificationMessage(
+                            n.BusinessId,
                             null,
-                            notification.Title,
-                            notification.Body,
-                            notification.Type,
-                            notification.CreatedAt,
-                            notification.Metadata
-                        );
-                        string routingKey = "notifications.all";
+                            n.Title,
+                            n.Body,
+                            n.Type,
+                            n.CreatedAt,
+                            n.Metadata);
 
-                        await _producer.PublishAsync("notifications", routingKey, message, cancellationToken);
+                        await _producer.PublishAsync(
+                            "notifications",
+                            "notifications.all",
+                            msg,
+                            stoppingToken);
 
-                        notification.MarkAsSent();
+                        n.MarkAsSent();
                     }
                     else
                     {
-                        foreach (var userNotification in notification.UserNotifications)
+                        foreach (var un in n.UserNotifications)
                         {
-                            var message = new NotificationMessage(
-                                notification.BusinessId,
-                                userNotification.UserId,
-                                notification.Title,
-                                notification.Body,
-                                notification.Type,
-                                notification.CreatedAt,
-                                notification.Metadata
-                            );
-                            string routingKey = $"notifications.user.{userNotification.UserId}";
+                            var msg = new NotificationMessage(
+                                n.BusinessId,
+                                un.UserId,
+                                n.Title,
+                                n.Body,
+                                n.Type,
+                                n.CreatedAt,
+                                n.Metadata);
 
-                            await _producer.PublishAsync("notifications", routingKey, message, cancellationToken);
+                            await _producer.PublishAsync(
+                                "notifications",
+                                $"notifications.user.{un.UserId}",
+                                msg,
+                                stoppingToken);
                         }
 
-                        notification.MarkAsSent();
+                        n.MarkAsSent();
                     }
                 }
                 catch (Exception ex)
                 {
-                    var errorMessage = ex.Message;
-                    notification.MarkAsFailed(errorMessage);
+                    n.MarkAsFailed(ex.Message);
                 }
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            await db.SaveChangesAsync(stoppingToken);
+            await Task.Delay(_interval, stoppingToken);
         }
     }
 }

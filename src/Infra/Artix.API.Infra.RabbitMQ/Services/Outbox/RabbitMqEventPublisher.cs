@@ -3,92 +3,51 @@
 using System.Text.Json;
 using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Domain.DomainEvents;
-using Core.Domain.Entities.Object.Events;
 using global::RabbitMQ.Client;
-using global::RabbitMQ.Client.Events;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 
 internal sealed class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
 {
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IConnection _connection;
-    private readonly IChannel _channel;
-    private bool _disposed;
+    private IChannel? _channel;
     private const string Exchange = "domain-events";
 
-    public RabbitMqEventPublisher(IServiceScopeFactory scopeFactory)
+    public RabbitMqEventPublisher(IConnection connection)
     {
-        _scopeFactory = scopeFactory;
+        _connection = connection;
+    }
 
-        using var scope = _scopeFactory.CreateScope();
-        var factory = scope.ServiceProvider.GetRequiredService<RabbitMqConnectionFactory>();
-        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
-        _channel.ExchangeDeclareAsync(
+    private async Task<IChannel> GetChannelAsync(CancellationToken ct = default)
+    {
+        if (_channel is { IsOpen: true })
+            return _channel;
+
+        _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
+
+        await _channel.ExchangeDeclareAsync(
             exchange: Exchange,
             type: ExchangeType.Topic,
             durable: true,
-            autoDelete: false,
-            arguments: null);
+            cancellationToken: ct);
+
+        return _channel;
     }
 
-    public async Task PublishAsync(IDomainEvent @event, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(IDomainEvent @event, CancellationToken ct = default)
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(RabbitMqEventPublisher));
-
-        var eventType = @event.GetType().Name;
-        var routingKey = $"domain.{eventType}";
+        var channel = await GetChannelAsync(ct);
+        var routingKey = $"domain.{@event.GetType().Name}";
         var body = JsonSerializer.SerializeToUtf8Bytes(@event);
+        var props = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
 
-
-        var properties = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
-
-
-        await _channel.BasicPublishAsync(
-            Exchange,
-            routingKey,
-            mandatory: true, 
-            properties,
-            body,
-            cancellationToken
-        );
+        await channel.BasicPublishAsync(Exchange, routingKey, true, props, body, ct);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
-            return;
-
-        _disposed = true;
-
-        try
+        if (_channel != null)
         {
-            await this._channel.CloseAsync();
+            try { await _channel.CloseAsync(); } catch { }
+            _channel.Dispose();
         }
-        catch
-        {
-            // نادیده گرفتن خطاها
-        }
-        finally
-        {
-            this._channel.Dispose();
-        }
-
-        try
-        {
-            await this._connection.CloseAsync();
-        }
-        catch
-        {
-            // نادیده گرفتن خطاها
-        }
-        finally
-        {
-            this._connection.Dispose();
-        }
-
-        GC.SuppressFinalize(this);
     }
 }

@@ -11,14 +11,14 @@ using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
-
-
 
 
 // ------------------------------------
@@ -67,7 +67,6 @@ builder.Services.AddArtixServices(builder.Configuration);
 // ------------------------------------
 builder.WebHost.UseKestrel(options =>
 {
-    options.ListenAnyIP(80, listen => { listen.Protocols = HttpProtocols.Http1AndHttp2; });
     options.AddServerHeader = false;
 
     options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024;
@@ -81,10 +80,21 @@ builder.WebHost.UseKestrel(options =>
     options.Limits.MaxResponseBufferSize = 1024 * 1024;
     options.AllowSynchronousIO = false;
 
+
+    options.ListenAnyIP(80, listen =>
+    {
+        listen.Protocols = HttpProtocols.Http1AndHttp2;
+        Log.Information("✔ Kestrel listening on port {Port}", 80);
+    });
+
     if (isDevelopmentEnv)
     {
-        options.ListenLocalhost(5274);
-        options.ListenLocalhost(7013, x => x.UseHttps());
+        options.ListenLocalhost(5274, listen => Log.Information("✔ Kestrel listening on port {Port}", 5274));
+        options.ListenLocalhost(7013, listen =>
+        {
+            listen.UseHttps();
+            Log.Information("✔ Kestrel listening on HTTPS port {Port}", 7013);
+        });
     }
 });
 
@@ -200,10 +210,7 @@ app.UseExceptionHandler(errorApp =>
 
         var baseResponse = new ErrorResponse
         {
-            Error = ex?.Message,
-            Exception = ex?.GetType().Name,
-            Status = status,
-            Path = feature?.Path
+            Error = ex?.Message, Exception = ex?.GetType().Name, Status = status, Path = feature?.Path
         };
 
         // Only include stack trace in Development

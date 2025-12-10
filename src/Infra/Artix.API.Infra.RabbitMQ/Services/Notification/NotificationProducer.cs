@@ -4,39 +4,54 @@ using System.Text.Json;
 using Core.Contract.Primitives.Infra.RabbitMQ;
 using global::RabbitMQ.Client;
 
-internal sealed class NotificationProducer : INotificationProducer, IDisposable
+internal sealed class NotificationProducer : INotificationProducer, IAsyncDisposable
 {
     private readonly IConnection _connection;
-    private readonly IChannel _channel;
-    private bool _disposed = false;
+    private IChannel? _channel;
 
-    public NotificationProducer(RabbitMqConnectionFactory factory)
+    public NotificationProducer(IConnection connection)
     {
-        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
-        _channel.ExchangeDeclareAsync("notifications", ExchangeType.Topic, durable: true).GetAwaiter().GetResult();
+        _connection = connection;
     }
 
-    public async Task PublishAsync<T>(string exchange, string routingKey, T message,
-        CancellationToken cancellationToken = default)
+    private async Task<IChannel> GetChannelAsync(CancellationToken ct = default)
     {
+        if (_channel is { IsOpen: true })
+            return _channel;
+
+        _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
+
+        await _channel.ExchangeDeclareAsync(
+            exchange: "notifications",
+            type: ExchangeType.Topic,
+            durable: true,
+            cancellationToken: ct);
+
+        return _channel;
+    }
+
+    public async Task PublishAsync<T>(string exchange, string routingKey, T message, CancellationToken ct = default)
+    {
+        var channel = await GetChannelAsync(ct);
         var body = JsonSerializer.SerializeToUtf8Bytes(message);
-        var properties = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
+        var props = new BasicProperties { DeliveryMode = DeliveryModes.Persistent };
 
-        await _channel.BasicPublishAsync(
-            exchange,
-            routingKey,
-            mandatory: true, // اگر پیام غیرقابل روتینگ باشه، برگردانده می‌شه
-            properties,
-            body,
-            cancellationToken
-        );
+        await channel.BasicPublishAsync(exchange, routingKey, true, props, body, ct);
     }
 
-
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        this._connection.Dispose();
-        this._channel.Dispose();
+        if (_channel != null)
+        {
+            try
+            {
+                await _channel.CloseAsync();
+            }
+            catch
+            {
+            }
+
+            _channel.Dispose();
+        }
     }
 }

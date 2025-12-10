@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
-using Artix.API.Core.Domain.DomainEvents;
+using Core.Domain.DomainEvents;
 using MediatR;
 
 public sealed class DomainEventNotification : INotification

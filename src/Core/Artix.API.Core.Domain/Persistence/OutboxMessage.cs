@@ -8,4 +8,6 @@ public class OutboxMessage
     public string Status { get; set; } = "Pending";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ProcessedAt { get; set; }
+    public int RetryCount { get; set; }
+    public string Error { get; set; } = string.Empty;
 }
