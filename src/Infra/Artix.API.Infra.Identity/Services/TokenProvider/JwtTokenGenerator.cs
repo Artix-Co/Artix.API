@@ -5,7 +5,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Core.Contract.Configs.Authentication;
-using Core.Contract.Features.Tokens;
 using Core.Contract.Primitives.Infra.Identity;
 using Core.Domain.Entities.User;
 using Core.Contract.Primitives.Infra.Redis;

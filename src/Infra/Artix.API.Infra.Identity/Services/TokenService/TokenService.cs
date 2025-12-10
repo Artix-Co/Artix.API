@@ -1,6 +1,5 @@
 ﻿namespace Artix.API.Infra.Identity.Services.TokenService;
 
-using Core.Contract.Features.Tokens;
 using Core.Domain.Entities.User;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Primitives.Infra.Identity;

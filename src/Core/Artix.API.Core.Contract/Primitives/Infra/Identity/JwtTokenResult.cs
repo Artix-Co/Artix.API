@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Tokens;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Identity;
 
 public sealed class JwtTokenResult
 {

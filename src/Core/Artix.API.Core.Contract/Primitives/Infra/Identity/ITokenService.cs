@@ -1,7 +1,5 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Infra.Identity;
 
-using Features.Tokens;
-
 public interface ITokenService
 {
     Task<JwtTokenResult> ReNewAccessTokenAsync(string refreshToken,
