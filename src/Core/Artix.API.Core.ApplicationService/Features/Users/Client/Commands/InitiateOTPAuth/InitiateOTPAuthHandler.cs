@@ -2,8 +2,8 @@
 
 using Primitives;
 using Artix.API.Core.Contract.Features.OTPs.Commands;
-using Artix.API.Core.Contract.Features.Users.Commands.InitiateOTPAuth;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
+using Contract.Features.Users.Client.Commands.InitiateOTPAuth;
 using Domain.Entities.OTP;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;

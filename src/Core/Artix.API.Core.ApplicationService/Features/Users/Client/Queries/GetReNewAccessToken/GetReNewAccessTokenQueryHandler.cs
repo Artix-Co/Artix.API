@@ -1,9 +1,9 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Queries.GetReNewAccessToken;
 
 using Primitives;
-using Artix.API.Core.Contract.Features.Users.Queries.GetReNewAccessToken;
 using Artix.API.Core.Contract.Primitives.Infra.Identity;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Users.Client.Queries.GetReNewAccessToken;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

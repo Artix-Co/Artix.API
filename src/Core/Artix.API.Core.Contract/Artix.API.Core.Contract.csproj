@@ -25,6 +25,7 @@
 
 
   <ItemGroup>
+    <Folder Include="Features\Collections\Client\Commands\" />
     <Folder Include="Features\Museums\Admin\Queries\" />
     <Folder Include="Features\Museums\Client\" />
     <Folder Include="Features\Objects\Admin\Commands\" />
@@ -32,5 +33,9 @@
     <Folder Include="Features\Objects\Client\Commands\" />
     <Folder Include="Features\Quizzes\Client\" />
     <Folder Include="Features\Tiers\Client\" />
+    <Folder Include="Features\Users\Admin\Commands\" />
+    <Folder Include="Features\Users\Admin\Queries\" />
+    <Folder Include="Features\Users\Client\Commands\" />
+    <Folder Include="Features\Users\Client\Queries\" />
   </ItemGroup>
 </Project>

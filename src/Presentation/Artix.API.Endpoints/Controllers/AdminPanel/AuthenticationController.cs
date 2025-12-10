@@ -1,8 +1,8 @@
 namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
-using Core.Contract.Features.Users.Commands.RegisterAdmins;
-using Core.Contract.Features.Users.Queries.Login;
+using Core.Contract.Features.Users.Admin.Commands.Register;
+using Core.Contract.Features.Users.Admin.Queries.GetLogin;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -17,7 +17,7 @@ public sealed class AuthenticationController: AdminBaseController
     
     [HttpPost("register")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterAdminCommand command)
+    public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);

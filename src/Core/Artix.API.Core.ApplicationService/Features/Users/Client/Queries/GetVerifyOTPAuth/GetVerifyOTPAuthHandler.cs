@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Queries.GetVerifyOTPAuth;
 
 using System.Security.Claims;
-using Contract.Features.Users.Queries.VerifyOTPAuth;
+using Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
 using Contract.Primitives.Infra.Identity;
 using Contract.Primitives.Infra.Redis;
 using Contract.Primitives.Models;

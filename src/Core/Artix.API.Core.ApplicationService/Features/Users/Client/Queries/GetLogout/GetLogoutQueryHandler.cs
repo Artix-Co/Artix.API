@@ -2,9 +2,9 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using Primitives;
-using Artix.API.Core.Contract.Features.Users.Queries.Logout;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
+using Contract.Features.Users.Client.Queries.GetLogout;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;

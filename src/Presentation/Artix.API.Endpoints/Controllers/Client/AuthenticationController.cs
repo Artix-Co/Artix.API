@@ -1,12 +1,10 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
 using Common;
-using Core.Contract.Features.Users.Commands.InitiateOTPAuth;
-using Core.Contract.Features.Users.Commands.RegisterAdmins;
-using Core.Contract.Features.Users.Queries.GetReNewAccessToken;
-using Core.Contract.Features.Users.Queries.Login;
-using Core.Contract.Features.Users.Queries.Logout;
-using Core.Contract.Features.Users.Queries.VerifyOTPAuth;
+using Core.Contract.Features.Users.Client.Commands.InitiateOTPAuth;
+using Core.Contract.Features.Users.Client.Queries.GetLogout;
+using Core.Contract.Features.Users.Client.Queries.GetReNewAccessToken;
+using Core.Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

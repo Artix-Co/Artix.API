@@ -1,8 +1,8 @@
 namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
-using Core.Contract.Features.Users.Queries.GetAdminUserProfile;
-using Core.Contract.Features.Users.Queries.GetAllUsersAdmin;
+using Core.Contract.Features.Users.Admin.Queries.GetPaginateUsers;
+using Core.Contract.Features.Users.Admin.Queries.GetUserProfile;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,8 +17,8 @@ public sealed class UserController : AdminBaseController
 
     [Authorize]
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(Result<AdminUserProfileDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfileAsync([FromQuery] GetAdminUserProfileQuery query)
+    [ProducesResponseType(typeof(Result<UserProfileDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -27,8 +27,8 @@ public sealed class UserController : AdminBaseController
     
     [Authorize]
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<AllUsersAdminDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllUsersAsync([FromQuery] GetAllUsersAdminQuery query)
+    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateUsersDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsersAsync([FromQuery] GetPaginateUsersQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

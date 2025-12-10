@@ -3,7 +3,7 @@
 using Primitives;
 using Contract.Configs.FileSettings;
 using Artix.API.Core.Contract.Features.Files.Commands;
-using Artix.API.Core.Contract.Features.Users.Commands.Modify;
+using Contract.Features.Users.Client.Commands.Modify;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
