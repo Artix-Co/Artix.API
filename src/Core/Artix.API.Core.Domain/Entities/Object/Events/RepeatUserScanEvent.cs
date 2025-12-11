@@ -2,7 +2,7 @@
 
 using DomainEvents;
 
-public record RepeatUserScanEvent(
+public sealed record RepeatUserScanEvent(
     Guid ObjectBusinessId,
     Guid UserBusinessId,
     long UserId,

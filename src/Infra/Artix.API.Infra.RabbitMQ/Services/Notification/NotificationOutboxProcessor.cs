@@ -5,20 +5,24 @@ using Core.Domain.Entities.Notification.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Sql.Data.DbContexts;
 
 internal sealed class NotificationOutboxProcessor : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly INotificationProducer _producer;
+    private readonly ILogger<NotificationOutboxProcessor> _logger;
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
 
     public NotificationOutboxProcessor(
         IServiceScopeFactory scopeFactory,
-        INotificationProducer producer)
+        INotificationProducer producer,
+        ILogger<NotificationOutboxProcessor> logger)
     {
         _scopeFactory = scopeFactory;
         _producer = producer;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,71 +32,88 @@ internal sealed class NotificationOutboxProcessor : BackgroundService
             await using var scope = _scopeFactory.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
 
-            var notifications = await db.Notifications
+            var pendingNotifications = await db.Notifications
                 .Include(n => n.UserNotifications)
-                .Where(n => 
+                .Where(n =>
                     n.Status == NotificationStatus.Pending &&
                     (n.ExpirationDate == null || n.ExpirationDate > DateTime.UtcNow))
-                .OrderByDescending(n => n.Priority)
+                .OrderByDescending(n => n.Priority) // بهتره اولویت بالا اول بره
                 .ThenBy(n => n.CreatedAt)
                 .Take(100)
                 .ToListAsync(stoppingToken);
 
-            if (!notifications.Any())
+            if (!pendingNotifications.Any())
             {
                 await Task.Delay(_interval, stoppingToken);
                 continue;
             }
 
-            foreach (var n in notifications)
+            foreach (var notification in pendingNotifications)
             {
                 try
                 {
-                    if (n.IsBroadcast)
+                    if (notification.IsBroadcast)
                     {
-                        var msg = new NotificationMessage(
-                            n.BusinessId,
+                        var message = new NotificationMessage(
+                            notification.BusinessId,
                             null,
-                            n.Title,
-                            n.Body,
-                            n.Type,
-                            n.CreatedAt,
-                            n.Metadata);
+                            notification.Title,
+                            notification.Body,
+                            notification.Type,
+                            notification.CreatedAt,
+                            notification.Metadata);
 
-                        await _producer.PublishAsync(
-                            "notifications",
-                            "notifications.all",
-                            msg,
-                            stoppingToken);
-
-                        n.MarkAsSent();
+                        await _producer.PublishAsync("notifications", "notifications.all", message, stoppingToken);
+                        notification.MarkAsSent();
                     }
                     else
                     {
-                        foreach (var un in n.UserNotifications)
-                        {
-                            var msg = new NotificationMessage(
-                                n.BusinessId,
-                                un.UserId,
-                                n.Title,
-                                n.Body,
-                                n.Type,
-                                n.CreatedAt,
-                                n.Metadata);
+                        var sentToAny = false;
 
-                            await _producer.PublishAsync(
-                                "notifications",
-                                $"notifications.user.{un.UserId}",
-                                msg,
-                                stoppingToken);
+                        foreach (var un in notification.UserNotifications)
+                        {
+                            if (un.UserId <= 0)
+                            {
+                                _logger.LogWarning("Skipping invalid UserId {UserId} for notification {NotificationId}", un.UserId, notification.BusinessId);
+                                continue;
+                            }
+
+                            try
+                            {
+                                var message = new NotificationMessage(
+                                    notification.BusinessId,
+                                    un.UserId,
+                                    notification.Title,
+                                    notification.Body,
+                                    notification.Type,
+                                    notification.CreatedAt,
+                                    notification.Metadata);
+
+                                await _producer.PublishAsync("notifications", $"notifications.user.{un.UserId}", message, stoppingToken);
+                                sentToAny = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Failed to send notification to UserId {UserId}. Skipping.", un.UserId);
+                                // ادامه بده، بقیه کاربران رو نفرست
+                            }
                         }
 
-                        n.MarkAsSent();
+                        // اگه حداقل به یک نفر فرستاده شد → MarkAsSent
+                        if (sentToAny || !notification.UserNotifications.Any())
+                        {
+                            notification.MarkAsSent();
+                        }
+                        else
+                        {
+                            notification.MarkAsFailed("No valid recipients or all publishes failed");
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    n.MarkAsFailed(ex.Message);
+                    notification.MarkAsFailed($"Publish failed: {ex.Message}");
+                    _logger.LogError(ex, "Failed to process notification {NotificationId}", notification.BusinessId);
                 }
             }
 

@@ -89,7 +89,7 @@ builder.WebHost.UseKestrel(options =>
 
     if (isDevelopmentEnv)
     {
-        options.ListenLocalhost(5274, listen => Log.Information("✔ Kestrel listening on port {Port}", 5274));
+        options.ListenLocalhost(8080, listen => Log.Information("✔ Kestrel listening on port {Port}", 8080));
         options.ListenLocalhost(7013, listen =>
         {
             listen.UseHttps();
@@ -171,15 +171,16 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    // var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
+    var sqlDataRemover = services.GetRequiredService<SqlDataRemover>();
     var sqlDataSeeder = services.GetRequiredService<SqlDataSeeder>();
     var sqlMigration = services.GetRequiredService<SqlMigration>();
     var mongoSeeder = services.GetRequiredService<MongoDataSeeder>();
 
 
     await sqlMigration.MigrateAsync();
-    await sqlDataSeeder.SeedAsync();
     // await sqlDataRemover.Remove();
+    await sqlDataSeeder.SeedAsync();
+ 
 
 
     await mongoSeeder.EnsureMongoMigrationAsync();

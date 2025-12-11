@@ -1,6 +1,7 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.DomainEvents;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sql.Data.DbContexts;
+using StackExchange.Redis;
 
 internal sealed class OutboxProcessor : BackgroundService
 {
@@ -19,9 +21,17 @@ internal sealed class OutboxProcessor : BackgroundService
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
     private const int BatchSize = 50;
 
-    public OutboxProcessor(
-        IServiceScopeFactory scopeFactory,
-        ILogger<OutboxProcessor> logger)
+    // این گزینه‌ها باید دقیقاً همون چیزی باشه که موقع ذخیره استفاده کردی
+    private static readonly JsonSerializerOptions OutboxJsonOptions = new()
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNameCaseInsensitive = true
+    };
+
+    public OutboxProcessor(IServiceScopeFactory scopeFactory, ILogger<OutboxProcessor> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
@@ -56,17 +66,16 @@ internal sealed class OutboxProcessor : BackgroundService
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var dedup = scope.ServiceProvider.GetRequiredService<IEventDeduplicationStore>();
 
-        // مهم: فقط پیام‌هایی که واقعاً Pending هستن و قدیمی‌تر از چند ثانیه نیستن (جلوگیری از race condition)
         var cutoff = DateTime.UtcNow.AddSeconds(-10);
 
         var messages = await db.OutboxMessages
+            .AsNoTracking()
             .Where(m => m.Status == "Pending" && m.CreatedAt <= cutoff)
             .OrderBy(m => m.CreatedAt)
             .Take(BatchSize)
             .ToListAsync(ct);
 
-        if (!messages.Any())
-            return;
+        if (!messages.Any()) return;
 
         _logger.LogDebug("Processing {Count} outbox messages", messages.Count);
 
@@ -76,7 +85,8 @@ internal sealed class OutboxProcessor : BackgroundService
 
             try
             {
-                var @event = DeserializeEvent(message);
+                // این متد جدید و درست
+                var @event = DeserializeEvent(message.Data, message.Type);
                 if (@event is null)
                 {
                     message.Status = "Failed";
@@ -85,9 +95,20 @@ internal sealed class OutboxProcessor : BackgroundService
                 }
 
                 var dedupKey = $"outbox:{message.Id}";
-                const int deduplicationTtlSeconds = 24 * 60 * 60; // 24 ساعت
+                const int deduplicationTtlSeconds = 24 * 60 * 60;
 
-                var isFirst = await dedup.TryMarkProcessedAsync(dedupKey, deduplicationTtlSeconds, ct);
+                bool isFirst = true;
+                try
+                {
+                    isFirst = await dedup.TryMarkProcessedAsync(dedupKey, deduplicationTtlSeconds, ct);
+                }
+                catch (Exception ex) when (ex is RedisConnectionException ||
+                                           ex.InnerException is RedisConnectionException)
+                {
+                    _logger.LogWarning(ex,
+                        "Redis unavailable for deduplication. Proceeding without dedup. MessageId: {Id}", message.Id);
+                }
+
                 if (!isFirst)
                 {
                     message.Status = "Processed";
@@ -103,8 +124,7 @@ internal sealed class OutboxProcessor : BackgroundService
 
                 message.Status = "Processed";
                 message.ProcessedAt = DateTime.UtcNow;
-                _logger.LogInformation("Outbox message {Id} processed successfully: {EventType}", message.Id,
-                    @event.GetType().Name);
+                _logger.LogInformation("Outbox message {Id} processed: {EventType}", message.Id, @event.GetType().Name);
             }
             catch (Exception ex)
             {
@@ -118,8 +138,7 @@ internal sealed class OutboxProcessor : BackgroundService
                 if (message.RetryCount >= 5)
                 {
                     message.Status = "Dead";
-                    _logger.LogWarning("Outbox message {Id} moved to Dead state after {Retries} attempts", message.Id,
-                        message.RetryCount);
+                    _logger.LogWarning("Outbox message {Id} moved to Dead state", message.Id);
                 }
             }
         }
@@ -128,30 +147,32 @@ internal sealed class OutboxProcessor : BackgroundService
         {
             await db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            _logger.LogWarning(ex, "Concurrency issue while saving outbox changes. Will retry next cycle.");
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save outbox changes");
         }
     }
 
-    private IDomainEvent? DeserializeEvent(OutboxMessage message)
+
+    private static IDomainEvent? DeserializeEvent(string jsonData, string typeFullName)
     {
         try
         {
-            var type = Type.GetType(message.Type, throwOnError: true);
-            if (type is null) return null;
+            var type = Type.GetType(typeFullName, throwOnError: true);
+            if (type == null)
+            {
+                return null;
+            }
 
-            return (IDomainEvent)JsonSerializer.Deserialize(message.Data, type,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            
+            var result = JsonSerializer.Deserialize(jsonData, type, OutboxJsonOptions);
+            return result as IDomainEvent;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to deserialize event type {Type} for message {Id}", message.Type, message.Id);
-            return null;
+            // لاگ دقیق‌تر برای دیباگ
+            throw new InvalidOperationException(
+                $"Failed to deserialize event. Type: {typeFullName}, Data length: {jsonData.Length}", ex);
         }
     }
 }

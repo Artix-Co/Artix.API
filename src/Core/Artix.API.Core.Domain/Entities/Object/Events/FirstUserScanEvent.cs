@@ -2,7 +2,7 @@
 
 using DomainEvents;
 
-public record FirstUserScanEvent(
+public sealed record FirstUserScanEvent(
     Guid BusinessId,
     long UserId,
     long ObjectId,
