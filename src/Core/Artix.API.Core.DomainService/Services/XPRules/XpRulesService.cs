@@ -2,7 +2,6 @@ namespace Artix.API.Core.DomainService.Services.XPRules;
 
 using Contract.Features.Objects;
 using Contract.Primitives.Infra.Redis;
-using Domain.Entities.Object;
 using Domain.Entities.User;
 using Interfaces.TierCalculator;
 using Interfaces.XPRules;
@@ -13,8 +12,6 @@ public sealed class XpRulesService : IXpRulesService
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly UserManager<AppUser> _userManager;
     private readonly ITierCalculatorService _tierCalculatorService;
-    private readonly ICacheRepository<AppUser> _userCache;
-    private readonly ICacheRepository<Object> _objectCache;
     private readonly ILeaderboardService _leaderboardService;
     private readonly IDistributedLockService _lockService;
     private readonly IEventDeduplicationStore _dedupStore;
@@ -24,8 +21,6 @@ public sealed class XpRulesService : IXpRulesService
         IObjectCommandRepository objectCommandRepository,
         UserManager<AppUser> userManager,
         ITierCalculatorService tierCalculatorService,
-        ICacheRepository<AppUser> userCache,
-        ICacheRepository<Object> objectCache,
         ILeaderboardService leaderboardService,
         IDistributedLockService lockService,
         IEventDeduplicationStore dedupStore,
@@ -34,8 +29,6 @@ public sealed class XpRulesService : IXpRulesService
         _objectCommandRepository = objectCommandRepository;
         _userManager = userManager;
         _tierCalculatorService = tierCalculatorService;
-        _userCache = userCache;
-        _objectCache = objectCache;
         _leaderboardService = leaderboardService;
         _lockService = lockService;
         _dedupStore = dedupStore;
@@ -46,67 +39,52 @@ public sealed class XpRulesService : IXpRulesService
         long userId,
         Guid objectId,
         long? seasonId = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         var dedupKey = $"xp:firstscan:{userId}:{objectId}";
-        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, cancellationToken))
+        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
             return;
 
-        await using var lockHandle = await _lockService.TryAcquireAsync(
-            $"user:{userId}:xp",
-            TimeSpan.FromSeconds(10),
-            cancellationToken);
+        await using var lockHandle =
+            await _lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
+        if (lockHandle is null) throw new InvalidOperationException("Failed to acquire XP lock.");
 
-        if (lockHandle is null)
-            throw new InvalidOperationException("Could not acquire lock for XP update.");
+        var user = await _userManager.FindByIdAsync(userId.ToString()) ??
+                   throw new InvalidOperationException("User not found.");
+        var obj = await _objectCommandRepository.GetByIdAsync(objectId, ct) ??
+                  throw new InvalidOperationException("Object not found.");
 
 
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == obj.Id) ??
+                       throw new InvalidOperationException("First scan record missing.");
 
-        if (user is null)
-            throw new InvalidOperationException("User not found.");
+        var (_, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, ct);
+        var isDoubleXp = await _featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
+        var effectiveMultiplier = isDoubleXp ? multiplier * 2 : multiplier;
 
-        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId, cancellationToken);
-
-        if (objectEntity is null)
-            throw new InvalidOperationException("Object not found.");
-
-        var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == objectEntity.Id);
-        if (userScan is null)
-            throw new InvalidOperationException("User scan not found.");
-
-        var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, cancellationToken);
-
-        var xpBoostFlag = await _featureToggle.GetFlagAsync("xp_double_event", cancellationToken);
-        var effectiveMultiplier = xpBoostFlag == "true" ? multiplier * 2 : multiplier;
-
-        long baseXp = objectEntity.IsSpecial ? 150 : 100;
-        baseXp += objectEntity.Tier.GetValueOrDefault() * 10;
+        long baseXp = obj.IsSpecial ? 150 : 100;
+        baseXp += obj.Tier.GetValueOrDefault() * 10;
         long xpToAdd = (long)(baseXp * effectiveMultiplier);
 
         var userXp = user.UserXps.FirstOrDefault() ?? UserXp.Create(userId);
-        if (!user.UserXps.Contains(userXp))
-            user.AddUserXp(userXp);
+        if (!user.UserXps.Contains(userXp)) user.AddUserXp(userXp);
         userXp.AddXp(xpToAdd);
 
         if (seasonId.HasValue)
         {
-            var seasonProgress = user.UserSeasonProgresses
-                                     .FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value)
-                                 ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
+            var season = user.UserSeasonProgresses
+                             .FirstOrDefault(x => x.SeasonId == seasonId)
+                         ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
 
-            if (!user.UserSeasonProgresses.Contains(seasonProgress))
-                user.AddUserSeasonProgress(seasonProgress);
-
-            seasonProgress.AddXp((int)xpToAdd);
+            if (!user.UserSeasonProgresses.Contains(season)) user.AddUserSeasonProgress(season);
+            season.AddXp((int)xpToAdd);
         }
 
         await _userManager.UpdateAsync(user);
 
-        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, cancellationToken);
+        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
         if (seasonId.HasValue)
-            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd,
-                cancellationToken);
+            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
     }
 
     public async Task CalculateXpForRepeatScanAsync(
@@ -114,71 +92,59 @@ public sealed class XpRulesService : IXpRulesService
         Guid objectId,
         long? seasonId = null,
         bool isGoldenLevel = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        var goldenSuffix = isGoldenLevel ? ":golden" : string.Empty;
-        var dedupKey = $"xp:repeatscan:{userId}:{objectId}{goldenSuffix}";
-        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, cancellationToken))
+        var suffix = isGoldenLevel ? ":golden" : string.Empty;
+        var dedupKey = $"xp:repeatscan:{userId}:{objectId}{suffix}";
+        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
             return;
 
-        await using var lockHandle = await _lockService.TryAcquireAsync(
-            $"user:{userId}:xp",
-            TimeSpan.FromSeconds(10),
-            cancellationToken);
+        await using var lockHandle =
+            await _lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
+        if (lockHandle is null) throw new InvalidOperationException("Failed to acquire XP lock.");
 
-        if (lockHandle is null)
-            throw new InvalidOperationException("Could not acquire lock for XP update.");
+        var user = await _userManager.FindByIdAsync(userId.ToString()) ??
+                   throw new InvalidOperationException("User not found.");
+        var obj = await _objectCommandRepository.GetByIdAsync(objectId, ct) ??
+                  throw new InvalidOperationException("Object not found.");
 
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+    
 
-        if (user is null)
-            throw new InvalidOperationException("User not found.");
+        var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == obj.Id) ??
+                       throw new InvalidOperationException("Object not previously scanned by user.");
 
-        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId, cancellationToken);
 
-        if (objectEntity is null)
-            throw new InvalidOperationException("Object not found.");
-
-        var userObject = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == objectEntity.Id);
-        if (userObject is null)
-            throw new InvalidOperationException("Object not previously scanned by user.");
-
-        if (!userObject.IsUpgraded)
-            userObject.Upgrade();
+        if (!userScan.IsUpgraded)
+            userScan.Upgrade();
         else if (isGoldenLevel)
-            userObject.RecordScan();
+            userScan.RecordScan();
 
-        var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userObject, cancellationToken);
-
-        var xpBoostFlag = await _featureToggle.GetFlagAsync("xp_double_event", cancellationToken);
-        var effectiveMultiplier = xpBoostFlag == "true" ? multiplier * 2 : multiplier;
+        var (_, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, ct);
+        var isDoubleXp = await _featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
+        var effectiveMultiplier = isDoubleXp ? multiplier * 2 : multiplier;
 
         long baseXp = isGoldenLevel ? 200 : 50;
-        baseXp += objectEntity.Tier.GetValueOrDefault() * 5;
+        baseXp += obj.Tier.GetValueOrDefault() * 5;
         long xpToAdd = (long)(baseXp * effectiveMultiplier);
 
         var userXp = user.UserXps.FirstOrDefault() ?? UserXp.Create(userId);
-        if (!user.UserXps.Contains(userXp))
-            user.AddUserXp(userXp);
+        if (!user.UserXps.Contains(userXp)) user.AddUserXp(userXp);
         userXp.AddXp(xpToAdd);
 
         if (seasonId.HasValue)
         {
-            var seasonProgress = user.UserSeasonProgresses
-                                     .FirstOrDefault(sp => sp.UserId == userId && sp.SeasonId == seasonId.Value)
-                                 ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
+            var season = user.UserSeasonProgresses
+                             .FirstOrDefault(x => x.SeasonId == seasonId)
+                         ?? UserSeasonProgress.Create(userId, seasonId.Value, 0);
 
-            if (!user.UserSeasonProgresses.Contains(seasonProgress))
-                user.AddUserSeasonProgress(seasonProgress);
-
-            seasonProgress.AddXp((int)xpToAdd);
+            if (!user.UserSeasonProgresses.Contains(season)) user.AddUserSeasonProgress(season);
+            season.AddXp((int)xpToAdd);
         }
 
         await _userManager.UpdateAsync(user);
 
-        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, cancellationToken);
+        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
         if (seasonId.HasValue)
-            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd,
-                cancellationToken);
+            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
     }
 }
