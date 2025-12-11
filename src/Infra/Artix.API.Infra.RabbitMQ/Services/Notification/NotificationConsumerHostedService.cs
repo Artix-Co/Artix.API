@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using Core.Contract.Primitives.Infra.RabbitMQ;
+using Core.Domain.Entities.Notification.Enums;
 using global::RabbitMQ.Client;
 using global::RabbitMQ.Client.Events;
 using Microsoft.AspNetCore.SignalR;
@@ -43,8 +44,20 @@ internal sealed class NotificationConsumerHostedService : BackgroundService
         {
             try
             {
-                var message = JsonSerializer.Deserialize<NotificationMessage>(ea.Body.Span);
-                if (message == null) return;
+                var body = ea.Body.Span;
+                var message = JsonSerializer.Deserialize<NotificationMessage>(body);
+
+                if (message == null)
+                {
+                    _logger.LogWarning("Received null notification message. Acking anyway. DeliveryTag: {Tag}",
+                        ea.DeliveryTag);
+                    await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                    return;
+                }
+
+                _logger.LogInformation("Received notification {NotificationId} for User {UserId} via {RoutingKey}",
+                    message.NotificationId, message.UserId, ea.RoutingKey);
+
 
                 if (ea.RoutingKey == "notifications.all")
                 {
@@ -52,16 +65,19 @@ internal sealed class NotificationConsumerHostedService : BackgroundService
                 }
                 else if (ea.RoutingKey.StartsWith("notifications.user."))
                 {
-                    var userId = ea.RoutingKey["notifications.user.".Length..];
-                    await _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", message, stoppingToken);
+                    var userIdStr = ea.RoutingKey["notifications.user.".Length..];
+                    await _hubContext.Clients.Group(userIdStr).SendAsync("ReceiveNotification", message, stoppingToken);
                 }
 
                 await TryMarkAsDeliveredAsync(message.NotificationId, stoppingToken);
+
                 await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                _logger.LogDebug("Notification {NotificationId} processed and acked.", message.NotificationId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing notification message");
+                _logger.LogError(ex, "Failed to process notification message. Nacking. DeliveryTag: {Tag}",
+                    ea.DeliveryTag);
                 await _channel.BasicNackAsync(ea.DeliveryTag, false, true, stoppingToken);
             }
         };
@@ -94,18 +110,27 @@ internal sealed class NotificationConsumerHostedService : BackgroundService
             var db = scope.ServiceProvider.GetRequiredService<ArtixCommandDbContext>();
 
             var notification = await db.Notifications
-                .Include(n => n.UserNotifications)
                 .FirstOrDefaultAsync(n => n.BusinessId == notificationId, ct);
 
-            if (notification != null)
+            if (notification == null)
             {
-                notification.MarkAsSent();
-                await db.SaveChangesAsync(ct);
+                _logger.LogWarning("Notification {NotificationId} not found in DB. Possibly already processed.", notificationId);
+                return;
             }
+
+            if (notification.Status == NotificationStatus.Sent)
+            {
+                _logger.LogDebug("Notification {NotificationId} already marked as Sent.", notificationId);
+                return;
+            }
+
+            notification.MarkAsSent();
+            await db.SaveChangesAsync(ct);
+            _logger.LogInformation("Notification {NotificationId} marked as Sent in DB.", notificationId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to mark notification {Id} as delivered", notificationId);
+            _logger.LogError(ex, "Failed to mark notification {NotificationId} as delivered", notificationId);
         }
     }
 

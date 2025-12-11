@@ -37,7 +37,7 @@ internal sealed class NotificationOutboxProcessor : BackgroundService
                 .Where(n =>
                     n.Status == NotificationStatus.Pending &&
                     (n.ExpirationDate == null || n.ExpirationDate > DateTime.UtcNow))
-                .OrderByDescending(n => n.Priority) // بهتره اولویت بالا اول بره
+                .OrderByDescending(n => n.Priority)
                 .ThenBy(n => n.CreatedAt)
                 .Take(100)
                 .ToListAsync(stoppingToken);

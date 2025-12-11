@@ -1,7 +1,5 @@
 ﻿namespace Artix.API.Infra.RabbitMQ.Services.Outbox;
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.DomainEvents;
@@ -13,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sql.Data.DbContexts;
 using StackExchange.Redis;
+using Utils;
 
 internal sealed class OutboxProcessor : BackgroundService
 {
@@ -21,15 +20,6 @@ internal sealed class OutboxProcessor : BackgroundService
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
     private const int BatchSize = 50;
 
-    // این گزینه‌ها باید دقیقاً همون چیزی باشه که موقع ذخیره استفاده کردی
-    private static readonly JsonSerializerOptions OutboxJsonOptions = new()
-    {
-        ReferenceHandler = ReferenceHandler.IgnoreCycles,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true
-    };
 
     public OutboxProcessor(IServiceScopeFactory scopeFactory, ILogger<OutboxProcessor> logger)
     {
@@ -154,25 +144,20 @@ internal sealed class OutboxProcessor : BackgroundService
     }
 
 
-    private static IDomainEvent? DeserializeEvent(string jsonData, string typeFullName)
+    private IDomainEvent? DeserializeEvent(string jsonData, string typeFullName)
     {
         try
         {
-            var type = Type.GetType(typeFullName, throwOnError: true);
-            if (type == null)
-            {
-                return null;
-            }
+            var type = Type.GetType(typeFullName, throwOnError: true)!;
+            if (!typeof(IDomainEvent).IsAssignableFrom(type))
+                throw new InvalidOperationException($"Type {type} is not IDomainEvent");
 
-            
-            var result = JsonSerializer.Deserialize(jsonData, type, OutboxJsonOptions);
-            return result as IDomainEvent;
+            return jsonData.FromOutboxJson(type) as IDomainEvent;
         }
         catch (Exception ex)
         {
-            // لاگ دقیق‌تر برای دیباگ
-            throw new InvalidOperationException(
-                $"Failed to deserialize event. Type: {typeFullName}, Data length: {jsonData.Length}", ex);
+            _logger.LogError(ex, "Failed to deserialize event from Outbox. Type: {Type}", typeFullName);
+            return null;
         }
     }
 }

@@ -60,20 +60,13 @@ public sealed class XpRulesService : IXpRulesService
         if (lockHandle is null)
             throw new InvalidOperationException("Could not acquire lock for XP update.");
 
-        var user = await _userCache.GetOrSetAsync(
-            $"user:{userId}",
-            () => _userManager.FindByIdAsync(userId.ToString()),
-            120,
-            cancellationToken);
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
             throw new InvalidOperationException("User not found.");
 
-        var objectEntity = await _objectCache.GetOrSetAsync(
-            $"object:{objectId}",
-            () => _objectCommandRepository.GetByIdAsync(objectId, cancellationToken),
-            300,
-            cancellationToken);
+        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId, cancellationToken);
 
         if (objectEntity is null)
             throw new InvalidOperationException("Object not found.");
@@ -136,20 +129,12 @@ public sealed class XpRulesService : IXpRulesService
         if (lockHandle is null)
             throw new InvalidOperationException("Could not acquire lock for XP update.");
 
-        var user = await _userCache.GetOrSetAsync(
-            $"user:{userId}",
-            () => _userManager.FindByIdAsync(userId.ToString()),
-            120,
-            cancellationToken);
+        var user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
             throw new InvalidOperationException("User not found.");
 
-        var objectEntity = await _objectCache.GetOrSetAsync(
-            $"object:{objectId}",
-            () => _objectCommandRepository.GetByIdAsync(objectId, cancellationToken),
-            300,
-            cancellationToken);
+        var objectEntity = await _objectCommandRepository.GetByIdAsync(objectId, cancellationToken);
 
         if (objectEntity is null)
             throw new InvalidOperationException("Object not found.");
