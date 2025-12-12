@@ -65,38 +65,38 @@ builder.Services.AddArtixServices(builder.Configuration);
 // ------------------------------------
 // Kestrel
 // ------------------------------------
-builder.WebHost.UseKestrel(options =>
-{
-    options.AddServerHeader = false;
-
-    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024;
-    options.Limits.MaxConcurrentConnections = 500;
-    options.Limits.MaxConcurrentUpgradedConnections = 50;
-    options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
-    options.Limits.MinRequestBodyDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
-    options.Limits.MinResponseDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
-    options.Limits.MaxRequestBufferSize = 1024 * 1024;
-    options.Limits.MaxResponseBufferSize = 1024 * 1024;
-    options.AllowSynchronousIO = false;
-
-
-    options.ListenAnyIP(80, listen =>
-    {
-        listen.Protocols = HttpProtocols.Http1AndHttp2;
-        Log.Information("✔ Kestrel listening on port {Port}", 80);
-    });
-
-    if (isDevelopmentEnv)
-    {
-        options.ListenLocalhost(8080, listen => Log.Information("✔ Kestrel listening on port {Port}", 8080));
-        options.ListenLocalhost(7013, listen =>
-        {
-            listen.UseHttps();
-            Log.Information("✔ Kestrel listening on HTTPS port {Port}", 7013);
-        });
-    }
-});
+// builder.WebHost.UseKestrel(options =>
+// {
+//     options.AddServerHeader = false;
+//
+//     options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024;
+//     options.Limits.MaxConcurrentConnections = 500;
+//     options.Limits.MaxConcurrentUpgradedConnections = 50;
+//     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
+//     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
+//     options.Limits.MinRequestBodyDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
+//     options.Limits.MinResponseDataRate = new MinDataRate(100, TimeSpan.FromSeconds(10));
+//     options.Limits.MaxRequestBufferSize = 1024 * 1024;
+//     options.Limits.MaxResponseBufferSize = 1024 * 1024;
+//     options.AllowSynchronousIO = false;
+//
+//
+//     options.ListenAnyIP(80, listen =>
+//     {
+//         listen.Protocols = HttpProtocols.Http1AndHttp2;
+//         Log.Information("✔ Kestrel listening on port {Port}", 80);
+//     });
+//
+//     if (isDevelopmentEnv)
+//     {
+//         options.ListenLocalhost(8080, listen => Log.Information("✔ Kestrel listening on port {Port}", 8080));
+//         options.ListenLocalhost(7013, listen =>
+//         {
+//             listen.UseHttps();
+//             Log.Information("✔ Kestrel listening on HTTPS port {Port}", 7013);
+//         });
+//     }
+// });
 
 var app = builder.Build();
 
@@ -315,6 +315,7 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();
-app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<NotificationHub>("/notificationHub")
+    .RequireAuthorization();
 
 app.Run();
