@@ -121,6 +121,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DOTNET_RUNNING_IN_CONTAINER: "true"
+      ASPNETCORE_URLS: "http://+:80" 
     volumes:
       - dataprotection_keys:/app/dataprotection-keys
       - file_storage:/app/files
