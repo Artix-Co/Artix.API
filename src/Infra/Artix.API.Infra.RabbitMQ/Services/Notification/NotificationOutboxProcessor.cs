@@ -95,11 +95,9 @@ internal sealed class NotificationOutboxProcessor : BackgroundService
                             catch (Exception ex)
                             {
                                 _logger.LogWarning(ex, "Failed to send notification to UserId {UserId}. Skipping.", un.UserId);
-                                // ادامه بده، بقیه کاربران رو نفرست
                             }
                         }
 
-                        // اگه حداقل به یک نفر فرستاده شد → MarkAsSent
                         if (sentToAny || !notification.UserNotifications.Any())
                         {
                             notification.MarkAsSent();

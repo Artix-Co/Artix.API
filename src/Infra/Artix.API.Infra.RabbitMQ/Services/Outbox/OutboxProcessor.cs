@@ -59,7 +59,6 @@ internal sealed class OutboxProcessor : BackgroundService
         var cutoff = DateTime.UtcNow.AddSeconds(-10);
 
         var messages = await db.OutboxMessages
-            .AsNoTracking()
             .Where(m => m.Status == "Pending" && m.CreatedAt <= cutoff)
             .OrderBy(m => m.CreatedAt)
             .Take(BatchSize)
@@ -75,7 +74,6 @@ internal sealed class OutboxProcessor : BackgroundService
 
             try
             {
-                // این متد جدید و درست
                 var @event = DeserializeEvent(message.Data, message.Type);
                 if (@event is null)
                 {
