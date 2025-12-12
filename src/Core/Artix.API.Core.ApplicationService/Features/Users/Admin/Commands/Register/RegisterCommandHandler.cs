@@ -7,6 +7,7 @@ using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 // TODO: develop validation for this handler
 internal sealed class RegisterCommandHandler : CommandHandlerBase<RegisterCommand>
@@ -15,7 +16,8 @@ internal sealed class RegisterCommandHandler : CommandHandlerBase<RegisterComman
 
 
     public RegisterCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        RoleManager<AppRole> roleManager) : base(httpContextAccessor, userManager)
+        ILogger<CommandHandlerBase<RegisterCommand>> logger,
+        RoleManager<AppRole> roleManager) : base(httpContextAccessor, userManager, logger)
     {
         this._roleManager = roleManager;
     }

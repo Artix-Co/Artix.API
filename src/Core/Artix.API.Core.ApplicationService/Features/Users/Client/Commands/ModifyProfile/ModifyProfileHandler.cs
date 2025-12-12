@@ -13,22 +13,15 @@ using Microsoft.Extensions.Options;
 // TODO: develop validation for this handler
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<ModifyProfileHandler> _logger;
     private readonly string[] _allowedImageMimeTypes;
-    private readonly IFileCommandRepository _fileCommandRepository;
+
 
     public ModifyProfileHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<ModifyProfileHandler> logger,
-        IOptions<FileSettings> options,
-        IFileCommandRepository fileCommandRepository) : base(
-        httpContextAccessor, userManager)
+        ILogger<CommandHandlerBase<ModifyProfileCommand>> logger,
+        IOptions<FileSettings> options) : base(httpContextAccessor, userManager, logger)
     {
-        this._userManager = userManager;
-        this._logger = logger;
-        this._fileCommandRepository = fileCommandRepository;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 

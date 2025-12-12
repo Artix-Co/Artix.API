@@ -6,31 +6,29 @@ using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+
 internal sealed class DeleteProfileCommandHandler : CommandHandlerBase<DeleteProfileCommand>
 {
-    private readonly ILogger<DeleteProfileCommandHandler> _logger;
-
     public DeleteProfileCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<DeleteProfileCommandHandler> logger)
-        : base(httpContextAccessor, userManager)
+        ILogger<CommandHandlerBase<DeleteProfileCommand>> logger)
+        : base(httpContextAccessor, userManager, logger)
     {
-        _logger = logger;
     }
 
     public override async Task<Guid> Handle(DeleteProfileCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Delete profile(also remove all background histories) started for authenticated user.");
 
-        
+
         var user = await GetCurrentUserAsync(cancellationToken);
 
         _logger.LogInformation(
             "Retrieved user {UserId} with BusinessId={BusinessId}",
             user.Id, user.BusinessId);
 
-        
+
         var result = await _userManager.DeleteAsync(user);
 
         if (!result.Succeeded)

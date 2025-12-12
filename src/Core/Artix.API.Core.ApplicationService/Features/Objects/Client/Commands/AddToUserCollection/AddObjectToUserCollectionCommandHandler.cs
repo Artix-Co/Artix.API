@@ -8,6 +8,7 @@ using Domain.Entities.User;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 // TODO: develop validation for this handler
@@ -17,15 +18,14 @@ internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBa
     private readonly ICollectionCommandRepository _collectionCommandRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AddObjectToUserCollectionCommandHandler(IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IObjectCommandRepository objectCommandRepository,
-        ICollectionCommandRepository collectionCommandRepository, IUnitOfWork unitOfWork) : base(httpContextAccessor,
-        userManager)
+
+    public AddObjectToUserCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ILogger<CommandHandlerBase<AddObjectToUserCollectionCommand>> logger, IObjectCommandRepository objectCommandRepository, ICollectionCommandRepository collectionCommandRepository, IUnitOfWork unitOfWork) : base(httpContextAccessor, userManager, logger)
     {
         this._objectCommandRepository = objectCommandRepository;
         this._collectionCommandRepository = collectionCommandRepository;
         this._unitOfWork = unitOfWork;
     }
+
     public override async Task<Guid> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);

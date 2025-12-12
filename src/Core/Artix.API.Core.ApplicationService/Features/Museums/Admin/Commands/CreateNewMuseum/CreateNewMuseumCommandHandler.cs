@@ -3,7 +3,6 @@ namespace Artix.API.Core.ApplicationService.Features.Museums.Admin.Commands.Crea
 using Primitives;
 using Contract.Configs.FileSettings;
 using Artix.API.Core.Contract.Features.Files.Commands;
-
 using Artix.API.Core.Contract.Primitives.Infra.File;
 using Artix.API.Core.Domain.Entities.File;
 using Contract.Features.Museums;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-
 // TODO: develop validator
 internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateNewMuseumCommand>
 {
@@ -24,19 +22,19 @@ internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateN
     private readonly string[] _allowedImageMimeTypes;
     private readonly IUploadService _uploadService;
     private readonly IFileCommandRepository _fileCommandRepository;
-    private readonly ILogger<CreateNewMuseumCommandHandler> _logger;
+
 
     public CreateNewMuseumCommandHandler(IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager, IMuseumCommandRepository museumCommandRepository,
-        IOptions<FileSettings> options, IUploadService uploadService, IFileCommandRepository fileCommandRepository,
-        ILogger<CreateNewMuseumCommandHandler> logger) : base(
-        httpContextAccessor,
-        userManager)
+        UserManager<AppUser> userManager,
+        ILogger<CommandHandlerBase<CreateNewMuseumCommand>> logger,
+        IMuseumCommandRepository museumCommandRepository,
+        IOptions<FileSettings> options,
+        IUploadService uploadService,
+        IFileCommandRepository fileCommandRepository) : base(httpContextAccessor, userManager, logger)
     {
         this._museumCommandRepository = museumCommandRepository;
         this._uploadService = uploadService;
         this._fileCommandRepository = fileCommandRepository;
-        this._logger = logger;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 

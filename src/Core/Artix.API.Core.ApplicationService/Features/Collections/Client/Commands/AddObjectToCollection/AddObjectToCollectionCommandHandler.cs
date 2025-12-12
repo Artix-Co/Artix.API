@@ -5,11 +5,12 @@ using Primitives;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 // TODO: develop validation for this handler
 internal sealed class AddObjectToCollectionCommandHandler : CommandHandlerBase<AddObjectToCollectionCommand>
 {
-    public AddObjectToCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
+    public AddObjectToCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ILogger<CommandHandlerBase<AddObjectToCollectionCommand>> logger) : base(httpContextAccessor, userManager, logger)
     {
     }
 

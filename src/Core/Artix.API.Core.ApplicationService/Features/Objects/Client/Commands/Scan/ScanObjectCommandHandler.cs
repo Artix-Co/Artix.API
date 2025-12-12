@@ -8,6 +8,7 @@ using Domain.Entities.User;
 using Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Primitives;
 
 internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
@@ -20,10 +21,12 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
+        ILogger<CommandHandlerBase<ScanObjectCommand>> logger,
         IMuseumCommandRepository museumCommandRepository,
         IObjectCommandRepository objectCommandRepository,
-        IRequestRatePolicy requestRatePolicy)
-        : base(httpContextAccessor, userManager)
+        IRequestRatePolicy requestRatePolicy
+    )
+        : base(httpContextAccessor, userManager, logger)
     {
         this._museumCommandRepository = museumCommandRepository;
         this._objectCommandRepository = objectCommandRepository;

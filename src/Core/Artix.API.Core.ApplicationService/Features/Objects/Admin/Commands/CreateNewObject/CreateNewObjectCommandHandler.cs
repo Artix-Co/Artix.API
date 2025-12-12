@@ -24,24 +24,19 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
     private readonly IUploadService _uploadService;
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
-    private readonly ILogger<CreateNewObjectCommandHandler> _logger;
 
 
-    public CreateNewObjectCommandHandler(
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<AppUser> userManager,
-        IObjectCommandRepository objectCommandRepository,
-        IOptions<FileSettings> options,
+    public CreateNewObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
+        ILogger<CommandHandlerBase<CreateNewObjectCommand>> logger, IObjectCommandRepository objectCommandRepository,
         IMuseumCommandRepository museumCommandRepository, IFileCommandRepository fileCommandRepository,
-        IUploadService uploadService, ILogger<CreateNewObjectCommandHandler> logger) : base(
-        httpContextAccessor,
-        userManager)
+        IUploadService uploadService, IOptions<FileSettings> options) : base(
+        httpContextAccessor, userManager, logger)
     {
         this._objectCommandRepository = objectCommandRepository;
         this._museumCommandRepository = museumCommandRepository;
         this._fileCommandRepository = fileCommandRepository;
         this._uploadService = uploadService;
-        this._logger = logger;
+
         this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
@@ -95,7 +90,8 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
             await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
             obj.Assign3DModel(fileEntity.Id, this._allowed3DMimeTypes);
 
-            this._logger.LogInformation("3D file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
+            this._logger.LogInformation("3D file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id,
+                fileEntity.Id);
         }
 
         // -------------------------------
@@ -124,7 +120,8 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
             await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
             obj.AssignImage(fileEntity.Id, this._allowedImageMimeTypes);
 
-            this._logger.LogInformation("Image file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id, fileEntity.Id);
+            this._logger.LogInformation("Image file attached: ObjectId={ObjectId}, FileId={FileId}", obj.Id,
+                fileEntity.Id);
         }
 
         // -------------------------------
