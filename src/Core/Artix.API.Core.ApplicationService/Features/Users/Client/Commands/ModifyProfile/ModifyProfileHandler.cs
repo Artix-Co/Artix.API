@@ -1,9 +1,9 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.Modify;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.ModifyProfile;
 
 using Primitives;
 using Contract.Configs.FileSettings;
 using Artix.API.Core.Contract.Features.Files.Commands;
-using Contract.Features.Users.Client.Commands.Modify;
+using Artix.API.Core.Contract.Features.Users.Client.Commands.ModifyProfile;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

@@ -3,7 +3,7 @@
 using Core.Contract.Features.Museums.Client.Queries.GetAll;
 using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Client.Queries.GetObjects;
-using Core.Contract.Features.Objects.Client.Queries.GetAll;
+using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
 using DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -154,7 +154,7 @@ internal static class MuseumQueries
                     .FirstOrDefault()
             );
 
-    internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<AllObjectDto>>
+    internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<PaginateObjectsDto>>
         GetAllObjectsQuery =
             EF.CompileQuery((ArtixQueryDbContext context, string? nameFilter, int pageNumber, int pageSize) =>
                 context.Objects
@@ -162,7 +162,7 @@ internal static class MuseumQueries
                     .OrderBy(o => o.Name)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(o => new AllObjectDto(
+                    .Select(o => new PaginateObjectsDto(
                         o.BusinessId,
                         o.Name,
                         o.GeneralInformation,

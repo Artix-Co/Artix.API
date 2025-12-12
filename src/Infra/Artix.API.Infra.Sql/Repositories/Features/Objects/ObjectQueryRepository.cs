@@ -4,8 +4,8 @@ using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Objects;
 using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 using Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects;
-using Core.Contract.Features.Objects.Client.Queries.GetAll;
 using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
+using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
@@ -16,7 +16,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
 using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
+using GetPaginateObjectsQuery = Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects.GetPaginateObjectsQuery;
 using ObjectDetailsByIdDto = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.ObjectDetailsByIdDto;
+using PaginateObjectsDto = Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects.PaginateObjectsDto;
 
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {

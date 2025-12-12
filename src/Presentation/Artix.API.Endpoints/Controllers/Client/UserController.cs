@@ -2,7 +2,9 @@
 
 using Core.Contract.Primitives.Models;
 using Common;
-using Core.Contract.Features.Users.Client.Commands.Modify;
+using Core.Contract.Features.Users.Client.Commands.DeActivateProfile;
+using Core.Contract.Features.Users.Client.Commands.ModifyProfile;
+using Core.Contract.Features.Users.Client.Queries.GetPaginateLoginHistory;
 using Core.Contract.Features.Users.Client.Queries.GetUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -33,7 +35,25 @@ public sealed class UserController : ClientBaseController
         var result = await this._mediator.Send(command);
         return this.Ok(result);
     }
+    
+    
+    [Authorize]
+    [HttpPatch("de-active-profile")]
+    [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DeActivateProfileAsync([FromBody] DeActivateProfileCommand command)
+    {
+        var result = await this._mediator.Send(command);
+        return this.Ok(result);
+    }
 
+    [Authorize]
+    [HttpGet("login-history")]
+    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateLoginHistoryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetPaginateLoginHistoryQuery query)
+    {
+        var result = await this._mediator.Send(query);
+        return this.Ok(result);
+    }
 
     // [Authorize]
     // [HttpGet("collection")]

@@ -1,7 +1,7 @@
 ﻿namespace Artix.API.Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 
 using Artix.API.Core.Domain.Entities.Object.Enums;
-using Client.Queries.GetAll;
+using Client.Queries.GetPaginateObjects;
 
 public sealed record ObjectDetailsByIdDto(
     Guid Id,

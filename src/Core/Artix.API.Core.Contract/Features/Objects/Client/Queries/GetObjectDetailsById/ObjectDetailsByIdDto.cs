@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 
-using GetAll;
+using GetPaginateObjects;
 
 public sealed record ObjectDetailsByIdDto(
     Guid Id,

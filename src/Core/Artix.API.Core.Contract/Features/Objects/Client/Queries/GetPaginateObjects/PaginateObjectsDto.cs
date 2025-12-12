@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetAll;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 
 using Artix.API.Core.Domain.Entities.Object.ValueObjects;
 
-public sealed record AllObjectDto(
+public sealed record PaginateObjectsDto(
     Guid Id,
     string Name,
     string? Description,

@@ -3,8 +3,8 @@
 using Common;
 using Core.Contract.Features.Objects.Client.Commands.AddToUserCollection;
 using Core.Contract.Features.Objects.Client.Commands.Scan;
-using Core.Contract.Features.Objects.Client.Queries.GetAll;
 using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
+using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Core.Contract.Features.Objects.Client.Queries.GetUserRecentObjectsVisits;
 using Core.Contract.Primitives.Models;
 using MediatR;
@@ -19,8 +19,8 @@ public sealed class ObjectController : ClientBaseController
     }
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<AllObjectDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetAllObjectsQuery query)
+    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateObjectsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetPaginateObjectsQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

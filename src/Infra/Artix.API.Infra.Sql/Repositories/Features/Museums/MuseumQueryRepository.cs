@@ -10,13 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums;
-using Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Core.Contract.Features.Museums.Client.Queries.GetAll;
 using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
 using Core.Contract.Features.Museums.Client.Queries.GetKeyStatus;
 using Core.Contract.Features.Museums.Client.Queries.GetObjects;
-using Core.Contract.Features.Objects.Client.Queries.GetAll;
+using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Data.CompiledQueries.Museums;
 using Data.DbContexts;
 using DPG.Core.Contract.Primitives.Models;
@@ -85,7 +85,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         return museum;
     }
 
-    public async Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+    public async Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAsync(GetPaginateObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching objects with query: {@Query}", dto);
@@ -101,7 +101,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             .Where(o => string.IsNullOrWhiteSpace(dto.NameFilter) || o.Name.Contains(dto.NameFilter))
             .CountAsync(cancellationToken);
 
-        return new PaginatedResult<AllObjectDto>(
+        return new PaginatedResult<PaginateObjectsDto>(
             objects,
             totalCount,
             dto.PageNumber,

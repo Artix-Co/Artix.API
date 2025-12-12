@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Features.Museums;
 
-using Artix.API.Core.Contract.Features.Museums.Admin.Queries.GetPaginate;
+using Admin.Queries.GetPaginateMuseums;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetAll;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
@@ -9,7 +9,7 @@ using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetObjects;
 using Primitives.Models;
 using Primitives.Repositories;
 using Domain.Entities.Museum;
-using Objects.Client.Queries.GetAll;
+using Objects.Client.Queries.GetPaginateObjects;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {
@@ -25,7 +25,7 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
         CancellationToken cancellationToken = default);
 
 
-    Task<PaginatedResult<AllObjectDto>> GetAllObjectsAsync(GetAllObjectsQuery dto,
+    Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAsync(GetPaginateObjectsQuery dto,
         CancellationToken cancellationToken = default);
 
     Task<PaginatedResult<PaginatedMuseumsDto>> GetAllMuseumsAdminAsync(GetPaginateMuseumsQuery dto, CancellationToken cancellationToken=default);

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Users.Client.Commands.Modify;
+﻿namespace Artix.API.Core.Contract.Features.Users.Client.Commands.ModifyProfile;
 
 using Primitives.Handlers;
 

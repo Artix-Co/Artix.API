@@ -3,7 +3,7 @@
 using Primitives;
 using Artix.API.Core.Contract.Primitives.Models;
 using Contract.Features.Museums;
-using Contract.Features.Museums.Admin.Queries.GetPaginate;
+using Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

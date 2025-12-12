@@ -1,8 +1,8 @@
-﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetAll;
+﻿namespace Artix.API.Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 
 using Primitives.Models;
 
-public sealed record GetAllObjectsQuery(
+public sealed record GetPaginateObjectsQuery(
     List<long>? CategoryIds,
     string? NameFilter = null,
     Guid? MuseumId = null,
@@ -12,4 +12,4 @@ public sealed record GetAllObjectsQuery(
     int? Version = null,
     string SortBy = "Name",
     bool SortDescending = false
-) : PaginationQuery<AllObjectDto>;
+) : PaginationQuery<PaginateObjectsDto>;

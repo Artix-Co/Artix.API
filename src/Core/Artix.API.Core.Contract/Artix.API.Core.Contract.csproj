@@ -35,7 +35,5 @@
     <Folder Include="Features\Tiers\Client\" />
     <Folder Include="Features\Users\Admin\Commands\" />
     <Folder Include="Features\Users\Admin\Queries\" />
-    <Folder Include="Features\Users\Client\Commands\" />
-    <Folder Include="Features\Users\Client\Queries\" />
   </ItemGroup>
 </Project>
