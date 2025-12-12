@@ -33,7 +33,6 @@
     <Folder Include="Features\Quizzes\Client\" />
     <Folder Include="Features\Users\Admin\Commands\" />
     <Folder Include="Features\Users\Admin\Queries\" />
-    <Folder Include="Features\Users\Client\Commands\DeActivateProfile\" />
     <Folder Include="Features\Versions\Client\" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
 
 using Core.Contract.Primitives.Models;
 using Common;
-using Core.Contract.Features.Users.Client.Commands.DeActivateProfile;
+using Core.Contract.Features.Users.Client.Commands.DeleteProfile;
 using Core.Contract.Features.Users.Client.Commands.ModifyProfile;
 using Core.Contract.Features.Users.Client.Queries.GetPaginateLoginHistories;
 using Core.Contract.Features.Users.Client.Queries.GetUserProfile;
@@ -38,9 +38,9 @@ public sealed class UserController : ClientBaseController
     
     
     [Authorize]
-    [HttpPatch("de-active-profile")]
+    [HttpDelete("delete-profile")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> DeActivateProfileAsync([FromBody] DeActivateProfileCommand command)
+    public async Task<IActionResult> DeActivateProfileAsync([FromQuery] DeleteProfileCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);

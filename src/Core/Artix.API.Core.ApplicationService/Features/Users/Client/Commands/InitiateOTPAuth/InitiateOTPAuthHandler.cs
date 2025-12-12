@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 // TODO: develop validation for this handler
 internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAuthCommand>
 {
-    private readonly UserManager<AppUser> _userManager;
     private readonly ISessionStore _sessionStore;
     private readonly IOTPCommandRepository _otpCommandRepository;
 
@@ -23,7 +22,6 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
         ISessionStore sessionStore,
         IOTPCommandRepository otpCommandRepository) : base(httpContextAccessor, userManager)
     {
-        this._userManager = userManager;
         this._sessionStore = sessionStore;
         this._otpCommandRepository = otpCommandRepository;
     }
