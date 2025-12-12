@@ -4,7 +4,7 @@ using Core.Contract.Primitives.Models;
 using Common;
 using Core.Contract.Features.Users.Client.Commands.DeActivateProfile;
 using Core.Contract.Features.Users.Client.Commands.ModifyProfile;
-using Core.Contract.Features.Users.Client.Queries.GetPaginateLoginHistory;
+using Core.Contract.Features.Users.Client.Queries.GetPaginateLoginHistories;
 using Core.Contract.Features.Users.Client.Queries.GetUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
