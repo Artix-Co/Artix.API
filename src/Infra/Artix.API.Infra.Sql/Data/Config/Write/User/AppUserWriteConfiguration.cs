@@ -12,14 +12,13 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .HasMaxLength(100)
             .IsRequired(false);
 
- 
 
         entity.Property(e => e.IsPro)
             .IsRequired()
             .HasDefaultValue(false);
 
 
-        // Relationships
+        
         entity.HasMany(e => e.Collections)
             .WithOne(c => c.User);
 
@@ -31,9 +30,7 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
 
         entity.HasMany(e => e.UserMuseumKeys)
             .WithOne(e => e.User);
-
-        entity.HasMany(e => e.UserScans)
-            .WithOne(e => e.User);
+ 
 
         entity.HasMany(e => e.UserSeasonProgresses)
             .WithOne(e => e.User);
@@ -45,6 +42,9 @@ internal sealed class AppUserWriteConfiguration : IEntityTypeConfiguration<AppUs
             .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserXps)
+            .WithOne(e => e.User);
+        
+        entity.HasMany(e => e.UserScans)
             .WithOne(e => e.User);
 
         entity.HasMany(o => o.UserImages)

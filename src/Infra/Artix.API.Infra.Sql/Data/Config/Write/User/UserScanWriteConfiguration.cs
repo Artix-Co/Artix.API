@@ -32,11 +32,12 @@ internal sealed class UserScanWriteConfiguration : BaseEntityConfiguration<UserS
         entity.Property(e => e.InCollection)
             .IsRequired()
             .HasDefaultValue(false);
-
+        
         entity.HasOne(e => e.User)
             .WithMany(u => u.UserScans)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
 
         entity.HasOne(e => e.Object)
             .WithMany()

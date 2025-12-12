@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Artix.API.Infra.Sql.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,10 +24,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     IsRequired = table.Column<bool>(type: "bit", nullable: false),
                     MinSupported = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -93,10 +93,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     FileSize = table.Column<long>(type: "bigint", nullable: false),
                     MimeType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     UploadedBy = table.Column<long>(type: "bigint", maxLength: 100, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -113,10 +113,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     StartDate = table.Column<string>(type: "nvarchar(50)", nullable: true),
                     EndDate = table.Column<string>(type: "nvarchar(50)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -132,10 +132,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -161,9 +161,9 @@ namespace Artix.API.Infra.Sql.Migrations
                     FailedAttempts = table.Column<int>(type: "int", nullable: false),
                     LastErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -185,10 +185,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     IsSpecial = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsHidden = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     ObjectSaleType = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -206,10 +206,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsUsed = table.Column<bool>(type: "bit", nullable: false),
                     Purpose = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -221,11 +221,13 @@ namespace Artix.API.Infra.Sql.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     Data = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, defaultValue: "Pending"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RetryCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Error = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false, defaultValue: "")
                 },
                 constraints: table =>
                 {
@@ -242,10 +244,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     StartDate = table.Column<DateOnly>(type: "date", nullable: true),
                     EndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -270,10 +272,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     TierLevel = table.Column<int>(type: "int", nullable: false),
                     Multiplier = table.Column<double>(type: "float", nullable: false),
                     Priority = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -288,10 +290,10 @@ namespace Artix.API.Infra.Sql.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -414,10 +416,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsPublic = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -465,10 +467,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     IpAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserAgent = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -493,10 +495,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     LastInteraction = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     FuelCount = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -518,10 +520,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     TotalXp = table.Column<long>(type: "bigint", nullable: false),
                     LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -594,10 +596,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     UnlockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ShareCount = table.Column<int>(type: "int", nullable: false),
                     IsShared = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -628,10 +630,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DeliveryStatus = table.Column<int>(type: "int", nullable: false),
                     DeliveredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -660,10 +662,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SketchUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -687,10 +689,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     IsSold = table.Column<bool>(type: "bit", nullable: true),
                     ObjectId = table.Column<long>(type: "bigint", nullable: true),
                     SellerId = table.Column<long>(type: "bigint", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -816,10 +818,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     AcquiredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsUpgraded = table.Column<bool>(type: "bit", nullable: false),
                     InCollection = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -848,10 +850,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     XpReward = table.Column<int>(type: "int", nullable: false),
                     IsPro = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -874,10 +876,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     SeasonId = table.Column<long>(type: "bigint", nullable: false),
                     TotalXp = table.Column<int>(type: "int", nullable: false),
                     LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -907,10 +909,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     IsFree = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     SeasonId = table.Column<long>(type: "bigint", nullable: true),
                     ObjectId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -986,10 +988,10 @@ namespace Artix.API.Infra.Sql.Migrations
                     UnlockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     JournalEntryId = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "smalldatetime", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "smalldatetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1443,6 +1445,22 @@ namespace Artix.API.Infra.Sql.Migrations
                 name: "IX_OTP_PhoneNumber_ExpiresAt",
                 table: "OTPs",
                 columns: new[] { "PhoneNumber", "ExpiresAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_CreatedAt",
+                table: "OutboxMessages",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_Status",
+                table: "OutboxMessages",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_Status_CreatedAt",
+                table: "OutboxMessages",
+                columns: new[] { "Status", "CreatedAt" },
+                filter: "\"Status\" = 'Pending'");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Season_BusinessId",

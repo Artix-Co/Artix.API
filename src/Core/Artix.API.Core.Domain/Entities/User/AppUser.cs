@@ -47,6 +47,8 @@ public class AppUser : IdentityUser<long>
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
 
 
+    #region Builder
+
     public class AppUserBuilder
     {
         private readonly AppUser _user;
@@ -96,6 +98,8 @@ public class AppUser : IdentityUser<long>
 
         public AppUser Build() => _user;
     }
+
+    #endregion
 
     public void AssignProfileImage(long fileId, string[] allowedMimeTypes)
     {
@@ -165,7 +169,7 @@ public class AppUser : IdentityUser<long>
 
     public void ProcessScan(Object @object)
     {
-        var userScan = this._userScans.FirstOrDefault(uo => uo.UserId == this.Id && uo.ObjectId == @object.Id);
+        var userScan = this.UserScans.FirstOrDefault(uo => uo.UserId == this.Id && uo.ObjectId == @object.Id);
 
         if (userScan == null)
         {

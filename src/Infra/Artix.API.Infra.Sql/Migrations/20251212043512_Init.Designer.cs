@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Artix.API.Infra.Sql.Migrations
 {
     [DbContext(typeof(ArtixCommandDbContext))]
-    [Migration("20251210112918_OutboxTableModifiedConfigureTableFields")]
-    partial class OutboxTableModifiedConfigureTableFields
+    [Migration("20251212043512_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

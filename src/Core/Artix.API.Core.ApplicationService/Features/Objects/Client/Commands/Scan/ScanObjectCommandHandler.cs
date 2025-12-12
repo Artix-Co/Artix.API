@@ -33,7 +33,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
     public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-
+        Console.WriteLine("user scans:", user.UserScans.Count.ToString());
         var rateKey = $"scan:{user.Id}";
         var allowed = await this._requestRatePolicy.IsAllowedAsync(rateKey, cancellationToken);
 
