@@ -179,7 +179,7 @@ using (var scope = app.Services.CreateScope())
 
     await sqlMigration.MigrateAsync();
     // await sqlDataRemover.Remove();
-    await sqlDataSeeder.SeedAsync();
+   // await sqlDataSeeder.SeedAsync();
  
 
 
