@@ -21,6 +21,7 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
     {
         _logger = logger;
     }
+
     public override async Task<Result<PaginatedResult<PaginateLoginHistoryDto>>> Handle(
         GetPaginateLoginHistoryQuery query,
         CancellationToken cancellationToken)
@@ -38,13 +39,14 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
             user.Id, totalCount);
 
         var pagedHistories = user.UserLoginHistories
+            .OrderByDescending(ulh => ulh.CreatedAt)
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(ulh => new PaginateLoginHistoryDto
-            {
-                IpAddress = ulh.IpAddress,
-                UserAgent = ulh.UserAgent
-            })
+            .Select(ulh =>
+                new PaginateLoginHistoryDto
+                {
+                    IpAddress = ulh.IpAddress, UserAgent = ulh.UserAgent, Date = ulh.CreatedAt
+                })
             .ToList()
             .AsReadOnly();
 
@@ -62,5 +64,4 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
 
         return Result<PaginatedResult<PaginateLoginHistoryDto>>.Success(result);
     }
-
 }
