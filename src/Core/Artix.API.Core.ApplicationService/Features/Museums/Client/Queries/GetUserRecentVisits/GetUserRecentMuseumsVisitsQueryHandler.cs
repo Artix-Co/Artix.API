@@ -33,12 +33,12 @@ internal sealed class
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-museums:{user.Id}";
+        var cacheKey = $"recent-museums:{user.BusinessId}";
 
         var cached = await this._museumCache.GetAsync(cacheKey);
         if (cached != null)
         {
-            this._logger.LogInformation("Cache hit for recent museums UserId={UserId}", user.Id);
+            this._logger.LogInformation("Cache hit for recent museums UserId={UserId}", user.BusinessId);
             var result = cached.Select(dto => new UserRecentMuseumsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,

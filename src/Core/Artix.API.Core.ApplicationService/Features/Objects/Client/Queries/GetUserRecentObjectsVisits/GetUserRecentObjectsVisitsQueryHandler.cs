@@ -31,12 +31,12 @@ internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-objects:{user.Id}";
+        var cacheKey = $"recent-objects:{user.BusinessId}";
 
         var cached = await this._objectCache.GetAsync(cacheKey);
         if (cached != null)
         {
-            this._logger.LogInformation("Cache hit for recent objects UserId={UserId}", user.Id);
+            this._logger.LogInformation("Cache hit for recent objects UserId={UserId}", user.BusinessId);
             var result = cached.Select(dto => new UserRecentObjectsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,
