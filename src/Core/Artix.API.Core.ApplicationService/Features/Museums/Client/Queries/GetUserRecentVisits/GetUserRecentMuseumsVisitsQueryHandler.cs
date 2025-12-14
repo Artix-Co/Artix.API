@@ -1,10 +1,10 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetUserRecentVisits;
 
 using Primitives;
-using Artix.API.Core.Contract.Features.Caches.Museums;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
 using Contract.Features.Museums.Client.Queries.GetUserRecentVisits;
+using Contract.Primitives.Infra.Redis.Caches.Museums;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -42,12 +42,13 @@ internal sealed class
             var result = cached.Select(dto => new UserRecentMuseumsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,
-                Name: dto.Name));
+                Name: dto.Name,
+                ObjectCount: dto.ObjectCount));
 
             return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
         }
 
-        this._logger.LogInformation("Cache miss for recent museums UserId={UserId}", user.Id);
-        return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(Enumerable.Empty<UserRecentMuseumsVisitDto>());
+        this._logger.LogInformation("Cache miss for recent museums UserId={UserId}", user.BusinessId);
+        return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success([]);
     }
 }

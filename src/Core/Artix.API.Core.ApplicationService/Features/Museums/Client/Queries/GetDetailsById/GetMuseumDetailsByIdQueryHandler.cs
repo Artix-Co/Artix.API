@@ -2,18 +2,19 @@
 
 using Exceptions;
 using Primitives;
-using Artix.API.Core.Contract.Features.Caches.Museums;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
 using Contract.Features.Museums;
 using Contract.Features.Museums.Client.Queries.GetDetailByIds;
+using Contract.Primitives.Infra.Redis.Caches.Museums;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
-internal sealed class GetMuseumDetailsByIdQueryHandler : QueryHandlerBase<GetMuseumDetailsByIdQuery, MuseumDetailsByIdDto>
+internal sealed class
+    GetMuseumDetailsByIdQueryHandler : QueryHandlerBase<GetMuseumDetailsByIdQuery, MuseumDetailsByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
     private readonly ICacheRepository<List<RecentMuseumDto>> _museumCache;
@@ -31,16 +32,17 @@ internal sealed class GetMuseumDetailsByIdQueryHandler : QueryHandlerBase<GetMus
         this._logger = logger;
     }
 
-    public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query,
+        CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var cacheKey = $"recent-museums:{user.BusinessId}";
 
-        var details = this._museumQueryRepository.GetDetailsById(query);
-        if (details == null)
+        var museumDetailsDto = this._museumQueryRepository.GetDetailsById(query);
+        if (museumDetailsDto == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(MuseumDetailsByIdDto), query.Id);
 
-        var recentItem = new RecentMuseumDto(details.Id, details.ImageUrl, details.Name!);
+        var recentItem = new RecentMuseumDto(museumDetailsDto.Id, museumDetailsDto.ImageUrl, museumDetailsDto.Name!, museumDetailsDto.ObjectCount);
         var currentList = await this._museumCache.GetAsync(cacheKey) ?? new List<RecentMuseumDto>();
 
         var existingIndex = currentList.FindIndex(x => x.Id == recentItem.Id);
@@ -53,8 +55,9 @@ internal sealed class GetMuseumDetailsByIdQueryHandler : QueryHandlerBase<GetMus
 
         await this._museumCache.SetAsync(cacheKey, currentList, ttlSeconds: 1800);
 
-        this._logger.LogInformation("Museum details retrieved and recent visit updated MuseumId={MuseumId} UserId={UserId}", query.Id, user.Id);
+        this._logger.LogInformation(
+            "Museum details retrieved and recent visit updated MuseumId={MuseumId} UserId={UserId}", query.Id, user.Id);
 
-        return Result<MuseumDetailsByIdDto>.Success(details);
+        return Result<MuseumDetailsByIdDto>.Success(museumDetailsDto);
     }
 }

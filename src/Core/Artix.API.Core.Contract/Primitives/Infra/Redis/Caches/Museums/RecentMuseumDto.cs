@@ -1,18 +1,21 @@
-﻿namespace Artix.API.Core.Contract.Features.Caches.Museums;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Redis.Caches.Museums;
 
 using System.Text.Json.Serialization;
+using Features.Caches;
 
 public class RecentMuseumDto : RecentBaseEntity
 {
     public string? ImageUrl { get; set; }
     public string Name { get; set; }
-    public static RecentMuseumDto Create(Guid id, string? imageUrl, string name)
+    public int ObjectCount { get; set; }
+
+    public static RecentMuseumDto Create(Guid id, string? imageUrl, string name, int objectCount)
     {
-        return new RecentMuseumDto(id, imageUrl, name);
+        return new RecentMuseumDto(id, imageUrl, name, objectCount);
     }
 
     [JsonConstructor]
-    public RecentMuseumDto(Guid id, string? imageUrl, string name)
+    public RecentMuseumDto(Guid id, string? imageUrl, string name, int objectCount)
     {
         // TODO: use layer exception
         if (string.IsNullOrWhiteSpace(name))
@@ -21,5 +24,6 @@ public class RecentMuseumDto : RecentBaseEntity
         this.Id = id;
         this.Name = name;
         this.ImageUrl = imageUrl;
+        this.ObjectCount = objectCount;
     }
 }
