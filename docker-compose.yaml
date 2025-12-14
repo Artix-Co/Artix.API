@@ -77,27 +77,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-
+  
   redis:
     image: redis:7
     container_name: redis
     user: root
     ports:
       - "6377:6377"
-    command: redis-server --save "" --appendonly no --requirepass "Heli@ghar771379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass "Heli@ghar771379"
     networks:
       - internal_net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 1G
     healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "Heli@ghar771379", "PING" ]
+      test: ["CMD", "redis-cli", "-a", "Heli@ghar771379", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
 
 
   nginx:

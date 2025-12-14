@@ -34,7 +34,7 @@ internal sealed class GetMuseumDetailsByIdQueryHandler : QueryHandlerBase<GetMus
     public override async Task<Result<MuseumDetailsByIdDto>> Handle(GetMuseumDetailsByIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-museums:{user.Id}";
+        var cacheKey = $"recent-museums:{user.BusinessId}";
 
         var details = this._museumQueryRepository.GetDetailsById(query);
         if (details == null)

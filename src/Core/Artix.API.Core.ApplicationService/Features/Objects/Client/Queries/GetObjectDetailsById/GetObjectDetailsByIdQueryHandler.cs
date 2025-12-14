@@ -34,7 +34,7 @@ internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObj
     public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-objects:{user.Id}";
+        var cacheKey = $"recent-objects:{user.BusinessId}";
 
         var details = await this._objectQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
         if (details == null)
