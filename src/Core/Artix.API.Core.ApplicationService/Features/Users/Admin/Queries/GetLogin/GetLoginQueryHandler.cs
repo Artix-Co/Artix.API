@@ -1,13 +1,11 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Admin.Queries.Login;
+﻿namespace Artix.API.Core.ApplicationService.Features.Users.Admin.Queries.GetLogin;
 
 using Primitives;
-using Artix.API.Core.Contract.Primitives.Infra.Identity;
+using Artix.API.Core.Contract.Features.Users.Admin.Queries.GetLogin;
+using Artix.API.Core.Contract.Primitives.Infra.Identity.Authentication;
+using Artix.API.Core.Contract.Primitives.Infra.Identity.Authentication.Admin.Login;
 using Artix.API.Core.Contract.Primitives.Models;
-using Contract.Features.Users.Admin.Queries.GetLogin;
-using Contract.Primitives.Infra.Identity.Authentication;
-using Contract.Primitives.Infra.Identity.Authentication.Admin.Login;
 using Domain.Entities.User;
-using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
