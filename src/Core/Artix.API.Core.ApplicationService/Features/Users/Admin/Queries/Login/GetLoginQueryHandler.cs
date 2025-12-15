@@ -14,15 +14,13 @@ using Microsoft.AspNetCore.Identity;
 internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
-    private readonly IUserLoginHistoryService _userLoginHistoryService;
 
 
     public GetLoginQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        IJwtTokenGenerator jwtTokenGenerator, IUserLoginHistoryService userLoginHistoryService) : base(
+        IJwtTokenGenerator jwtTokenGenerator) : base(
         httpContextAccessor, userManager)
     {
         this._jwtTokenGenerator = jwtTokenGenerator;
-        this._userLoginHistoryService = userLoginHistoryService;
     }
 
     public override async Task<Result<LoginDto>> Handle(GetLoginQuery query, CancellationToken cancellationToken)
@@ -38,11 +36,6 @@ internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetLoginQuery, Log
         if (!roles.Contains(nameof(Role.Admin)))
             throw new UnauthorizedAccessException("Access denied: Admin role required.");
 
-        await this._userLoginHistoryService.RecordLoginAsync(
-            user,
-            this.GetRemoteIp()!,
-            this.GetUserAgent()!
-        );
 
         var tokens =
             await this._jwtTokenGenerator.GenerateTokensAsync(user, forceRefreshToken: true, cancellationToken);

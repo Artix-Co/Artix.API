@@ -32,20 +32,23 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
             "Handling GetPaginateLoginHistoryQuery for UserId={UserId} Page={Page} Size={Size}",
             user.Id, query.PageNumber, query.PageSize);
 
-        var totalCount = user.UserLoginHistories.Count;
+        var totalCount = user.UserSessions.Count;
 
         _logger.LogInformation(
             "Retrieved user {UserId} with {LoginCount} login history records.",
             user.Id, totalCount);
 
-        var pagedHistories = user.UserLoginHistories
+        var pagedHistories = user.UserSessions
             .OrderByDescending(ulh => ulh.CreatedAt)
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
             .Select(ulh =>
                 new PaginateLoginHistoryDto
                 {
-                    IpAddress = ulh.IpAddress, UserAgent = ulh.UserAgent, Date = ulh.CreatedAt
+                    IpAddress = ulh.IpAddress,
+                    UserAgent = ulh.UserAgent,
+                    Date = ulh.CreatedAt,
+                    IsActive = ulh.IsActive
                 })
             .ToList()
             .AsReadOnly();

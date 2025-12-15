@@ -4,9 +4,9 @@ using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-internal sealed class UserLoginHistoryReadConfiguration: BaseEntityConfiguration<UserLoginHistory> 
+internal sealed class UserLoginHistoryReadConfiguration: BaseEntityConfiguration<UserSession> 
 {
-    public void Configure(EntityTypeBuilder<UserLoginHistory> entity)
+    public void Configure(EntityTypeBuilder<UserSession> entity)
     {
         base.Configure(entity);
 
@@ -25,7 +25,7 @@ internal sealed class UserLoginHistoryReadConfiguration: BaseEntityConfiguration
 
         // Foreign key relationship with AppUser
         entity.HasOne(ulh => ulh.User)
-            .WithMany(u => u.UserLoginHistories) // Assumes AppUser has a collection: ICollection<UserLoginHistory> LoginHistories
+            .WithMany(u => u.UserSessions) // Assumes AppUser has a collection: ICollection<UserLoginHistory> LoginHistories
             .HasForeignKey(ulh => ulh.UserId)
             .OnDelete(DeleteBehavior.Cascade); // Deletes login history if user is deleted (adjust based on requirements)
 

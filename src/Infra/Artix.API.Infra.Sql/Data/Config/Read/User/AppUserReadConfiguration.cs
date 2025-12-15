@@ -41,7 +41,7 @@ internal sealed class AppUserReadConfiguration : IEntityTypeConfiguration<AppUse
         entity.HasMany(e => e.UserStrikes)
             .WithOne(e => e.User);
 
-        entity.HasMany(e => e.UserLoginHistories)
+        entity.HasMany(e => e.UserSessions)
             .WithOne(e => e.User);
 
         entity.HasMany(e => e.UserXps)

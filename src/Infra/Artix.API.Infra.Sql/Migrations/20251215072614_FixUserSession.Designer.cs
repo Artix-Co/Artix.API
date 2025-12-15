@@ -4,6 +4,7 @@ using Artix.API.Infra.Sql.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Artix.API.Infra.Sql.Migrations
 {
     [DbContext(typeof(ArtixCommandDbContext))]
-    partial class ArtixCommandDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215072614_FixUserSession")]
+    partial class FixUserSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

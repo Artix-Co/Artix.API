@@ -17,19 +17,17 @@ internal sealed class GetVerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAut
 {
     private readonly RoleManager<AppRole> _roleManager;
     private readonly SignInManager<AppUser> _signInManager;
-    private readonly IUserLoginHistoryService _userLoginHistoryService;
     private readonly ISessionStore _sessionStore;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
 
     public GetVerifyOTPAuthHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager, SignInManager<AppUser> signInManager,
-        IUserLoginHistoryService userLoginHistoryService, ISessionStore sessionStore,
+        ISessionStore sessionStore,
         IJwtTokenGenerator jwtTokenGenerator) : base(httpContextAccessor, userManager)
     {
         this._roleManager = roleManager;
         this._signInManager = signInManager;
-        this._userLoginHistoryService = userLoginHistoryService;
         this._sessionStore = sessionStore;
         this._jwtTokenGenerator = jwtTokenGenerator;
     }
@@ -64,16 +62,11 @@ internal sealed class GetVerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAut
             await this.EnsureClientRoleAsync();
             user = await this.CreateClientUserAsync(query.PhoneNumber);
 
-            await this._userLoginHistoryService.RecordLoginAsync(
-                user,
-                this.GetRemoteIp(),
-                this.GetUserAgent());
 
             var tokens =
                 await this._jwtTokenGenerator.GenerateTokensAsync(user, forceRefreshToken: true, cancellationToken);
 
             return Result<VerifyOTPAuthDto>.Success(new VerifyOTPAuthDto(
-                IsNewUser: true,
                 UserId: user.BusinessId,
                 AccessToken: tokens.AccessToken,
                 RefreshToken: tokens.RefreshToken,
@@ -86,13 +79,11 @@ internal sealed class GetVerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAut
             await this.ValidateClientAccessAsync(user);
 
             await this._signInManager.SignInAsync(user, isPersistent: false);
-            await this._userLoginHistoryService.RecordLoginAsync(user, this.GetRemoteIp(), this.GetUserAgent());
 
             var tokens =
                 await this._jwtTokenGenerator.GenerateTokensAsync(user, forceRefreshToken: true, cancellationToken);
 
             return Result<VerifyOTPAuthDto>.Success(new VerifyOTPAuthDto(
-                IsNewUser: false,
                 UserId: user.BusinessId,
                 AccessToken: tokens.AccessToken,
                 RefreshToken: tokens.RefreshToken,
@@ -139,7 +130,7 @@ internal sealed class GetVerifyOTPAuthHandler : QueryHandlerBase<GetVerifyOTPAut
         return user;
     }
 
-    protected async Task EnsureClientRoleAsync()
+    private async Task EnsureClientRoleAsync()
     {
         if (!await this._roleManager.RoleExistsAsync(nameof(Role.Client)))
         {

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Services.LoginHistory;
+using Services.SessionService;
 using Services.TokenProvider;
 using Services.TokenService;
 using Sql.Data.DbContexts;
@@ -140,7 +140,7 @@ public static class DependencyInjection
                 policy.RequireClaim("ClientType", nameof(ClientType.Emerald), nameof(ClientType.Ruby), nameof(ClientType.Turquoise), nameof(ClientType.Pro)));
         });
 
-        services.AddScoped<IUserLoginHistoryService, UserLoginHistoryService>();
+        services.AddScoped<IUserSessionService, UserSessionService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ITokenService, TokenService>();
     }
