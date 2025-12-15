@@ -1,9 +1,11 @@
 ﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.InitiateOTPAuth;
 
+using System.Text.Json;
 using Primitives;
 using Artix.API.Core.Contract.Features.OTPs.Commands;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Contract.Features.Users.Client.Commands.InitiateOTPAuth;
+using Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
 using Domain.Entities.OTP;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +18,7 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
 {
     private readonly ISessionStore _sessionStore;
     private readonly IOTPCommandRepository _otpCommandRepository;
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public InitiateOTPAuthHandler(
         IHttpContextAccessor httpContextAccessor,
@@ -40,10 +43,13 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
         var smsMessage = $"Your {purpose.ToLower()} OTP is {otp.Code}. It expires in 5 minutes.";
         // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
-        var sessionData = new { Code = otp.Code, Purpose = purpose, Attempts = 0 };
-        var json = System.Text.Json.JsonSerializer.Serialize(sessionData);
+
+        var sessionData = new OtpSessionData(otp.Code, purpose, 0);
+
+        var json = JsonSerializer.Serialize(sessionData, _jsonOptions);
         await this._sessionStore.SetSessionAsync($"otp:{command.PhoneNumber}", json, 300, cancellationToken);
 
+        
         await this._otpCommandRepository.InsertAsync(otp, cancellationToken);
 
         return businessId;
