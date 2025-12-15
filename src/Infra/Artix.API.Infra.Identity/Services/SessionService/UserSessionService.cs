@@ -1,6 +1,6 @@
 ﻿namespace Artix.API.Infra.Identity.Services.SessionService;
 
-using Artix.API.Core.Contract.Primitives.Infra.Identity;
+using Core.Contract.Primitives.Infra.Identity;
 using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Sql.Data.DbContexts;
@@ -89,7 +89,7 @@ public sealed class UserSessionService : IUserSessionService
         CancellationToken cancellationToken = default)
     {
         var sessions = await _dbContext.UserSessions
-            .Where(s => s.UserId == userId && s.IsActive)
+            .Where(s => s.UserId == userId && s.RevokedAt == null && DateTime.UtcNow < s.ExpiresAt)
             .ToListAsync(cancellationToken);
 
         foreach (var session in sessions)

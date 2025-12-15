@@ -21,33 +21,39 @@ internal sealed class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
-    private readonly SignInManager<AppUser> _signInManager;
     private readonly ISessionStore _sessionStore;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
-    private readonly ITokenRevocationStore _revocationStore;
+    private readonly IUserSessionService _userSessionService;
+    private readonly ITokenRevocationStore _tokenRevocationStore;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthenticationService(
         UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager,
-        SignInManager<AppUser> signInManager,
         ISessionStore sessionStore,
         IJwtTokenGenerator jwtTokenGenerator,
-        ITokenRevocationStore revocationStore,
+        IUserSessionService userSessionService,
+        ITokenRevocationStore tokenRevocationStore,
         IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _signInManager = signInManager;
         _sessionStore = sessionStore;
         _jwtTokenGenerator = jwtTokenGenerator;
-        _revocationStore = revocationStore;
+        _userSessionService = userSessionService;
+        _tokenRevocationStore = tokenRevocationStore;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ClientLoginResponse> ClientOtpLoginAsync(ClientLoginRequest request, CancellationToken cancellationToken = default)
+    // ---------------- LOGIN (OTP / CLIENT) ----------------
+
+    public async Task<ClientLoginResponse> ClientOtpLoginAsync(
+        ClientLoginRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var json = await _sessionStore.GetSessionAsync($"otp:{request.PhoneNumber}", cancellationToken);
+        var json = await _sessionStore.GetSessionAsync(
+            $"otp:{request.PhoneNumber}", cancellationToken);
+
         if (string.IsNullOrEmpty(json))
             throw new UnauthorizedAccessException("OTP expired or not found.");
 
@@ -67,7 +73,8 @@ internal sealed class AuthenticationService : IAuthenticationService
             throw new UnauthorizedAccessException("Invalid OTP.");
         }
 
-        await _sessionStore.RemoveSessionAsync($"otp:{request.PhoneNumber}", cancellationToken);
+        await _sessionStore.RemoveSessionAsync(
+            $"otp:{request.PhoneNumber}", cancellationToken);
 
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);
@@ -75,86 +82,103 @@ internal sealed class AuthenticationService : IAuthenticationService
         if (data.Purpose == "Registration" && user == null)
             user = await CreateClientUserAsync(request.PhoneNumber);
 
-        if (data.Purpose == "Login" && user != null)
-            await _signInManager.SignInAsync(user, isPersistent: false);
-
         if (user == null)
             throw new InvalidOperationException("Invalid OTP purpose or user state.");
 
-        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, forceRefreshToken: true, cancellationToken);
+        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(
+            user, forceRefreshToken: true, cancellationToken);
 
         return new ClientLoginResponse(
             user.BusinessId,
-            tokens.AccessToken,
-            tokens.RefreshToken,
-            tokens.AccessTokenExpiresAt,
-            tokens.RefreshTokenExpiresAt);
+            tokenResult.AccessToken,
+            tokenResult.RefreshToken,
+            tokenResult.AccessTokenExpiresAt,
+            tokenResult.RefreshTokenExpiresAt);
     }
 
-    public async Task<ClientLogoutResponse> ClientLogoutAsync(ClientLogoutRequest request, CancellationToken cancellationToken = default)
+    // ---------------- LOGOUT (CLIENT + ADMIN) ----------------
+
+    public async Task<ClientLogoutResponse> ClientLogoutAsync(
+        ClientLogoutRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var user = await GetCurrentUserAsync(cancellationToken);
-        await PerformLogoutAsync(user, cancellationToken);
+        await LogoutInternalAsync(cancellationToken);
         return new ClientLogoutResponse();
     }
 
-    public async Task<AdminLoginResponse> AdminLoginAsync(AdminLoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<AdminLogoutResponse> AdminLogoutAsync(
+        AdminLogoutRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        await LogoutInternalAsync(cancellationToken);
+        return new AdminLogoutResponse();
+    }
+
+    // ---------------- INTERNAL LOGOUT CORE ----------------
+
+    private async Task LogoutInternalAsync(CancellationToken ct)
+    {
+        var httpContext = _httpContextAccessor.HttpContext
+            ?? throw new UnauthorizedAccessException("No active HTTP context.");
+
+        var user = await GetCurrentUserAsync(ct);
+
+        // 1. Revoke ALL server-side sessions / refresh tokens
+        await _userSessionService.RevokeAllAsync(user.Id, ct);
+
+        // 2. Revoke CURRENT access token (JTI-based)
+        var jti = httpContext.User
+            .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+
+        var expClaim = httpContext.User
+            .FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+
+        if (!string.IsNullOrWhiteSpace(jti) && long.TryParse(expClaim, out var exp))
+        {
+            var expiry = DateTimeOffset.FromUnixTimeSeconds(exp);
+            await _tokenRevocationStore.RevokeAsync(jti, expiry);
+        }
+    }
+
+    // ---------------- ADMIN LOGIN ----------------
+
+    public async Task<AdminLoginResponse> AdminLoginAsync(
+        AdminLoginRequest request,
+        CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByNameAsync(request.Username);
+
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             throw new UnauthorizedAccessException("Invalid credentials.");
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (!roles.Contains(nameof(Role.Admin)))
-            throw new UnauthorizedAccessException("Access denied: Admin role required.");
 
-        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, forceRefreshToken: true, cancellationToken);
+        if (!roles.Contains(nameof(Role.Admin)))
+            throw new UnauthorizedAccessException("Admin role required.");
+
+        var tokenResult = await _jwtTokenGenerator.GenerateTokensAsync(
+            user, forceRefreshToken: true, cancellationToken);
 
         return new AdminLoginResponse(
-            tokens.AccessToken,
-            tokens.RefreshToken,
-            tokens.AccessTokenExpiresAt,
-            tokens.RefreshTokenExpiresAt,
+            tokenResult.AccessToken,
+            tokenResult.RefreshToken,
+            tokenResult.AccessTokenExpiresAt,
+            tokenResult.RefreshTokenExpiresAt,
             user.UserName!,
             user.DisplayName,
             roles.ToArray().AsReadOnly());
     }
 
-    public async Task<AdminLogoutResponse> AdminLogoutAsync(AdminLogoutRequest request, CancellationToken cancellationToken = default)
-    {
-        var user = await GetCurrentUserAsync(cancellationToken);
-        await PerformLogoutAsync(user, cancellationToken);
-        return new AdminLogoutResponse();
-    }
+    // ---------------- HELPERS ----------------
 
     private async Task<AppUser> GetCurrentUserAsync(CancellationToken ct)
     {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                     ?? throw new UnauthorizedAccessException("User not authenticated.");
+        var userId = _httpContextAccessor.HttpContext?
+            .User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? throw new UnauthorizedAccessException("User not authenticated.");
 
-        var user = await _userManager.FindByIdAsync(userId);
-        return user ?? throw new UnauthorizedAccessException("User not found.");
-    }
-
-    private async Task PerformLogoutAsync(AppUser user, CancellationToken ct)
-    {
-        var accessToken = await _userManager.GetAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-
-        if (!string.IsNullOrEmpty(accessToken))
-        {
-            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-            var jti = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
-
-            if (jti != null)
-            {
-                var expiry = DateTimeOffset.FromUnixTimeSeconds(jwt.ValidTo.ToUniversalTime().Ticks / TimeSpan.TicksPerSecond);
-                await _revocationStore.RevokeAsync(jti, expiry);
-            }
-        }
-
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "access_token");
-        await _userManager.RemoveAuthenticationTokenAsync(user, "ArtixApp", "refresh_token");
-
+        return await _userManager.FindByIdAsync(userId)
+               ?? throw new UnauthorizedAccessException("User not found.");
     }
 
     private async Task<AppUser> CreateClientUserAsync(string phoneNumber)
@@ -169,27 +193,11 @@ internal sealed class AuthenticationService : IAuthenticationService
             DisplayName = phoneNumber
         };
 
-        var createResult = await _userManager.CreateAsync(user);
-        if (!createResult.Succeeded)
+        var result = await _userManager.CreateAsync(user);
+        if (!result.Succeeded)
             throw new ApplicationException("User creation failed.");
 
         await _userManager.AddToRoleAsync(user, nameof(Role.Client));
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, user.DisplayName ?? user.UserName),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-            new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
-            new Claim("ClientType", nameof(ClientType.Emerald)),
-            new Claim("permission", "read:client"),
-            new Claim("permission", "view:profile"),
-            new Claim("permission_group", "client_group"),
-            new Claim("group", "client_team"),
-            new Claim("group_permission", "client_team_read")
-        };
-
-        await _userManager.AddClaimsAsync(user, claims);
-
         return user;
     }
 

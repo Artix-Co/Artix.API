@@ -6,4 +6,6 @@ public sealed class JwtTokenResult
     public string RefreshToken { get; set; }
     public DateTime AccessTokenExpiresAt { get; set; }
     public DateTime RefreshTokenExpiresAt { get; set; }
+    public string Jti { get; set; }
+    public string RefreshTokenHash { get; set; }
 }

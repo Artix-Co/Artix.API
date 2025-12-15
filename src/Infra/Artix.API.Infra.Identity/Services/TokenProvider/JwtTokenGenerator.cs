@@ -243,10 +243,11 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             user.Id,
             jti);
 
+        var hashedRefreshToken = Hash(refreshToken);
         await _userSessionService.RecordLoginAsync(
             userId: user.Id,
             jwtId: jti,
-            refreshTokenHash: Hash(refreshToken),
+            refreshTokenHash: hashedRefreshToken,
             ipAddress: GetClientIp(),
             userAgent: GetUserAgent(),
             lifetime: TimeSpan.FromSeconds(_accessTokenExpireTimeInSeconds),
@@ -270,7 +271,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             AccessTokenExpiresAt = accessTokenExpiresAt,
-            RefreshTokenExpiresAt = refreshTokenExpiresAt
+            RefreshTokenExpiresAt = refreshTokenExpiresAt,
+            Jti = jti,
+            RefreshTokenHash = hashedRefreshToken
         };
     }
 
