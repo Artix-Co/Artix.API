@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Primitives.Infra.Identity;
+using Core.Contract.Primitives.Infra.Identity.Authentication;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Services;
 using Services.SessionService;
 using Services.TokenProvider;
 using Services.TokenService;
@@ -143,6 +145,7 @@ public static class DependencyInjection
         services.AddScoped<IUserSessionService, UserSessionService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
     }
 
     private static void ValidateAuthenticationSettings(AuthenticationSettings settings)

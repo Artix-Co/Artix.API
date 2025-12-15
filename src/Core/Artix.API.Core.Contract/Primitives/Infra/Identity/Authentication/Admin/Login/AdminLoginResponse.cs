@@ -1,11 +1,10 @@
-﻿namespace Artix.API.Core.Contract.Features.Users.Admin.Queries.GetLogin;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Identity.Authentication.Admin.Login;
 
-public sealed record LoginDto(
+public record AdminLoginResponse(
     string AccessToken,
     string RefreshToken,
     DateTime AccessTokenExpiresAt,
     DateTime RefreshTokenExpiresAt,
-    string? Username,
+    string Username,
     string? DisplayName,
     IReadOnlyList<string> Roles);
-
