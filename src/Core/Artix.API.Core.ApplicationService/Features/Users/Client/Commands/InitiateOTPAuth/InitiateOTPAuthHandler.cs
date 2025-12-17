@@ -7,6 +7,7 @@ using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Contract.Features.Users.Client.Commands.InitiateOTPAuth;
 using Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
 using Domain.Entities.OTP;
+using Domain.Entities.OTP.Enums;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -36,11 +37,11 @@ internal sealed class InitiateOTPAuthHandler : CommandHandlerBase<InitiateOTPAut
         var userExists = await this._userManager.Users
             .AnyAsync(u => u.PhoneNumber == command.PhoneNumber, cancellationToken);
 
-        var purpose = userExists ? "Login" : "Registration";
-        var otp = OTP.Create(command.PhoneNumber, purpose);
+        var purpose = userExists ? PurposeType.Login : PurposeType.Registration;
+        var otp = OTP.Generate(command.PhoneNumber, purpose);
         var businessId = otp.BusinessId;
 
-        var smsMessage = $"Your {purpose.ToLower()} OTP is {otp.Code}. It expires in 5 minutes.";
+        var smsMessage = $"Your {purpose.ToString().ToLower()} OTP is {otp.Code}. It expires in 5 minutes.";
         // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
 

@@ -10,6 +10,7 @@ using Core.Contract.Primitives.Infra.Identity.Authentication.Admin.Logout;
 using Core.Contract.Primitives.Infra.Identity.Authentication.Client.Login;
 using Core.Contract.Primitives.Infra.Identity.Authentication.Client.Logout;
 using Core.Contract.Primitives.Infra.Redis;
+using Core.Domain.Entities.OTP.Enums;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
@@ -82,14 +83,13 @@ internal sealed class AuthenticationService : IAuthenticationService
 
         AppUser? user = null;
 
-        if (data.Purpose == "Registration")
+        if (data.Purpose == PurposeType.Registration)
         {
             user = await CreateClientUserAsync(request.PhoneNumber);
         }
         else
         {
             user = await _userManager.Users
-                
                 .FirstOrDefaultAsync(
                     u => u.PhoneNumber == request.PhoneNumber,
                     cancellationToken);

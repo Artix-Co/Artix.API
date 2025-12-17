@@ -1,8 +1,10 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Write.OTP;
 
 using Core.Domain.Entities.OTP;
+using Core.Domain.Entities.OTP.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 internal sealed class OtpWriteConfiguration : BaseEntityConfiguration<OTP>
 {
@@ -27,8 +29,8 @@ internal sealed class OtpWriteConfiguration : BaseEntityConfiguration<OTP>
         builder.Property(o => o.IsUsed)
             .IsRequired();
         
-        
         builder.Property(o => o.Purpose)
+            .HasConversion(new EnumToStringConverter<PurposeType>()) 
             .IsRequired()
             .HasMaxLength(50);
         

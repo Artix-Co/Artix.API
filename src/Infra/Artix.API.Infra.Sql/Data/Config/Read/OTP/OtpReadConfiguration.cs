@@ -1,8 +1,10 @@
 ﻿namespace Artix.API.Infra.Sql.Data.Config.Read.OTP;
 
 using Core.Domain.Entities.OTP;
+using Core.Domain.Entities.OTP.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 internal sealed class OtpReadConfiguration : BaseEntityConfiguration<OTP>
 {
@@ -29,6 +31,7 @@ internal sealed class OtpReadConfiguration : BaseEntityConfiguration<OTP>
         
         
         builder.Property(o => o.Purpose)
+            .HasConversion(new EnumToStringConverter<PurposeType>()) 
             .IsRequired()
             .HasMaxLength(50);
         
