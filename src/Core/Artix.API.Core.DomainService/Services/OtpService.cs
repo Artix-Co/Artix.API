@@ -1,24 +1,23 @@
-﻿namespace Artix.API.Core.DomainService.Services.OTP;
+﻿namespace Artix.API.Core.DomainService.Services;
 
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading;
 using Contract.Features.OTPs.Commands;
+using Contract.Features.OTPs.Queries;
+using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
 using Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
+using Contract.Primitives.DomainServices.OTP;
+using Contract.Primitives.DomainServices.OTP.Init;
+using Contract.Primitives.DomainServices.OTP.Verify;
 using Contract.Primitives.Infra.Identity;
 using Contract.Primitives.Infra.Redis;
 using Domain.Entities.OTP;
 using Domain.Entities.OTP.Enums;
 using Domain.Entities.User;
+using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
-using System.Threading.Tasks;
-using Contract.Features.OTPs.Queries;
-using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
-using Contract.Primitives.DomainServices.OTP;
-using Contract.Primitives.DomainServices.OTP.Init;
-using Contract.Primitives.DomainServices.OTP.Verify;
-using Domain.Entities.User.Enums;
 
 internal sealed class OtpService : IOtpService
 {
@@ -41,19 +40,19 @@ internal sealed class OtpService : IOtpService
         // ISmsSender smsSender
     )
     {
-        _userManager = userManager;
-        _sessionStore = sessionStore;
-        _otpCommandRepository = otpCommandRepository;
-        _otpQueryRepository = otpQueryRepository;
-        _jwtTokenGenerator = jwtTokenGenerator;
+        this._userManager = userManager;
+        this._sessionStore = sessionStore;
+        this._otpCommandRepository = otpCommandRepository;
+        this._otpQueryRepository = otpQueryRepository;
+        this._jwtTokenGenerator = jwtTokenGenerator;
         // _smsSender = smsSender;
 
-        _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        this._jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     }
 
     public async Task<InitOTPResult> InitAsync(InitOTPRequest request, CancellationToken cancellationToken = default)
     {
-        var userExists = await _userManager.Users
+        var userExists = await this._userManager.Users
             .AnyAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);
 
         var purpose = userExists ? PurposeType.Login : PurposeType.Registration;
@@ -65,11 +64,11 @@ internal sealed class OtpService : IOtpService
         // await _smsSender.SendAsync(command.PhoneNumber, smsMessage, cancellationToken);
 
         var sessionData = new OtpSessionData(otp.Code, purpose, 0);
-        var json = JsonSerializer.Serialize(sessionData, _jsonOptions);
+        var json = JsonSerializer.Serialize(sessionData, this._jsonOptions);
 
-        await _sessionStore.SetSessionAsync($"otp:{request.PhoneNumber}", json, 300, cancellationToken);
+        await this._sessionStore.SetSessionAsync($"otp:{request.PhoneNumber}", json, 300, cancellationToken);
 
-        await _otpCommandRepository.InsertAsync(otp, cancellationToken);
+        await this._otpCommandRepository.InsertAsync(otp, cancellationToken);
 
         return new InitOTPResult(businessId);
     }
@@ -79,11 +78,11 @@ internal sealed class OtpService : IOtpService
     {
         var key = $"otp:{request.PhoneNumber}";
 
-        var json = await _sessionStore.GetSessionAsync(key, cancellationToken);
+        var json = await this._sessionStore.GetSessionAsync(key, cancellationToken);
         if (json is null)
             throw new UnauthorizedAccessException("OTP expired or not found.");
 
-        var data = JsonSerializer.Deserialize<OtpSessionData>(json, _jsonOptions)!;
+        var data = JsonSerializer.Deserialize<OtpSessionData>(json, this._jsonOptions)!;
 
         if (data.Attempts >= 3)
             throw new UnauthorizedAccessException("Too many failed attempts.");
@@ -91,44 +90,44 @@ internal sealed class OtpService : IOtpService
         if (data.Code != request.OtpCode)
         {
             var updated = data with { Attempts = data.Attempts + 1 };
-            await _sessionStore.SetSessionAsync(
+            await this._sessionStore.SetSessionAsync(
                 key,
-                JsonSerializer.Serialize(updated, _jsonOptions),
+                JsonSerializer.Serialize(updated, this._jsonOptions),
                 300,
                 cancellationToken);
 
             throw new UnauthorizedAccessException("Invalid OTP.");
         }
 
-        await _sessionStore.RemoveSessionAsync(key, cancellationToken);
+        await this._sessionStore.RemoveSessionAsync(key, cancellationToken);
 
         AppUser? user = null;
 
         if (data.Purpose == PurposeType.Registration)
         {
-            user = await CreateClientUserAsync(request.PhoneNumber);
+            user = await this.CreateClientUserAsync(request.PhoneNumber);
         }
         else
         {
-            user = await _userManager.Users
+            user = await this._userManager.Users
                 .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);
         }
 
         if (user is null)
             throw new InvalidOperationException("Invalid OTP purpose or user state.");
 
-        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
+        var tokens = await this._jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
-        var latestByPhoneNumberDto = await _otpQueryRepository.GetLatestByPhoneNumberAsync(
+        var latestByPhoneNumberDto = await this._otpQueryRepository.GetLatestByPhoneNumberAsync(
             new GetLatestOTPByPhoneNumberQuery(request.PhoneNumber, request.OtpCode), cancellationToken);
 
-        var otp = await _otpCommandRepository.GetByIdAsync(latestByPhoneNumberDto.Id, cancellationToken);
+        var otp = await this._otpCommandRepository.GetByIdAsync(latestByPhoneNumberDto.Id, cancellationToken);
 
         if (otp == null)
             throw new ApplicationException($"Unable to get OTP for user {request.PhoneNumber}");
 
         otp.MarkAsUsed();
-        await _otpCommandRepository.UpdateAsync(otp, cancellationToken);
+        await this._otpCommandRepository.UpdateAsync(otp, cancellationToken);
 
         var result = new VerifyOTPResult(
             user.BusinessId,
@@ -151,15 +150,15 @@ internal sealed class OtpService : IOtpService
             PhoneNumberConfirmed = true
         };
 
-        var result = await _userManager.CreateAsync(user);
+        var result = await this._userManager.CreateAsync(user);
         if (!result.Succeeded)
             throw new InvalidOperationException("Failed to create user: " +
                                                 string.Join(", ", result.Errors.Select(e => e.Description)));
 
-        await _userManager.AddToRoleAsync(user, nameof(Role.Client));
+        await this._userManager.AddToRoleAsync(user, nameof(Role.Client));
 
         var claim = new Claim("ClientType", ClientType.Emerald.ToString());
-        var addClaimResult = await _userManager.AddClaimAsync(user, claim);
+        var addClaimResult = await this._userManager.AddClaimAsync(user, claim);
 
         if (!addClaimResult.Succeeded)
             throw new InvalidOperationException("Failed to add ClientType claim: " +

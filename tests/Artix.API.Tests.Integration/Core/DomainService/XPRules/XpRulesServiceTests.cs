@@ -1,11 +1,10 @@
 ﻿namespace Artix.API.Tests.Integration.Core.DomainService.XPRules;
 
 using API.Core.Contract.Features.Objects;
+using API.Core.Contract.Primitives.DomainServices.TierCalculator;
+using API.Core.Contract.Primitives.DomainServices.XPRules;
 using API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Domain.Entities.User;
-using Artix.API.Core.DomainService.Interfaces.TierCalculator;
-using Artix.API.Core.DomainService.Interfaces.XPRules;
-using Artix.API.Core.DomainService.Services.XPRules;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;

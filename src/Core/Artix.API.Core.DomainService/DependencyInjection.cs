@@ -1,14 +1,11 @@
 ﻿namespace Artix.API.Core.DomainService;
 
+using Contract.Primitives.DomainServices.Notification;
 using Contract.Primitives.DomainServices.OTP;
-using Interfaces.Notification;
-using Interfaces.TierCalculator;
-using Interfaces.XPRules;
+using Contract.Primitives.DomainServices.TierCalculator;
+using Contract.Primitives.DomainServices.XPRules;
 using Microsoft.Extensions.DependencyInjection;
-using Services.Notification;
-using Services.OTP;
-using Services.TierCalculator;
-using Services.XPRules;
+using Services;
 
 public static class DependencyInjection
 {

@@ -1,12 +1,12 @@
-﻿namespace Artix.API.Core.DomainService.Services.TierCalculator;
+﻿namespace Artix.API.Core.DomainService.Services;
 
 using System.Security.Claims;
 using Contract.Features.Tiers;
 using Contract.Features.Tiers.Client.Queries.GetAll;
+using Contract.Primitives.DomainServices.TierCalculator;
 using Domain.Entities.Museum;
 using Domain.Entities.Object;
 using Domain.Entities.User;
-using Interfaces.TierCalculator;
 using Microsoft.AspNetCore.Identity;
 
 public sealed class TierCalculatorService : ITierCalculatorService
@@ -22,8 +22,8 @@ public sealed class TierCalculatorService : ITierCalculatorService
         // IEventRepository eventRepository
     )
     {
-        _tierQueryRepository = tierQueryRepository ?? throw new ArgumentNullException(nameof(tierQueryRepository));
-        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        this._tierQueryRepository = tierQueryRepository ?? throw new ArgumentNullException(nameof(tierQueryRepository));
+        this._userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         // _eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
     }
@@ -32,13 +32,13 @@ public sealed class TierCalculatorService : ITierCalculatorService
         UserScan userScan, CancellationToken cancellationToken = default)
     {
         var strike = userScan.User.UserStrikes.FirstOrDefault();
-        var claims = await _userManager.GetClaimsAsync(userScan.User);
+        var claims = await this._userManager.GetClaimsAsync(userScan.User);
         var museum = userScan.Object.MuseumObjects.FirstOrDefault()!.Museum;
         var museumKey = userScan.User.UserMuseumKeys.FirstOrDefault(umk => umk.Museum.Id == museum.Id);
         // var currentEventId = await _eventRepository.GetActiveEventIdAsync(cancellationToken);
 
         // لود configs با caching
-        var configs = await _tierQueryRepository.GetAllAsync(new GetAllTiersQuery(), cancellationToken);
+        var configs = await this._tierQueryRepository.GetAllAsync(new GetAllTiersQuery(), cancellationToken);
         var orderedConfigs = configs.OrderByDescending(c => c.Priority).ToList();
 
         // محاسبه tier با انعطاف برای کاربر
@@ -47,7 +47,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
 
         foreach (var tierConfig in orderedConfigs)
         {
-            var (isMatch, matchScore) = IsMatch(tierConfig, userScan, userScan.Object, museum, museumKey, strike,
+            var (isMatch, matchScore) = this.IsMatch(tierConfig, userScan, userScan.Object, museum, museumKey, strike,
                 claims, null);
             if (isMatch)
             {
@@ -58,7 +58,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (matchScore > bestMatchScore)
             {
                 bestMatchScore = matchScore;
-                bestMatch = (tierConfig.TierLevel, CalculatePartialMultiplier(tierConfig, matchScore));
+                bestMatch = (tierConfig.TierLevel, this.CalculatePartialMultiplier(tierConfig, matchScore));
             }
         }
 
@@ -80,7 +80,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
                 conditionsMet++;
             else
                 return (false,
-                    CalculatePartialScore(conditionsMet, totalConditions, userScan.ScanCount, tierConfig.MinScanCount));
+                    this.CalculatePartialScore(conditionsMet, totalConditions, userScan.ScanCount, tierConfig.MinScanCount));
         }
 
         // Achievements/Collection
@@ -90,7 +90,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (userScan.IsUpgraded == tierConfig.RequiredUpgraded.Value)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         if (tierConfig.RequiredInCollection.HasValue)
@@ -99,7 +99,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (userScan.InCollection == tierConfig.RequiredInCollection.Value)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         // Loyalty
@@ -111,7 +111,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
                 conditionsMet++;
             else
                 return (false,
-                    CalculatePartialScore(conditionsMet, totalConditions, days, tierConfig.MinDaysSinceAcquired.Value));
+                    this.CalculatePartialScore(conditionsMet, totalConditions, days, tierConfig.MinDaysSinceAcquired.Value));
         }
 
         // Streak (با concession برای fuel)
@@ -122,7 +122,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
                 (strike?.FuelCount > 0 && tierConfig.RequiredActiveStreak.Value))
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         // Rarity/Monetization
@@ -132,7 +132,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (objectEntity.IsSpecial == tierConfig.RequiredSpecial.Value)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         if (tierConfig.RequiredSaleType.HasValue)
@@ -141,7 +141,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (objectEntity.ObjectSaleType == tierConfig.RequiredSaleType.Value)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         // Segmentation
@@ -152,7 +152,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (!string.IsNullOrEmpty(clientType) && clientType == tierConfig.RequiredMembershipType)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         // Social
@@ -162,7 +162,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
             if (museumKey?.IsUnlocked == tierConfig.RequiredCoOpKey.Value)
                 conditionsMet++;
             else
-                return (false, CalculatePartialScore(conditionsMet, totalConditions));
+                return (false, this.CalculatePartialScore(conditionsMet, totalConditions));
         }
 
         // Museum application Events(مثل جشن ۱۵۰۰ ساله)
@@ -175,7 +175,7 @@ public sealed class TierCalculatorService : ITierCalculatorService
         //         return (false, CalculatePartialScore(conditionsMet, totalConditions));
         // }
 
-        return (true, CalculatePartialScore(conditionsMet, totalConditions));
+        return (true, this.CalculatePartialScore(conditionsMet, totalConditions));
     }
 
     private double CalculatePartialScore(int conditionsMet, int totalConditions, double currentValue = 0,

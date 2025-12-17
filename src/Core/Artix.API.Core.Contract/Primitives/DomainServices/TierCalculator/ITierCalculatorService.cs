@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.DomainService.Interfaces.TierCalculator;
+﻿namespace Artix.API.Core.Contract.Primitives.DomainServices.TierCalculator;
 
 using Domain.Entities.User;
 

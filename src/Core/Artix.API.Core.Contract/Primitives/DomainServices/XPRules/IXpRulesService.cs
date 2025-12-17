@@ -1,4 +1,4 @@
-namespace Artix.API.Core.DomainService.Interfaces.XPRules;
+namespace Artix.API.Core.Contract.Primitives.DomainServices.XPRules;
 
 public interface IXpRulesService
 {

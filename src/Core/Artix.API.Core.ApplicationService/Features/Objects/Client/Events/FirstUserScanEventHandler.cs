@@ -1,10 +1,10 @@
 namespace Artix.API.Core.ApplicationService.Features.Objects.Client.Events;
 
 using Contract.Features.Notifications.Commands.AddUserNotification;
+using Contract.Primitives.DomainServices.Notification;
+using Contract.Primitives.DomainServices.XPRules;
 using Domain.Entities.Notification.Enums;
 using Domain.Entities.Object.Events;
-using DomainService.Interfaces.Notification;
-using DomainService.Interfaces.XPRules;
 using Primitives;
 
 internal sealed class FirstUserScanEventHandler : NotificationHandlerBase<FirstUserScanEvent>

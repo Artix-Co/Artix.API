@@ -1,11 +1,11 @@
-namespace Artix.API.Core.DomainService.Services.Notification;
+namespace Artix.API.Core.DomainService.Services;
 
+using System.Threading.Tasks;
 using Contract.Features.Notifications.Commands;
 using Contract.Features.Notifications.Commands.AddUserNotification;
+using Artix.API.Core.Contract.Primitives.Infra.RabbitMQ;
+using Contract.Primitives.DomainServices.Notification;
 using Domain.Entities.Notification;
-using Interfaces.Notification;
-using System.Threading.Tasks;
-using Contract.Primitives.Infra.RabbitMQ;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
 
@@ -19,9 +19,9 @@ public class NotificationServiceProvider : INotificationServiceProvider
         INotificationService notificationService, INotificationCommandRepository notificationCommandRepository,
         UserManager<AppUser> userManager)
     {
-        _notificationService = notificationService;
-        _notificationCommandRepository = notificationCommandRepository;
-        _userManager = userManager;
+        this._notificationService = notificationService;
+        this._notificationCommandRepository = notificationCommandRepository;
+        this._userManager = userManager;
     }
 
     public async Task SendUserNotificationAsync(AddUserNotificationCommand command,
@@ -35,7 +35,7 @@ public class NotificationServiceProvider : INotificationServiceProvider
             metadata: command.Metadata
         );
 
-        await _notificationCommandRepository.InsertAsync(notification, cancellationToken);
+        await this._notificationCommandRepository.InsertAsync(notification, cancellationToken);
 
         var notificationMessage = new NotificationMessage(
             NotificationId: notification.BusinessId,
@@ -47,7 +47,7 @@ public class NotificationServiceProvider : INotificationServiceProvider
             Metadata: notification.Metadata
         );
 
-        await _notificationService.SendUserNotificationAsync(notificationMessage, cancellationToken);
+        await this._notificationService.SendUserNotificationAsync(notificationMessage, cancellationToken);
     }
 
     public async Task SendBroadcastNotificationAsync(AddUserNotificationCommand command,
@@ -61,13 +61,13 @@ public class NotificationServiceProvider : INotificationServiceProvider
         );
 
         // TODO: need to review this codee to prevent N+1 problems
-        var userIds = _userManager.Users.Select(u => u.Id).ToList();
+        var userIds = this._userManager.Users.Select(u => u.Id).ToList();
         foreach (var userId in userIds)
         {
             notification.AddUser(userId);
         }
 
-        await _notificationCommandRepository.InsertAsync(notification, cancellationToken);
+        await this._notificationCommandRepository.InsertAsync(notification, cancellationToken);
 
         var notificationMessage = new NotificationMessage(
             NotificationId: notification.BusinessId,
@@ -79,6 +79,6 @@ public class NotificationServiceProvider : INotificationServiceProvider
             Metadata: notification.Metadata
         );
 
-        await _notificationService.SendBroadcastNotificationAsync(notificationMessage, cancellationToken);
+        await this._notificationService.SendBroadcastNotificationAsync(notificationMessage, cancellationToken);
     }
 }

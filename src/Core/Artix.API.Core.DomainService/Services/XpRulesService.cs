@@ -1,10 +1,10 @@
-namespace Artix.API.Core.DomainService.Services.XPRules;
+namespace Artix.API.Core.DomainService.Services;
 
 using Contract.Features.Objects;
+using Contract.Primitives.DomainServices.TierCalculator;
+using Contract.Primitives.DomainServices.XPRules;
 using Contract.Primitives.Infra.Redis;
 using Domain.Entities.User;
-using Interfaces.TierCalculator;
-using Interfaces.XPRules;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -29,14 +29,14 @@ public sealed class XpRulesService : IXpRulesService
         IFeatureToggleService featureToggle,
         ILogger<XpRulesService> logger)
     {
-        _objectCommandRepository = objectCommandRepository;
-        _userManager = userManager;
-        _tierCalculatorService = tierCalculatorService;
-        _leaderboardService = leaderboardService;
-        _lockService = lockService;
-        _dedupStore = dedupStore;
-        _featureToggle = featureToggle;
-        _logger = logger;
+        this._objectCommandRepository = objectCommandRepository;
+        this._userManager = userManager;
+        this._tierCalculatorService = tierCalculatorService;
+        this._leaderboardService = leaderboardService;
+        this._lockService = lockService;
+        this._dedupStore = dedupStore;
+        this._featureToggle = featureToggle;
+        this._logger = logger;
     }
 
     public async Task CalculateXpForFirstScanAsync(
@@ -46,33 +46,33 @@ public sealed class XpRulesService : IXpRulesService
         CancellationToken ct = default)
     {
         var dedupKey = $"xp:firstscan:{userId}:{objectId}";
-        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
+        if (await this._dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
         {
-            _logger.LogInformation("First scan XP skipped (dedup) - User:{UserId} Object:{ObjectId}", userId, objectId);
+            this._logger.LogInformation("First scan XP skipped (dedup) - User:{UserId} Object:{ObjectId}", userId, objectId);
             return;
         }
 
         await using var lockHandle =
-            await _lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
+            await this._lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
         if (lockHandle is null)
         {
-            _logger.LogWarning("Failed to acquire lock for first scan XP - User:{UserId} Object:{ObjectId}", userId,
+            this._logger.LogWarning("Failed to acquire lock for first scan XP - User:{UserId} Object:{ObjectId}", userId,
                 objectId);
             throw new InvalidOperationException("Failed to acquire XP lock.");
         }
 
-        var user = await _userManager.FindByIdAsync(userId.ToString()) ??
+        var user = await this._userManager.FindByIdAsync(userId.ToString()) ??
                    throw new InvalidOperationException("User not found.");
 
-        var obj = await _objectCommandRepository.GetByIdAsync(objectId, ct) ??
+        var obj = await this._objectCommandRepository.GetByIdAsync(objectId, ct) ??
                   throw new InvalidOperationException("Object not found.");
 
 
         var userScan = user.UserScans.FirstOrDefault(uo => uo.UserId == userId && uo.ObjectId == obj.Id) ??
                        throw new InvalidOperationException("First scan record missing.");
 
-        var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, ct);
-        var isDoubleXp = await _featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
+        var (tierLevel, multiplier) = await this._tierCalculatorService.CalculateTierAsync(userScan, ct);
+        var isDoubleXp = await this._featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
         var effectiveMultiplier = isDoubleXp ? multiplier * 2 : multiplier;
 
         long baseXp = obj.IsSpecial ? 150 : 100;
@@ -91,13 +91,13 @@ public sealed class XpRulesService : IXpRulesService
             season.AddXp((int)xpToAdd);
         }
 
-        await _userManager.UpdateAsync(user);
+        await this._userManager.UpdateAsync(user);
 
-        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
+        await this._leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
         if (seasonId.HasValue)
-            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
+            await this._leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
 
-        _logger.LogInformation(
+        this._logger.LogInformation(
             "First scan XP granted - User:{UserId} Object:{ObjectId} XP:+{Xp} (Base:{Base} × Multi:{Multi}{Double}) Tier:{Tier} Special:{Special}",
             userId, objectId, xpToAdd, baseXp, multiplier,
             isDoubleXp ? " ×2" : "", tierLevel, obj.IsSpecial);
@@ -112,25 +112,25 @@ public sealed class XpRulesService : IXpRulesService
     {
         var suffix = isGoldenLevel ? ":golden" : string.Empty;
         var dedupKey = $"xp:repeatscan:{userId}:{objectId}{suffix}";
-        if (await _dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
+        if (await this._dedupStore.TryMarkProcessedAsync(dedupKey, 86400, ct))
         {
-            _logger.LogInformation("Repeat scan XP skipped (dedup) - User:{UserId} Object:{ObjectId} Golden:{Golden}",
+            this._logger.LogInformation("Repeat scan XP skipped (dedup) - User:{UserId} Object:{ObjectId} Golden:{Golden}",
                 userId, objectId, isGoldenLevel);
             return;
         }
 
         await using var lockHandle =
-            await _lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
+            await this._lockService.TryAcquireAsync($"user:{userId}:xp", TimeSpan.FromSeconds(10), ct);
         if (lockHandle is null)
         {
-            _logger.LogWarning("Failed to acquire lock for repeat scan XP - User:{UserId} Object:{ObjectId}", userId,
+            this._logger.LogWarning("Failed to acquire lock for repeat scan XP - User:{UserId} Object:{ObjectId}", userId,
                 objectId);
             throw new InvalidOperationException("Failed to acquire XP lock.");
         }
 
-        var user = await _userManager.FindByIdAsync(userId.ToString()) ??
+        var user = await this._userManager.FindByIdAsync(userId.ToString()) ??
                    throw new InvalidOperationException("User not found.");
-        var obj = await _objectCommandRepository.GetByIdAsync(objectId, ct) ??
+        var obj = await this._objectCommandRepository.GetByIdAsync(objectId, ct) ??
                   throw new InvalidOperationException("Object not found.");
 
 
@@ -142,8 +142,8 @@ public sealed class XpRulesService : IXpRulesService
         else if (isGoldenLevel)
             userScan.RecordScan();
 
-        var (tierLevel, multiplier) = await _tierCalculatorService.CalculateTierAsync(userScan, ct);
-        var isDoubleXp = await _featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
+        var (tierLevel, multiplier) = await this._tierCalculatorService.CalculateTierAsync(userScan, ct);
+        var isDoubleXp = await this._featureToggle.GetFlagAsync("xp_double_event", ct) == "true";
         var effectiveMultiplier = isDoubleXp ? multiplier * 2 : multiplier;
 
         long baseXp = isGoldenLevel ? 200 : 50;
@@ -162,13 +162,13 @@ public sealed class XpRulesService : IXpRulesService
             season.AddXp((int)xpToAdd);
         }
 
-        await _userManager.UpdateAsync(user);
+        await this._userManager.UpdateAsync(user);
 
-        await _leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
+        await this._leaderboardService.IncrementScoreAsync("global", userId.ToString(), xpToAdd, ct);
         if (seasonId.HasValue)
-            await _leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
+            await this._leaderboardService.IncrementScoreAsync($"season:{seasonId}", userId.ToString(), xpToAdd, ct);
 
-        _logger.LogInformation(
+        this._logger.LogInformation(
             "Repeat scan XP granted - User:{UserId} Object:{ObjectId} XP:+{Xp} (Base:{Base} × Multi:{Multi}{Double}) Golden:{Golden} Upgraded:{Upgraded} Tier:{Tier}",
             userId, objectId, xpToAdd, baseXp, multiplier,
             isDoubleXp ? " ×2" : "", isGoldenLevel, userScan.IsUpgraded, tierLevel);

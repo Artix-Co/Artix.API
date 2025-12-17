@@ -1,6 +1,6 @@
-namespace Artix.API.Core.DomainService.Interfaces.Notification;
+namespace Artix.API.Core.Contract.Primitives.DomainServices.Notification;
 
-using Contract.Features.Notifications.Commands.AddUserNotification;
+using Features.Notifications.Commands.AddUserNotification;
 
 public interface INotificationServiceProvider
 {
