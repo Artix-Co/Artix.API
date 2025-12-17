@@ -2,14 +2,10 @@
 
 using Admin.Login;
 using Admin.Logout;
-using Client.Login;
 using Client.Logout;
 
 public interface IAuthenticationService
 {
-    Task<ClientLoginResponse> ClientOtpLoginAsync(ClientLoginRequest request,
-        CancellationToken cancellationToken = default);
-
     Task<ClientLogoutResponse> ClientLogoutAsync(ClientLogoutRequest request,
         CancellationToken cancellationToken = default);
 

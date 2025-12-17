@@ -3,19 +3,15 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using Core.Contract.Features.Users.Client.Queries.GetVerifyOTPAuth;
 using Core.Contract.Primitives.Infra.Identity;
 using Core.Contract.Primitives.Infra.Identity.Authentication.Admin.Login;
 using Core.Contract.Primitives.Infra.Identity.Authentication.Admin.Logout;
-using Core.Contract.Primitives.Infra.Identity.Authentication.Client.Login;
 using Core.Contract.Primitives.Infra.Identity.Authentication.Client.Logout;
 using Core.Contract.Primitives.Infra.Redis;
-using Core.Domain.Entities.OTP.Enums;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using IAuthenticationService = Core.Contract.Primitives.Infra.Identity.Authentication.IAuthenticationService;
 
  
@@ -52,64 +48,7 @@ internal sealed class AuthenticationService : IAuthenticationService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ClientLoginResponse> ClientOtpLoginAsync(
-        ClientLoginRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var key = $"otp:{request.PhoneNumber}";
-
-        var json = await _sessionStore.GetSessionAsync(key, cancellationToken);
-        if (json is null)
-            throw new UnauthorizedAccessException("OTP expired or not found.");
-
-        var data = JsonSerializer.Deserialize<OtpSessionData>(json, JsonOptions)!;
-
-        if (data.Attempts >= 3)
-            throw new UnauthorizedAccessException("Too many failed attempts.");
-
-        if (data.Code != request.OtpCode)
-        {
-            var updated = data with { Attempts = data.Attempts + 1 };
-            await _sessionStore.SetSessionAsync(
-                key,
-                JsonSerializer.Serialize(updated, JsonOptions),
-                300,
-                cancellationToken);
-
-            throw new UnauthorizedAccessException("Invalid OTP.");
-        }
-
-        await _sessionStore.RemoveSessionAsync(key, cancellationToken);
-
-        AppUser? user = null;
-
-        if (data.Purpose == PurposeType.Registration)
-        {
-            user = await CreateClientUserAsync(request.PhoneNumber);
-        }
-        else
-        {
-            user = await _userManager.Users
-                .FirstOrDefaultAsync(
-                    u => u.PhoneNumber == request.PhoneNumber,
-                    cancellationToken);
-        }
-
-        if (user is null)
-            throw new InvalidOperationException("Invalid OTP purpose or user state.");
-
-        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(
-            user,
-            true,
-            cancellationToken);
-
-        return new ClientLoginResponse(
-            user.BusinessId,
-            tokens.AccessToken,
-            tokens.RefreshToken,
-            tokens.AccessTokenExpiresAt,
-            tokens.RefreshTokenExpiresAt);
-    }
+ 
 
     public async Task<ClientLogoutResponse> ClientLogoutAsync(
         ClientLogoutRequest request,

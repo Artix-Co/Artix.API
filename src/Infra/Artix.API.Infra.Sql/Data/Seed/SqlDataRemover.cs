@@ -26,31 +26,25 @@ public class SqlDataRemover
     DELETE FROM dbo.AspNetUserRoles;
     DELETE FROM dbo.AspNetUsers; DBCC CHECKIDENT ('dbo.AspNetUsers', RESEED, 0);
     DELETE FROM dbo.AspNetUserTokens;
-    DELETE FROM dbo.CollectionItems;
-    DELETE FROM dbo.Collections; DBCC CHECKIDENT ('dbo.Collections', RESEED, 0);
-    DELETE FROM dbo.Files;
-    DELETE FROM dbo.Friendships;
-    DELETE FROM dbo.HistoricalPeriods; DBCC CHECKIDENT ('dbo.HistoricalPeriods', RESEED, 0);
+  
+    
+ 
+  
     DELETE FROM dbo.JournalEntries;
     DELETE FROM dbo.MarketplaceItems;
-    DELETE FROM dbo.MuseumImages;
-    DELETE FROM dbo.MuseumObjects;
-    DELETE FROM dbo.Museums; DBCC CHECKIDENT ('dbo.Museums', RESEED, 0);
+    
+    
     DELETE FROM dbo.Notifications;
-    DELETE FROM dbo.ObjectHistoricalPeriods;
-    DELETE FROM dbo.ObjectImages;
-    DELETE FROM dbo.ObjectModels;
-    DELETE FROM dbo.Objects; DBCC CHECKIDENT ('dbo.Objects', RESEED, 0);
-    DELETE FROM dbo.ObjectTypes;
+ 
+ 
+ 
     DELETE FROM dbo.OTPs;
     DELETE FROM dbo.OutboxMessages;
-    DELETE FROM dbo.Seasons;
-    DELETE FROM dbo.SeasonTasks;
-    DELETE FROM dbo.TierConfigs; DBCC CHECKIDENT ('dbo.TierConfigs', RESEED, 0);
-    DELETE FROM dbo.Types; DBCC CHECKIDENT ('dbo.Types', RESEED, 0);
+  
+ 
     DELETE FROM dbo.UserImages;
     DELETE FROM dbo.UserJournalEntries;
-    DELETE FROM dbo.UserLoginHistories;
+    DELETE FROM dbo.UserSessions;
     DELETE FROM dbo.UserMuseumKeys;
     DELETE FROM dbo.UserNotification;
     DELETE FROM dbo.UserScans;

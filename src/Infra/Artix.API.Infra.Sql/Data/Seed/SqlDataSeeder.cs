@@ -63,16 +63,16 @@ public class SqlDataSeeder
         try
         {
             await SeedRolesAsync();
-            await SeedUsersAndFriendshipsAsync();
-            await SeedCategoriesAsync();
-            await SeedHistoricalPeriodsAsync();
-            await SeedMuseumsAsync();
-            await SeedObjectsAsync();
-            await SeedObjectTypesAsync();
-            await SeedObjectHistoricalPeriodsAsync();
-            await SeedMuseumObjectsAsync();
-            await SeedAppVersionsAsync();
-            await SeedTierConfigsAsync();
+            // await SeedUsersAndFriendshipsAsync();
+            // await SeedCategoriesAsync();
+            // await SeedHistoricalPeriodsAsync();
+            // await SeedMuseumsAsync();
+            // await SeedObjectsAsync();
+            // await SeedObjectTypesAsync();
+            // await SeedObjectHistoricalPeriodsAsync();
+            // await SeedMuseumObjectsAsync();
+            // await SeedAppVersionsAsync();
+            // await SeedTierConfigsAsync();
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("SqlDataSeeder | All entities seeded and changes saved successfully");
