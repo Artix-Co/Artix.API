@@ -4,6 +4,7 @@ using Core.Contract.Primitives.Infra.RabbitMQ;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.DomainEvents;
 using Core.Domain.Persistence;
+using Core.Domain.Persistence.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,7 +60,7 @@ internal sealed class OutboxProcessor : BackgroundService
         var cutoff = DateTime.UtcNow.AddSeconds(-10);
 
         var messages = await db.OutboxMessages
-            .Where(m => m.Status == "Pending" && m.CreatedAt <= cutoff)
+            .Where(m => m.Status == OutboxMessageStatus.Pending && m.CreatedAt <= cutoff)
             .OrderBy(m => m.CreatedAt)
             .Take(BatchSize)
             .ToListAsync(ct);
@@ -77,7 +78,7 @@ internal sealed class OutboxProcessor : BackgroundService
                 var @event = DeserializeEvent(message.Data, message.Type);
                 if (@event is null)
                 {
-                    message.Status = "Failed";
+                    message.Status = OutboxMessageStatus.Failed;
                     message.Error = "Failed to deserialize event";
                     continue;
                 }
@@ -99,7 +100,7 @@ internal sealed class OutboxProcessor : BackgroundService
 
                 if (!isFirst)
                 {
-                    message.Status = "Processed";
+                    message.Status = OutboxMessageStatus.Processed;
                     message.ProcessedAt = DateTime.UtcNow;
                     _logger.LogDebug("Skipped duplicate outbox message {Id}", message.Id);
                     continue;
@@ -110,13 +111,13 @@ internal sealed class OutboxProcessor : BackgroundService
                 var notification = new DomainEventNotification(@event);
                 await mediator.Publish(notification, ct);
 
-                message.Status = "Processed";
+                message.Status = OutboxMessageStatus.Processed;
                 message.ProcessedAt = DateTime.UtcNow;
                 _logger.LogInformation("Outbox message {Id} processed: {EventType}", message.Id, @event.GetType().Name);
             }
             catch (Exception ex)
             {
-                message.Status = "Failed";
+                message.Status = OutboxMessageStatus.Failed;
                 message.Error = ex.Message;
                 message.RetryCount++;
 
@@ -125,7 +126,7 @@ internal sealed class OutboxProcessor : BackgroundService
 
                 if (message.RetryCount >= 5)
                 {
-                    message.Status = "Dead";
+                    message.Status = OutboxMessageStatus.Dead;
                     _logger.LogWarning("Outbox message {Id} moved to Dead state", message.Id);
                 }
             }

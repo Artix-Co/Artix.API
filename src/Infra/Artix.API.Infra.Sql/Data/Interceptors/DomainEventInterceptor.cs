@@ -2,6 +2,7 @@
 
 using Core.Domain.Entities.Common;
 using Core.Domain.Persistence;
+using Core.Domain.Persistence.Enums;
 using DbContexts;
 using Newtonsoft.Json;
 
@@ -26,7 +27,7 @@ internal sealed class DomainEventInterceptor : IChangeInterceptor
                         {
                             TypeNameHandling = TypeNameHandling.Auto, Formatting = Formatting.Indented
                         }),
-                    Status = "Pending",
+                    Status = OutboxMessageStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
                 context.OutboxMessages.Add(outboxMessage);

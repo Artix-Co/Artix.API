@@ -1,8 +1,10 @@
 namespace Artix.API.Infra.Sql.Data.Config.Write.OutboxMessages;
 
 using Core.Domain.Persistence;
+using Core.Domain.Persistence.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 internal sealed class OutboxMessageWriteConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
@@ -21,10 +23,11 @@ internal sealed class OutboxMessageWriteConfiguration : IEntityTypeConfiguration
             .HasColumnType("nvarchar(max)")
             .IsRequired();
 
-        builder.Property(x => x.Status)
-            .HasMaxLength(50)
-            .HasDefaultValue("Pending")
-            .IsRequired();
+
+        builder.Property(o => o.Status)
+            .HasConversion(new EnumToStringConverter<OutboxMessageStatus>())
+            .IsRequired()
+            .HasMaxLength(50);
 
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()")
