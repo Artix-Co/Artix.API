@@ -21,11 +21,14 @@ using Microsoft.EntityFrameworkCore;
 
 internal sealed class OtpService : IOtpService
 {
+    private const int MaxFailedOtpAttempts = 3;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromHours(1);
+
+
     private readonly UserManager<AppUser> _userManager;
     private readonly ISessionStore _sessionStore;
     private readonly IOTPCommandRepository _otpCommandRepository;
     private readonly IOTPQueryRepository _otpQueryRepository;
-
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     // private readonly ISmsSender _smsSender; 
@@ -84,7 +87,7 @@ internal sealed class OtpService : IOtpService
 
         var data = JsonSerializer.Deserialize<OtpSessionData>(json, this._jsonOptions)!;
 
-        if (data.Attempts >= 3)
+        if (data.Attempts >= MaxFailedOtpAttempts)
             throw new UnauthorizedAccessException("Too many failed attempts.");
 
         if (data.Code != request.OtpCode)
@@ -105,7 +108,7 @@ internal sealed class OtpService : IOtpService
 
         if (data.Purpose == PurposeType.Registration)
         {
-            user = await this.CreateClientUserAsync(request.PhoneNumber);
+            user = await this.CreateClientUserAsync(request.PhoneNumber, data.Attempts);
         }
         else
         {
@@ -139,15 +142,23 @@ internal sealed class OtpService : IOtpService
         return result;
     }
 
-    private async Task<AppUser> CreateClientUserAsync(string phoneNumber)
+    private async Task<AppUser> CreateClientUserAsync(string phoneNumber, int failedAttempts)
     {
+        var shouldLockout = failedAttempts >= MaxFailedOtpAttempts;
+
         var user = new AppUser
         {
             UserName = $"user_{phoneNumber}",
-            Email = $"{phoneNumber}@example.com",
+            Email = $"{phoneNumber}@artix-studio.com",
             PhoneNumber = phoneNumber,
-            DisplayName = phoneNumber,
-            PhoneNumberConfirmed = true
+            DisplayName = "کاربر آرتیکس",
+            PhoneNumberConfirmed = true,
+            AccessFailedCount = failedAttempts,
+            LockoutEnabled = true,
+            LockoutEnd = shouldLockout
+                ? DateTimeOffset.UtcNow.Add(LockoutDuration)
+                : null,
+            TwoFactorEnabled = false,
         };
 
         var result = await this._userManager.CreateAsync(user);
