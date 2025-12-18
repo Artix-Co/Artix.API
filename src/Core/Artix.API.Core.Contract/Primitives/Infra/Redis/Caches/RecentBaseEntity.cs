@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.Contract.Features.Caches;
+﻿namespace Artix.API.Core.Contract.Primitives.Infra.Redis.Caches;
 
 public abstract class RecentBaseEntity
 {

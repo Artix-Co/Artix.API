@@ -2,6 +2,7 @@
 
 using System.Text.Json.Serialization;
 using Features.Objects.Client.Queries.GetPaginateObjects;
+using Primitives.Infra.Redis.Caches;
 
 public class RecentObjectDto : RecentBaseEntity
 {

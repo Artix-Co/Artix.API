@@ -4,6 +4,7 @@ using Primitives;
 using Artix.API.Core.Contract.Features.Caches.Objects;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Artix.API.Core.Contract.Primitives.Models;
+using CacheKeys;
 using Contract.Features.Objects.Client.Queries.GetUserRecentObjectsVisits;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -31,7 +32,7 @@ internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-objects:{user.BusinessId}";
+        var cacheKey = CacheKeys.RecentObjects(user.BusinessId);
 
         var cached = await this._objectCache.GetAsync(cacheKey);
         if (cached != null)

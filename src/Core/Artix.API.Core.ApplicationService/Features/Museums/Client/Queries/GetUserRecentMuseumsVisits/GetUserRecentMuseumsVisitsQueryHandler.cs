@@ -1,11 +1,12 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetUserRecentVisits;
+﻿namespace Artix.API.Core.ApplicationService.Features.Museums.Client.Queries.GetUserRecentMuseumsVisits;
 
-using Primitives;
+using Artix.API.Core.ApplicationService.Primitives;
+using Artix.API.Core.Contract.Features.Museums.Client.Queries.GetUserRecentVisits;
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
+using Artix.API.Core.Contract.Primitives.Infra.Redis.Caches.Museums;
 using Artix.API.Core.Contract.Primitives.Models;
-using Contract.Features.Museums.Client.Queries.GetUserRecentVisits;
-using Contract.Primitives.Infra.Redis.Caches.Museums;
-using Domain.Entities.User;
+using Artix.API.Core.Domain.Entities.User;
+using CacheKeys;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -33,7 +34,7 @@ internal sealed class
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-museums:{user.BusinessId}";
+        var cacheKey = CacheKeys.RecentMuseums(user.BusinessId);
 
         var cached = await this._museumCache.GetAsync(cacheKey);
         if (cached != null)
