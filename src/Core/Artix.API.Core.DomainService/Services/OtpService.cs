@@ -2,7 +2,6 @@
 
 using System.Security.Claims;
 using System.Text.Json;
-using System.Threading;
 using Contract.Features.OTPs.Commands;
 using Contract.Features.OTPs.Queries;
 using Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
@@ -25,6 +24,7 @@ internal sealed class OtpService : IOtpService
     private static readonly TimeSpan LockoutDuration = TimeSpan.FromHours(1);
 
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
     private readonly ISessionStore _sessionStore;
     private readonly IOTPCommandRepository _otpCommandRepository;
     private readonly IOTPQueryRepository _otpQueryRepository;
@@ -33,46 +33,51 @@ internal sealed class OtpService : IOtpService
 
     public OtpService(
         UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager,
         ISessionStore sessionStore,
         IOTPCommandRepository otpCommandRepository,
         IOTPQueryRepository otpQueryRepository,
         IJwtTokenGenerator jwtTokenGenerator)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _sessionStore = sessionStore;
         _otpCommandRepository = otpCommandRepository;
         _otpQueryRepository = otpQueryRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
 
-        _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
     }
 
-    public async Task<InitOTPResult> InitAsync(InitOTPRequest request, CancellationToken cancellationToken = default)
+    public async Task<InitOTPResult> InitAsync(
+        InitOTPRequest request,
+        CancellationToken cancellationToken = default)
     {
         var purpose = await DetermineOtpPurposeAsync(request.PhoneNumber, cancellationToken);
 
         var otpEntity = OTP.Generate(request.PhoneNumber, purpose);
         var otpSession = new OtpSessionData(otpEntity.Code, purpose, 0);
 
-        var sessionJson = SerializeOtpSession(otpSession);
-
         var sessionKey = GetOtpSessionKey(request.PhoneNumber);
+        var sessionJson = JsonSerializer.Serialize(otpSession, _jsonOptions);
 
-        var insertOtpTask = _otpCommandRepository.InsertAsync(otpEntity, cancellationToken);
-        var setSessionTask = _sessionStore.SetSessionAsync(sessionKey, sessionJson, ttlSeconds: 300, cancellationToken);
-
-        await Task.WhenAll(insertOtpTask, setSessionTask);
+        await _otpCommandRepository.InsertAsync(otpEntity, cancellationToken);
+        await _sessionStore.SetSessionAsync(sessionKey, sessionJson, ttlSeconds: 300, cancellationToken);
 
         return new InitOTPResult(otpEntity.BusinessId);
     }
 
-    public async Task<VerifyOTPResult> VerifyAsync(VerifyOTPRequest request,
+    public async Task<VerifyOTPResult> VerifyAsync(
+        VerifyOTPRequest request,
         CancellationToken cancellationToken = default)
     {
         var sessionKey = GetOtpSessionKey(request.PhoneNumber);
-
         var otpSession = await GetOtpSessionAsync(sessionKey, cancellationToken);
-        if (otpSession == null)
+
+        if (otpSession is null)
             throw new UnauthorizedAccessException("OTP expired or not found.");
 
         if (otpSession.Attempts >= MaxFailedOtpAttempts)
@@ -80,30 +85,29 @@ internal sealed class OtpService : IOtpService
 
         if (otpSession.Code != request.OtpCode)
         {
-            await IncrementAndSaveFailedAttemptsAsync(sessionKey, otpSession, cancellationToken);
+            await IncrementFailedAttemptsAsync(sessionKey, otpSession, cancellationToken);
             throw new UnauthorizedAccessException("Invalid OTP.");
         }
 
-        var removeSessionTask = _sessionStore.RemoveSessionAsync(sessionKey, cancellationToken);
-
-        var user = await GetOrCreateUserAsync(request.PhoneNumber, otpSession.Purpose, otpSession.Attempts,
+        var user = await GetOrCreateUserAsync(
+            request.PhoneNumber,
+            otpSession.Purpose,
+            otpSession.Attempts,
             cancellationToken);
 
-        var generateTokensTask = _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
+        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
-        var latestOtpDto = await _otpQueryRepository.GetLatestByPhoneNumberAsync(
-            new GetLatestOTPByPhoneNumberQuery(request.PhoneNumber, request.OtpCode), cancellationToken);
+        var latestOtp = await _otpQueryRepository.GetLatestByPhoneNumberAsync(
+            new GetLatestOTPByPhoneNumberQuery(request.PhoneNumber, request.OtpCode),
+            cancellationToken);
 
-        var otpEntity = await _otpCommandRepository.GetByIdAsync(latestOtpDto.Id, cancellationToken)
-                        ?? throw new ApplicationException($"Unable to get OTP for user {request.PhoneNumber}");
+        var otpEntity = await _otpCommandRepository.GetByIdAsync(latestOtp.Id, cancellationToken)
+                        ?? throw new InvalidOperationException("OTP not found.");
 
         otpEntity.MarkAsUsed();
-        var updateOtpTask = _otpCommandRepository.UpdateAsync(otpEntity, cancellationToken);
+        await _otpCommandRepository.UpdateAsync(otpEntity, cancellationToken);
 
-        await removeSessionTask;
-
-        var tokens = await generateTokensTask;
-        await updateOtpTask;
+        await _sessionStore.RemoveSessionAsync(sessionKey, cancellationToken);
 
         return new VerifyOTPResult(
             user.BusinessId,
@@ -113,37 +117,39 @@ internal sealed class OtpService : IOtpService
             tokens.RefreshTokenExpiresAt);
     }
 
-    private async Task<PurposeType> DetermineOtpPurposeAsync(string phoneNumber, CancellationToken cancellationToken)
+    private async Task<PurposeType> DetermineOtpPurposeAsync(
+        string phoneNumber,
+        CancellationToken cancellationToken)
     {
-        var userExists = await _userManager.Users
+        var exists = await _userManager.Users
             .AsNoTracking()
             .AnyAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
 
-        return userExists ? PurposeType.Login : PurposeType.Registration;
+        return exists ? PurposeType.Login : PurposeType.Registration;
     }
 
-    private async Task<AppUser> GetOrCreateUserAsync(string phoneNumber, PurposeType purpose, int failedAttempts,
+    private async Task<AppUser> GetOrCreateUserAsync(
+        string phoneNumber,
+        PurposeType purpose,
+        int failedAttempts,
         CancellationToken cancellationToken)
     {
         if (purpose == PurposeType.Registration)
-        {
             return await CreateNewUserAsync(phoneNumber, failedAttempts, cancellationToken);
-        }
 
-        var existingUser = await _userManager.Users
-                               .AsNoTracking()
-                               .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken)
-                           ?? throw new InvalidOperationException("Invalid OTP purpose or user state.");
-
-        return existingUser;
+        return await _userManager.Users
+                   .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken)
+               ?? throw new InvalidOperationException("User not found.");
     }
 
-    private async Task<AppUser> CreateNewUserAsync(string phoneNumber, int failedAttempts,
+    private async Task<AppUser> CreateNewUserAsync(
+        string phoneNumber,
+        int failedAttempts,
         CancellationToken cancellationToken)
     {
         var shouldLockout = failedAttempts >= MaxFailedOtpAttempts;
 
-        var newUser = new AppUser
+        var user = new AppUser
         {
             UserName = $"user_{phoneNumber}",
             Email = $"{phoneNumber}@artix-studio.com",
@@ -152,47 +158,61 @@ internal sealed class OtpService : IOtpService
             PhoneNumberConfirmed = true,
             AccessFailedCount = failedAttempts,
             LockoutEnabled = true,
-            LockoutEnd = shouldLockout ? DateTimeOffset.UtcNow.Add(LockoutDuration) : null,
-            TwoFactorEnabled = false,
+            LockoutEnd = shouldLockout
+                ? DateTimeOffset.UtcNow.Add(LockoutDuration)
+                : null
         };
 
-        var createResult = await _userManager.CreateAsync(newUser);
+        var createResult = await _userManager.CreateAsync(user);
         if (!createResult.Succeeded)
-            throw new InvalidOperationException("Failed to create user: " +
-                                                string.Join(", ", createResult.Errors.Select(e => e.Description)));
+            throw new InvalidOperationException(string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
-        await _userManager.AddToRoleAsync(newUser, nameof(Role.Client));
+        await EnsureRoleExistsAsync(nameof(Role.Client));
 
-        var claimResult =
-            await _userManager.AddClaimAsync(newUser, new Claim("ClientType", ClientType.Emerald.ToString()));
+        var roleResult = await _userManager.AddToRoleAsync(user, nameof(Role.Client));
+        if (!roleResult.Succeeded)
+            throw new InvalidOperationException(string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+
+        var claimResult = await _userManager.AddClaimAsync(
+            user,
+            new Claim("ClientType", ClientType.Emerald.ToString()));
+
         if (!claimResult.Succeeded)
-            throw new InvalidOperationException("Failed to add ClientType claim: " +
-                                                string.Join(", ", claimResult.Errors.Select(e => e.Description)));
+            throw new InvalidOperationException(string.Join(", ", claimResult.Errors.Select(e => e.Description)));
 
-        return newUser;
+        return user;
     }
 
-    private string GetOtpSessionKey(string phoneNumber) => $"otp:{phoneNumber}";
-
-    private string SerializeOtpSession(OtpSessionData otpSession) => JsonSerializer.Serialize(otpSession, _jsonOptions);
-
-    private OtpSessionData? DeserializeOtpSession(string? sessionJson)
+    private async Task EnsureRoleExistsAsync(string roleName)
     {
-        return sessionJson == null ? null : JsonSerializer.Deserialize<OtpSessionData>(sessionJson, _jsonOptions);
+        if (await _roleManager.RoleExistsAsync(roleName))
+            return;
+
+        var result = await _roleManager.CreateAsync(new AppRole(roleName));
+        if (!result.Succeeded)
+            throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
-    private async Task<OtpSessionData?> GetOtpSessionAsync(string sessionKey, CancellationToken cancellationToken)
-    {
-        var sessionJson = await _sessionStore.GetSessionAsync(sessionKey, cancellationToken);
-        return DeserializeOtpSession(sessionJson);
-    }
+    private static string GetOtpSessionKey(string phoneNumber) => $"otp:{phoneNumber}";
 
-    private async Task IncrementAndSaveFailedAttemptsAsync(string sessionKey, OtpSessionData otpSession,
+    private async Task<OtpSessionData?> GetOtpSessionAsync(
+        string sessionKey,
         CancellationToken cancellationToken)
     {
-        var updatedOtpSession = otpSession with { Attempts = otpSession.Attempts + 1 };
-        var updatedJson = SerializeOtpSession(updatedOtpSession);
+        var json = await _sessionStore.GetSessionAsync(sessionKey, cancellationToken);
+        return json == null
+            ? null
+            : JsonSerializer.Deserialize<OtpSessionData>(json, _jsonOptions);
+    }
 
-        await _sessionStore.SetSessionAsync(sessionKey, updatedJson, ttlSeconds: 300, cancellationToken);
+    private async Task IncrementFailedAttemptsAsync(
+        string sessionKey,
+        OtpSessionData session,
+        CancellationToken cancellationToken)
+    {
+        var updated = session with { Attempts = session.Attempts + 1 };
+        var json = JsonSerializer.Serialize(updated, _jsonOptions);
+
+        await _sessionStore.SetSessionAsync(sessionKey, json, ttlSeconds: 300, cancellationToken);
     }
 }
