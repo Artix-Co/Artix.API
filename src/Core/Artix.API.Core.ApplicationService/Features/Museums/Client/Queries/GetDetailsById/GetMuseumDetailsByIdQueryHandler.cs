@@ -36,14 +36,15 @@ internal sealed class
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-museums:{user.BusinessId}";
+        var cacheKey = $"recent-museums:v1:user:{user.BusinessId}:museum:{query.Id}";
 
         var museumDetailsDto = this._museumQueryRepository.GetDetailsById(query);
         if (museumDetailsDto == null)
             throw ApplicationServiceNotFoundException.ForEntity(nameof(MuseumDetailsByIdDto), query.Id);
 
-        var recentItem = new RecentMuseumDto(museumDetailsDto.Id, museumDetailsDto.ImageUrl, museumDetailsDto.Name!, museumDetailsDto.ObjectCount);
-        var currentList = await this._museumCache.GetAsync(cacheKey) ?? new List<RecentMuseumDto>();
+        var recentItem = new RecentMuseumDto(museumDetailsDto.Id, museumDetailsDto.ImageUrl, museumDetailsDto.Name!,
+            museumDetailsDto.ObjectCount);
+        var currentList = await this._museumCache.GetAsync(cacheKey) ?? [];
 
         var existingIndex = currentList.FindIndex(x => x.Id == recentItem.Id);
         if (existingIndex >= 0)

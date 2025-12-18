@@ -13,7 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
-internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
+internal sealed class
+    GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;
@@ -31,10 +32,14 @@ internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObj
         this._logger = logger;
     }
 
-    public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query,
+        CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var cacheKey = $"recent-objects:{user.BusinessId}";
+
+
+        var cacheKey = $"recent-objects:v1:user:{user.BusinessId}:object:{query.Id}";
+
 
         var details = await this._objectQueryRepository.GetDetailsByIdAsync(query, cancellationToken);
         if (details == null)
@@ -47,7 +52,7 @@ internal sealed class GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObj
             name: details.Name,
             historicalPeriod: details.HistoricalPeriods);
 
-        var currentList = await this._objectCache.GetAsync(cacheKey) ?? new List<RecentObjectDto>();
+        var currentList = await this._objectCache.GetAsync(cacheKey) ?? [];
 
         var existingIndex = currentList.FindIndex(x => x.Id == recentItem.Id);
         if (existingIndex >= 0)
