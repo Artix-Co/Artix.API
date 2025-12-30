@@ -63,7 +63,7 @@ public class SqlDataSeeder
         try
         {
             await SeedRolesAsync();
-            await SeedUsersAndFriendshipsAsync();
+            // await SeedUsersAndFriendshipsAsync();
             await SeedCategoriesAsync();
             await SeedHistoricalPeriodsAsync();
             await SeedMuseumsAsync();
