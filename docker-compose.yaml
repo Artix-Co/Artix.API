@@ -47,11 +47,7 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"
-          memory: 4G
+
 
   mongodb:
     image: mongo:latest
@@ -67,11 +63,7 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"
-          memory: 2G
+
     healthcheck:
       test: [ "CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1" ]
       interval: 10s
