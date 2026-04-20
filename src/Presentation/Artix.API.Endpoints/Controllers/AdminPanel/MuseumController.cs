@@ -3,6 +3,7 @@ namespace Artix.API.Endpoints.Controllers.AdminPanel;
 using Common;
 using Core.Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,15 @@ public sealed class MuseumController : AdminBaseController
     [HttpGet("all")]
     [ProducesResponseType(typeof(Result<PaginatedResult<PaginatedMuseumsDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetPaginateMuseumsQuery clientQuery)
+    {
+        var result = await this._mediator.Send(clientQuery);
+        return this.Ok(result);
+    }
+    
+    
+    [HttpGet("objects")]
+    [ProducesResponseType(typeof(Result<PaginatedResult<AdminMuseumObjectDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetAdminMuseumObjectsQuery clientQuery)
     {
         var result = await this._mediator.Send(clientQuery);
         return this.Ok(result);

@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Collections\Client\Commands\" />
-    <Folder Include="Features\Museums\Admin\Queries\" />
     <Folder Include="Features\Museums\Client\" />
     <Folder Include="Features\Objects\Admin\Commands\" />
     <Folder Include="Features\Objects\Admin\Queries\" />

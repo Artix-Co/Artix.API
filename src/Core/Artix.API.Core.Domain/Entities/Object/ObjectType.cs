@@ -2,6 +2,8 @@
 
 using Exceptions;
 
+
+// TODO: rename to ObjectCategory
 public class ObjectType
 {
     public long ObjectId { get; private set; }

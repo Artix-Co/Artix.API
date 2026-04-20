@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Museums;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
+using Core.Contract.Features.Museums.Admin.Queries.GetPaginateObjects;
 using Core.Contract.Features.Museums.Client.Queries.GetAll;
 using Core.Contract.Features.Museums.Client.Queries.GetDetailByIds;
 using Core.Contract.Features.Museums.Client.Queries.GetJournalEntries;
@@ -67,6 +68,117 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             this._fileServerBaseUrl);
 
         return objects;
+    }
+
+    public async Task<PaginatedResult<AdminMuseumObjectDto>> GetAdminObjectsAsync(
+        GetAdminMuseumObjectsQuery dto,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Fetching admin objects for MuseumId: {MuseumId}", dto.MuseumId);
+
+        var pageNumber = Math.Max(dto.PageNumber, 1);
+        var pageSize = Math.Max(dto.PageSize, 1);
+        
+
+        var query =
+            from m in _queryDbContext.Museums
+            where m.BusinessId == dto.MuseumId
+            join mo in _queryDbContext.MuseumObjects on m.Id equals mo.MuseumId
+            join obj in _queryDbContext.Objects on mo.ObjectId equals obj.Id
+            join objImg in _queryDbContext.ObjectImages on obj.Id equals objImg.ObjectId
+            where objImg.FileEntity != null
+                  && !objImg.FileEntity.IsDeleted
+                  && _allowedImageMimeTypes.Contains(objImg.FileEntity.MimeType)
+            select new
+            {
+                m, 
+                mo, 
+                obj, 
+               
+                ObjectImagePath = obj
+                    .ObjectImages 
+                    .Where(oi =>
+                        oi.FileEntity != null && !oi.FileEntity.IsDeleted &&
+                        _allowedImageMimeTypes.Contains(oi.FileEntity.MimeType))
+                    .Select(oi => oi.FileEntity.FilePath)
+                    .FirstOrDefault()
+            };
+
+
+        if (!string.IsNullOrWhiteSpace(dto.NameFilter))
+        {
+            var lowerName = dto.NameFilter.ToLower();
+            query = query.Where(x =>
+                x.obj.Name.ToLower().Contains(lowerName) || x.obj.Name.ToLower().Contains(lowerName));
+        }
+
+        if (dto.IsSpecial.HasValue)
+        {
+            query = query.Where(x => x.obj.IsSpecial == dto.IsSpecial.Value);
+        }
+
+        if (dto.IsHidden.HasValue)
+        {
+            query = query.Where(x => x.obj.IsHidden == dto.IsHidden.Value);
+        }
+
+        if (dto.Tier.HasValue)
+        {
+            query = query.Where(x => x.obj.Tier == dto.Tier.Value);
+        }
+
+        if (dto.Version.HasValue)
+        {
+            query = query.Where(x => x.obj.Version == dto.Version.Value);
+        }
+
+        // Sorting
+        query = dto.SortBy.ToLower() switch
+        {
+            "name" => dto.SortDescending
+                ? query.OrderByDescending(x => x.obj.Name)
+                : query.OrderBy(x => x.obj.Name),
+
+            "tier" => dto.SortDescending
+                ? query.OrderByDescending(x => x.obj.Tier)
+                : query.OrderBy(x => x.obj.Tier),
+
+            "version" => dto.SortDescending
+                ? query.OrderByDescending(x => x.obj.Version)
+                : query.OrderBy(x => x.obj.Version),
+
+            "isspecial" => dto.SortDescending
+                ? query.OrderByDescending(x => x.obj.IsSpecial)
+                : query.OrderBy(x => x.obj.IsSpecial),
+
+            _ => dto.SortDescending
+                ? query.OrderByDescending(x => x.obj.CreatedAt)
+                : query.OrderBy(x => x.obj.CreatedAt)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new AdminMuseumObjectDto(
+                x.obj.BusinessId,
+                !string.IsNullOrEmpty(x.ObjectImagePath)
+                    ? $"{_fileServerBaseUrl}/{Path.GetFileName(x.ObjectImagePath)}"
+                    : null,
+                x.obj.Name,
+                x.obj.GeneralInformation,
+                x.obj.CreatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedResult<AdminMuseumObjectDto>(
+            Items: items,
+            TotalCount: totalCount,
+            PageNumber: pageNumber,
+            PageSize: pageSize,
+            Draw: true
+        );
     }
 
     public MuseumDetailsByIdDto GetDetailsById(GetMuseumDetailsByIdQuery dto)
