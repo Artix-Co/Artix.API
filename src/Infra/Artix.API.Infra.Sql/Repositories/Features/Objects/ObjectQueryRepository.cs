@@ -2,23 +2,16 @@
 
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Objects;
-using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
-using Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects;
-using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
-using Core.Contract.Primitives.Models;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
-using DPG.Core.Contract.Primitives.Models;
 using Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
 using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
-using GetPaginateObjectsQuery = Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects.GetPaginateObjectsQuery;
 using ObjectDetailsByIdDto = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.ObjectDetailsByIdDto;
-using PaginateObjectsDto = Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects.PaginateObjectsDto;
 
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
@@ -92,111 +85,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
     }
 
 
-    public async Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAdminAsync(
-        GetPaginateObjectsQuery dto,
-        CancellationToken cancellationToken = default)
-    {
-        var pageNumber = Math.Max(dto.PageNumber, 1);
-        var pageSize = Math.Max(dto.PageSize, 1);
-
-        var query = _queryDbContext.Objects
-            .OrderByDescending(o => o.CreatedAt)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
-        {
-            var searchTerm = dto.GlobalSearch.ToLower();
-            query = query.Where(o =>
-                o.Name.ToLower().Contains(searchTerm) ||
-                (o.GeneralInformation != null && o.GeneralInformation.ToLower().Contains(searchTerm)) ||
-                (o.SpecialInformation != null && o.SpecialInformation.ToLower().Contains(searchTerm)) ||
-                _queryDbContext.MuseumObjects.Any(mo => mo.ObjectId == o.Id &&
-                                                        _queryDbContext.Museums.Any(m =>
-                                                            m.Id == mo.MuseumId &&
-                                                            m.Name.ToLower().Contains(searchTerm))));
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.SortBy))
-        {
-            query = dto.SortBy.ToLower() switch
-            {
-                "name" => dto.SortDirection == SortDirection.Asc
-                    ? query.OrderBy(o => o.Name)
-                    : query.OrderByDescending(o => o.Name),
-                "version" => dto.SortDirection == SortDirection.Asc
-                    ? query.OrderBy(o => o.Version)
-                    : query.OrderByDescending(o => o.Version),
-                _ => query.OrderBy(o => o.Name)
-            };
-        }
-        else
-        {
-            query = query.OrderBy(o => o.Name);
-        }
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var pagedItems = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .GroupJoin(
-                _queryDbContext.MuseumObjects,
-                obj => obj.Id,
-                mo => mo.ObjectId,
-                (obj, museumObjects) => new { Object = obj, MuseumObjects = museumObjects }
-            )
-            .SelectMany(
-                x => x.MuseumObjects.DefaultIfEmpty(),
-                (obj, mo) => new { obj.Object, MuseumObject = mo }
-            )
-            .GroupJoin(
-                _queryDbContext.Museums,
-                x => x.MuseumObject != null ? x.MuseumObject.MuseumId : 0, // اصلاح 0 به Guid.Empty
-                museum => museum.Id,
-                (x, museums) => new { x.Object, Museums = museums }
-            )
-            .GroupBy(x => new
-            {
-                x.Object.BusinessId,
-                x.Object.Name,
-                x.Object.GeneralInformation,
-                x.Object.SpecialInformation,
-                x.Object.ObjectSaleType,
-                x.Object.Version
-            })
-            .Select(g => new
-            {
-                g.Key.BusinessId,
-                g.Key.Name,
-                g.Key.GeneralInformation,
-                g.Key.SpecialInformation,
-                g.Key.ObjectSaleType,
-                MuseumNames = g.SelectMany(m => m.Museums.Select(museum => museum.Name)).Distinct(),
-                g.Key.Version
-            })
-            .ToListAsync(cancellationToken);
-
-        // تبدیل به AllObjectsAdminDto در سمت کلاینت
-        var resultItems = pagedItems.Select(item => new PaginateObjectsDto(
-            item.BusinessId,
-            item.Name,
-            item.GeneralInformation,
-            item.SpecialInformation,
-            string.Join(", ", item.MuseumNames.Where(name => !string.IsNullOrEmpty(name))),
-            item.ObjectSaleType,
-            item.Version
-        )).ToList();
-
-        return new PaginatedResult<PaginateObjectsDto>(
-            Items: resultItems.AsReadOnly(),
-            TotalCount: totalCount,
-            PageNumber: pageNumber,
-            PageSize: pageSize,
-            Draw: true
-        );
-    }
-
-
+ 
     public async Task<Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto> GetObjectDetailsByIdAdminAsync(
         Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery dto, CancellationToken cancellationToken = default)
     {

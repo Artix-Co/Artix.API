@@ -4,14 +4,11 @@ using Common;
 using Core.Contract.Features.Objects.Admin.Commands.CreateNewObject;
 using Core.Contract.Features.Objects.Admin.Commands.Upgrade;
 using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
-using Core.Contract.Features.Objects.Admin.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
 
 public sealed class ObjectController : AdminBaseController
@@ -29,13 +26,7 @@ public sealed class ObjectController : AdminBaseController
         return this.Ok(result);
     }
 
-    [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginationQuery<PaginateObjectsDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObject([FromQuery] GetPaginateObjectsQuery query)
-    {
-        var result = await this._mediator.Send(query);
-        return this.Ok(result);
-    }
+ 
 
     [HttpGet("by-id")]
     [ProducesResponseType(typeof(Result<ObjectDetailsByIdDto>), StatusCodes.Status200OK)]
