@@ -2,6 +2,7 @@ namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
 using Core.Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
+using Core.Contract.Features.Museums.Admin.Commands.Remove;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
@@ -38,6 +39,16 @@ public sealed class MuseumController : AdminBaseController
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddNewMuseumAsync([FromBody] CreateNewMuseumCommand command)
+    {
+        var result = await this._mediator.Send(command);
+        return this.Ok(result);
+    }
+    
+    
+    [Authorize]
+    [HttpDelete("remove")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RemoveMuseumAsync([FromBody] RemoveMuseumCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
