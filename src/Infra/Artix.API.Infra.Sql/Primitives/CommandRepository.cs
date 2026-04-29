@@ -38,6 +38,7 @@ public class CommandRepository<T> : ICommandRepository<T> where T : AggregateRoo
         _commandDbContext.SaveChanges();
     }
 
+    // TODO: IsDeleted should be aware not IsActive
     public void Delete(Guid businessId)
     {
         var dbSet = this._commandDbContext.Set<T>();
@@ -45,7 +46,7 @@ public class CommandRepository<T> : ICommandRepository<T> where T : AggregateRoo
 
         var entityType = typeof(T);
 
-        // Ensure the entity has an "IsActive" property before updating
+  
         var isActiveProperty = entityType.GetProperty("IsActive");
         if (isActiveProperty == null)
             throw new InvalidOperationException($"Entity {entityType.Name} does not have an 'IsActive' property.");
@@ -92,6 +93,7 @@ public class CommandRepository<T> : ICommandRepository<T> where T : AggregateRoo
     }
 
 
+    // TODO: IsDeleted should be aware not IsActive
     public async Task DeleteAsync(Guid businessId, CancellationToken cancellationToken = default)
     {
         var dbSet = this._commandDbContext.Set<T>();
