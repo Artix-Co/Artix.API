@@ -105,9 +105,10 @@ public static class HostingExtension
             options.AddPolicy("CorsPolicy", policy =>
             {
                 policy
-                    .AllowAnyOrigin()
+                    .WithOrigins("http://localhost:3000") // MUST be explicit
                     .AllowAnyHeader()
                     .AllowAnyMethod()
+                    .AllowCredentials()
                     .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
             });
         });
