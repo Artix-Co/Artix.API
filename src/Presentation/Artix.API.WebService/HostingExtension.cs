@@ -44,8 +44,6 @@ public static class HostingExtension
 {
     public static void AddArtixServices(this IServiceCollection services, IConfiguration configuration)
     {
-
-
         services.AddResponseCompression(options =>
         {
             options.EnableForHttps = true;
@@ -95,7 +93,6 @@ public static class HostingExtension
         services.AddRedis();
         services.AddFileService();
 
-  
 
         services.AddApplicationServices();
         services.AddContractServices();
@@ -105,7 +102,8 @@ public static class HostingExtension
             options.AddPolicy("CorsPolicy", policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:3000") // MUST be explicit
+                    .WithOrigins("http://localhost:3000", "https://localhost:3000",
+                        "https://nazari-pwd.drl.ink") // MUST be explicit
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials()
@@ -118,6 +116,5 @@ public static class HostingExtension
         services.AddDomainServiceServices();
 
         services.AddEndpointsServices();
-        
     }
 }

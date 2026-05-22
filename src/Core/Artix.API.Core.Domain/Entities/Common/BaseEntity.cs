@@ -29,10 +29,4 @@ public abstract class BaseEntity
         IsDeleted = true;
         ModifiedAt = DateTime.UtcNow;
     }
-
-    public void MarkAsModified()
-    {
-        IsDeleted = false;
-        ModifiedAt = DateTime.UtcNow;
-    }
 }
