@@ -22,11 +22,11 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .IsRequired();
 
         entity.Property(o => o.GeneralInformation)
-            .HasMaxLength(500)
+            .HasMaxLength(10000)
             .IsRequired(false);
 
         entity.Property(o => o.SpecialInformation)
-            .HasMaxLength(500)
+            .HasMaxLength(10000)
             .IsRequired(false);
 
         entity.Property(o => o.Version)
@@ -81,11 +81,11 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .OnDelete(DeleteBehavior.Cascade);
         
         // Indexes
-        entity.HasIndex(o => o.Name)
-            .HasDatabaseName("IX_Objects_Name");
+        // entity.HasIndex(o => o.Name)
+        //     .HasDatabaseName("IX_Objects_Name");
 
-        entity.HasIndex(o => o.QrCode)
-            .HasDatabaseName("IX_Objects_QrCode")
-            .IsUnique();
+        // entity.HasIndex(o => o.QrCode)
+        //     .HasDatabaseName("IX_Objects_QrCode")
+        //     .IsUnique();
     }
 }

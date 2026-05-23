@@ -30,9 +30,9 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
             .HasForeignKey(mo => mo.MuseumId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.HasIndex(e => e.Name)
-            .HasDatabaseName("IX_Museums_Name")
-            .IsUnique();
+        // entity.HasIndex(e => e.Name)
+        //     .HasDatabaseName("IX_Museums_Name")
+        //     .IsUnique();
 
         entity.HasIndex(e => e.IsActive)
             .HasDatabaseName("IX_Museums_IsActive");
