@@ -29,6 +29,13 @@ public class Object : AggregateRoot
 
     private readonly List<ObjectImage> _objectImages = new();
     public virtual IReadOnlyCollection<ObjectImage> ObjectImages => this._objectImages.AsReadOnly();
+    
+    private readonly List<ObjectGeneralInformation> _objectGeneralInformation = new();
+    public virtual IReadOnlyCollection<ObjectGeneralInformation> ObjectGeneralInformation => this._objectGeneralInformation.AsReadOnly();
+
+    
+    private readonly List<ObjectSpecialInformation> _objectSpecialInformation = new();
+    public virtual IReadOnlyCollection<ObjectSpecialInformation> ObjectSpecialInformation => this._objectSpecialInformation.AsReadOnly();
 
 
     private readonly List<ObjectType> _objectTypes = new();
@@ -432,6 +439,32 @@ public class Object : AggregateRoot
 
         var objectImage = ObjectImage.Create(Id, fileId);
         _objectImages.Add(objectImage);
+    }
+    
+    public void AssignGeneralInformationFile(long fileId, string[] allowedMimeTypes)
+    {
+        var existing = this._objectGeneralInformation.FirstOrDefault(i => i.ObjectId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateFile(fileId, allowedMimeTypes);
+            return;
+        }
+
+        var objectGeneralInformation = Entities.Object.ObjectGeneralInformation.Create(Id, fileId);
+        _objectGeneralInformation.Add(objectGeneralInformation);
+    }
+    
+    public void AssignSpecializedInformationFile(long fileId, string[] allowedMimeTypes)
+    {
+        var existing = this._objectSpecialInformation.FirstOrDefault(i => i.ObjectId == Id);
+        if (existing is not null)
+        {
+            existing.UpdateFile(fileId, allowedMimeTypes);
+            return;
+        }
+
+        var objectSpecialInformation = Entities.Object.ObjectSpecialInformation.Create(Id, fileId);
+        _objectSpecialInformation.Add(objectSpecialInformation);
     }
 
     public void Remove3DModel(string[] allowedMimeTypes)

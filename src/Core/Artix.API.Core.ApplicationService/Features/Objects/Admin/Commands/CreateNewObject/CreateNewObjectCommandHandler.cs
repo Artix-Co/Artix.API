@@ -24,7 +24,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
     private readonly IUploadService _uploadService;
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
-
+    private readonly string[] _allowedReadmeMimeTypes;
 
     public CreateNewObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
         ILogger<CommandHandlerBase<CreateNewObjectCommand>> logger, IObjectCommandRepository objectCommandRepository,
@@ -39,6 +39,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
 
         this._allowed3DMimeTypes = options.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
+        this._allowedReadmeMimeTypes = options.Value.AllowedReadmeMimeTypes;
     }
 
     public override async Task<Guid> Handle(CreateNewObjectCommand command, CancellationToken cancellationToken)
@@ -64,6 +65,68 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
         );
         obj.AssignMuseum(museum.Id);
 
+        
+        // -------------------------------
+        // General Information README file
+        // -------------------------------
+        if (command.GeneralInformationUploadId.HasValue)
+        {
+            var upload = await this._uploadService.GetStatusAsync(command.GeneralInformationUploadId.Value, cancellationToken);
+            
+            if (upload == null || !upload.Completed)
+                throw new InvalidOperationException("General information upload session not completed.");
+
+            var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
+
+            if (!this._allowedReadmeMimeTypes.Contains(ext))
+                throw new InvalidOperationException($"Invalid readme file type for General Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
+
+            var fileEntity = FileEntity.Create(
+                upload.FileName,
+                upload.PhysicalFilePath,
+                upload.TotalSize,
+                ext,
+                userId
+            );
+
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            obj.AssignGeneralInformationFile(fileEntity.Id, this._allowedReadmeMimeTypes);
+
+            this._logger.LogInformation("General information file attached: ObjectId={ObjectId}, FileId={FileId}", 
+                obj.Id, fileEntity.Id);
+        }
+
+        // -------------------------------
+        // Specialized Information README file
+        // -------------------------------
+        if (command.SpecializedInformationUploadId.HasValue)
+        {
+            var upload = await this._uploadService.GetStatusAsync(command.SpecializedInformationUploadId.Value, cancellationToken);
+            
+            if (upload == null || !upload.Completed)
+                throw new InvalidOperationException("Specialized information upload session not completed.");
+
+            var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
+
+            if (!this._allowedReadmeMimeTypes.Contains(ext))
+                throw new InvalidOperationException($"Invalid readme file type for Specialized Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
+
+            var fileEntity = FileEntity.Create(
+                upload.FileName,
+                upload.PhysicalFilePath,
+                upload.TotalSize,
+                ext,
+                userId
+            );
+
+            await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
+            obj.AssignSpecializedInformationFile(fileEntity.Id, this._allowedReadmeMimeTypes);
+
+            this._logger.LogInformation("Specialized information file attached: ObjectId={ObjectId}, FileId={FileId}", 
+                obj.Id, fileEntity.Id);
+        }
+        
+        
         // -------------------------------
         // 3D Model
         // -------------------------------

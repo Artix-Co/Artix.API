@@ -7,15 +7,15 @@ public sealed record CreateNewObjectCommand(
     string Name,
     string? GeneralInformation,
     string? SpecializedInformation,
+    Guid? GeneralInformationUploadId,
+    Guid? SpecializedInformationUploadId,
     string QrCode,
     int? Tier,
     int? Version,
     bool IsSpecial,
     bool IsHidden,
     ObjectSaleType ObjectSaleType,
-    
     Guid? Model3DUploadId,
     Guid? ImageUploadId,
-    
     Guid MuseumId
 ) : ICommand;

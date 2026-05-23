@@ -42,6 +42,16 @@ internal sealed class FileWriteConfiguration : BaseEntityConfiguration<FileEntit
             .WithOne(of => of.FileEntity)
             .HasForeignKey(of => of.FileId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        entity.HasMany(f => f.ObjectGeneralInformation)
+            .WithOne(of => of.FileEntity)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade); 
+        
+        entity.HasMany(f => f.ObjectSpecialInformation)
+            .WithOne(of => of.FileEntity)
+            .HasForeignKey(of => of.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.HasMany(f => f.MuseumImages)
             .WithOne(of => of.FileEntity)

@@ -22,6 +22,14 @@ public class FileEntity : AggregateRoot
     private readonly List<ObjectImage> _objectImages = new();
     public virtual IReadOnlyCollection<ObjectImage> ObjectImages => this._objectImages.AsReadOnly();
     
+    private readonly List<ObjectGeneralInformation> _objectGeneralInformation = new();
+    public virtual IReadOnlyCollection<ObjectGeneralInformation> ObjectGeneralInformation => this._objectGeneralInformation.AsReadOnly();
+
+    
+    private readonly List<ObjectSpecialInformation> _objectSpecialInformation = new();
+    public virtual IReadOnlyCollection<ObjectSpecialInformation> ObjectSpecialInformation => this._objectSpecialInformation.AsReadOnly();
+
+    
     
     private readonly List<UserImage> _userImages = new();
     public virtual IReadOnlyCollection<UserImage> UserImages => this._userImages.AsReadOnly();

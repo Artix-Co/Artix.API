@@ -13,6 +13,7 @@ public sealed class FileSettings
     public string TempPath { get; set; } = "temp";
     public string BaseUrl { get; set; } = string.Empty;
     public string[] AllowedImageMimeTypes { get; set; } = Array.Empty<string>();
+    public string[] AllowedReadmeMimeTypes { get; set; }= Array.Empty<string>();
     
     // اختیاری → اگر CompressVideoWithFfmpegAsync استفاده می‌کنید
     public string? FFmpegPath { get; set; } = null;
