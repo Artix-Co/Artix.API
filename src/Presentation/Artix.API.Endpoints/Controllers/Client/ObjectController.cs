@@ -37,8 +37,8 @@ public sealed class ObjectController : ClientBaseController
 
     [Authorize]
     [HttpGet("by-id")]
-    [ProducesResponseType(typeof(Result<ObjectDetailsByIdDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailsByIdQuery query)
+    [ProducesResponseType(typeof(Result<ClientObjectDetailsByIdDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetObject([FromQuery] GetClientObjectDetailsByIdQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

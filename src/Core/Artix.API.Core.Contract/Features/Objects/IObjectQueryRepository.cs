@@ -3,12 +3,11 @@
  
 using Primitives.Repositories;
 using Artix.API.Core.Domain.Entities.Object;
-using GetObjectDetailsByIdQuery = Client.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
-using ObjectDetailsByIdDto = Client.Queries.GetObjectDetailsById.ObjectDetailsByIdDto;
+using Client.Queries.GetObjectDetailsById;
 
 public interface IObjectQueryRepository : IQueryRepository<Object>
 {
-    Task<ObjectDetailsByIdDto> GetDetailsByIdAsync(GetObjectDetailsByIdQuery query,
+    Task<ClientObjectDetailsByIdDto> GetDetailsByIdAsync(GetClientObjectDetailsByIdQuery query,
         CancellationToken cancellationToken = default);
     
  

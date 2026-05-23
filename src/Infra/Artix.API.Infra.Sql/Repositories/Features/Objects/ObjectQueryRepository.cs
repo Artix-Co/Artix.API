@@ -2,6 +2,7 @@
 
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Objects;
+using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Core.Domain.Entities.Object;
 using Data.DbContexts;
@@ -10,14 +11,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
-using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
-using ObjectDetailsByIdDto = Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById.ObjectDetailsByIdDto;
 
 public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQueryRepository
 {
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
     private readonly string _fileServerBaseUrl;
+    private readonly string[] _allowedReadmeMimeTypes;
 
 
     public ObjectQueryRepository(ArtixQueryDbContext queryDbContext, ILogger<QueryRepository<Object>> logger,
@@ -26,10 +26,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         this._allowed3DMimeTypes = fileSettingOptions.Value.Allowed3DMimeTypes;
         this._allowedImageMimeTypes = fileSettingOptions.Value.AllowedImageMimeTypes;
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
+        this._allowedReadmeMimeTypes = fileSettingOptions.Value.AllowedReadmeMimeTypes;
     }
 
-    public async Task<ObjectDetailsByIdDto> GetDetailsByIdAsync(
-        GetObjectDetailsByIdQuery dto,
+    public async Task<ClientObjectDetailsByIdDto> GetDetailsByIdAsync(
+        GetClientObjectDetailsByIdQuery dto,
         CancellationToken cancellationToken = default)
     {
         var query = await _queryDbContext.Objects
@@ -50,6 +51,18 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                                  this._allowedImageMimeTypes.Contains(of.FileEntity.MimeType))
                     .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
+                GeneralInformationFilePath = o.ObjectGeneralInformation
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                
+                SpecialInformationFilePath = o.ObjectGeneralInformation
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                
                 HistoricalPeriods = o.ObjectHistoricalPeriods
                     .Select(ohp => new HistoricalPeriodDto(
                         ohp.HistoricalPeriod.BusinessId,
@@ -72,14 +85,24 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         var imageUrl = !string.IsNullOrEmpty(query.ImageFilePath)
             ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.ImageFilePath)}"
             : null;
+        
+        var generalInformationUrl = !string.IsNullOrEmpty(query.GeneralInformationFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.GeneralInformationFilePath)}"
+            : null;
+        
+        var specialInformationUrl = !string.IsNullOrEmpty(query.SpecialInformationFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.SpecialInformationFilePath)}"
+            : null;
 
-        return new ObjectDetailsByIdDto(
+        return new ClientObjectDetailsByIdDto(
             Id: query.BusinessId,
             Name: query.Name,
             GeneralInformation: query.GeneralInformation,
             SpecialInformation: query.SpecialInformation,
             Model3DUrl: model3DUrl,
             ImageUrl: imageUrl,
+            GeneralInformationUrl: generalInformationUrl,
+            SpecialInformationUrl:specialInformationUrl,
             HistoricalPeriods: query.HistoricalPeriods.ToList()
         );
     }

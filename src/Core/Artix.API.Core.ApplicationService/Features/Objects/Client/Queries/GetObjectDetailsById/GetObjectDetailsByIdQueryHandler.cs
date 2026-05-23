@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
 internal sealed class GetObjectDetailsByIdQueryHandler
-    : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
+    : QueryHandlerBase<GetClientObjectDetailsByIdQuery, ClientObjectDetailsByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
     private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;
@@ -34,8 +34,8 @@ internal sealed class GetObjectDetailsByIdQueryHandler
         _logger = logger;
     }
 
-    public override async Task<Result<ObjectDetailsByIdDto>> Handle(
-        GetObjectDetailsByIdQuery query,
+    public override async Task<Result<ClientObjectDetailsByIdDto>> Handle(
+        GetClientObjectDetailsByIdQuery query,
         CancellationToken cancellationToken)
     {
         // 1. کاربر جاری (owner کش)
@@ -53,7 +53,7 @@ internal sealed class GetObjectDetailsByIdQueryHandler
 
         if (details == null)
             throw ApplicationServiceNotFoundException.ForEntity(
-                nameof(ObjectDetailsByIdDto),
+                nameof(ClientObjectDetailsByIdDto),
                 query.Id);
 
         // 4. ساخت DTO برای recent
@@ -61,6 +61,8 @@ internal sealed class GetObjectDetailsByIdQueryHandler
             id: details.Id,
             imageUrl: details.ImageUrl,
             model3DUrl: details.Model3DUrl,
+            generalInformationUrl: details.GeneralInformationUrl,
+            specialInformationUrl: details.SpecialInformationUrl,
             name: details.Name,
             historicalPeriod: details.HistoricalPeriods);
 
@@ -96,6 +98,6 @@ internal sealed class GetObjectDetailsByIdQueryHandler
             currentList.Count);
 
         // 11. بازگرداندن پاسخ اصلی
-        return Result<ObjectDetailsByIdDto>.Success(details);
+        return Result<ClientObjectDetailsByIdDto>.Success(details);
     }
 }
