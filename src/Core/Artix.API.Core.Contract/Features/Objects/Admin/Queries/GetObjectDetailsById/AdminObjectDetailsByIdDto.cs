@@ -13,8 +13,10 @@ public sealed record AdminObjectDetailsByIdDto(
     bool IsHidden,
     ObjectSaleType ObjectSaleType,
     DateTime CreatedAt,
-    string? ImageBase64,
-    string? Model3DBase64,
+    string? ImageUrl,
+    string? Model3DUrl,
+    string? GeneralInformationUrl,
+    string? SpecialInformationUrl,
     List<TypeDto> ObjectTypes,
     List<HistoricalPeriodDto> HistoricalPeriods
 );

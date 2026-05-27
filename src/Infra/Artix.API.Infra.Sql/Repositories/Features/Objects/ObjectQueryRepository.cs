@@ -110,75 +110,76 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             GetAdminObjectDetailsByIdQuery dto,
             CancellationToken cancellationToken = default)
     {
-        // Validate input
-        if (dto?.Id == null)
-        {
-            throw new ArgumentNullException(nameof(dto.Id), "Object ID cannot be null.");
-        }
-
         // Log the query input
         _logger.LogInformation("Querying object with BusinessId: {BusinessId}", dto.Id);
 
-        // Fetch data from database
         var query = await _queryDbContext.Objects
-            .Include(o => o.ObjectModels)
-            .ThenInclude(of => of.FileEntity)
-            .Include(o => o.ObjectImages)
-            .ThenInclude(of => of.FileEntity)
-            .Include(o => o.ObjectHistoricalPeriods)
-            .ThenInclude(ohp => ohp.HistoricalPeriod)
-            .Include(o => o.ObjectTypes)
-            .ThenInclude(ot => ot.Category)
-            .FirstOrDefaultAsync(o => o.BusinessId == dto.Id, cancellationToken);
-
-        if (query == null)
-        {
-            _logger.LogWarning("No object found for BusinessId: {BusinessId}", dto.Id);
-            throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
-        }
-
-        // Log Object3DModels details
-        _logger.LogInformation("Object3DModels count: {Count}", query.ObjectModels?.Count() ?? 0);
-        if (query.ObjectModels != null && query.ObjectModels.Any())
-        {
-            foreach (var object3DModel in query.ObjectModels)
+            .Where(o => o.IsDeleted == false && o.BusinessId == dto.Id)
+            .Select(o => new
             {
-                _logger.LogInformation(
-                    "Model: ObjectId={ObjectId}, FileId={FileId}, MimeType={MimeType}, FilePath={FilePath}",
-                    object3DModel.ObjectId, object3DModel.FileId, object3DModel.FileEntity?.MimeType,
-                    object3DModel.FileEntity?.FilePath);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("No Object3DModels found for BusinessId: {BusinessId}", dto.Id);
-        }
+                o.BusinessId,
+                o.Name,
+                o.Description,
+                o.CreatedAt,
+                o.ObjectSaleType,
+                o.IsHidden,
+                o.IsSpecial,
+                o.Tier,
+                o.Version,
+                ObjectTypes = o.ObjectTypes.Select(ot => new
+                {
+                    ot.Category // Include the Category navigation property
+                }),
+                Model3DFilePath = o.ObjectModels
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowed3DMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                ImageFilePath = o.ObjectImages
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedImageMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                GeneralInformationFilePath = o.ObjectGeneralInformation
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                SpecialInformationFilePath = o.ObjectGeneralInformation
+                    .Where(of => !of.FileEntity.IsDeleted &&
+                                 this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
+                    .Select(of => of.FileEntity.FilePath)
+                    .FirstOrDefault(),
+                HistoricalPeriods = o.ObjectHistoricalPeriods
+                    .Select(ohp => new HistoricalPeriodDto(
+                        ohp.HistoricalPeriod.BusinessId,
+                        ohp.HistoricalPeriod.Name,
+                        ohp.HistoricalPeriod.Description,
+                        ohp.HistoricalPeriod.StartDate,
+                        ohp.HistoricalPeriod.EndDate
+                    ))
+            })
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(cancellationToken);
 
+        if (query is null)
+            throw InfrastructureNotFoundException.ForEntity(nameof(Object), dto.Id);
 
-        // Process 3D model file
-        string model3DBase64 = "";
+        var model3DUrl = !string.IsNullOrEmpty(query.Model3DFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.Model3DFilePath)}"
+            : null;
 
+        var imageUrl = !string.IsNullOrEmpty(query.ImageFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.ImageFilePath)}"
+            : null;
 
-        // Process image file
-        string imageBase64 = "";
+        var generalInformationUrl = !string.IsNullOrEmpty(query.GeneralInformationFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.GeneralInformationFilePath)}"
+            : null;
 
-
-        // Map related entities to DTOs
-        var objectTypes = query.ObjectTypes
-            .Select(ot => new TypeDto(
-                Id: ot.Category.BusinessId,
-                Name: ot.Category.Name,
-                Description: ot.Category.Description))
-            .ToList();
-
-        var historicalPeriods = query.ObjectHistoricalPeriods
-            .Select(ohp => new HistoricalPeriodDto(
-                Id: ohp.HistoricalPeriod.BusinessId,
-                Name: ohp.HistoricalPeriod.Name,
-                Description: ohp.HistoricalPeriod.Description,
-                StartDate: ohp.HistoricalPeriod.StartDate,
-                EndDate: ohp.HistoricalPeriod.EndDate))
-            .ToList();
+        var specialInformationUrl = !string.IsNullOrEmpty(query.SpecialInformationFilePath)
+            ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.SpecialInformationFilePath)}"
+            : null;
 
         // Return DTO
         return new AdminObjectDetailsByIdDto(
@@ -191,9 +192,15 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             IsHidden: query.IsHidden,
             ObjectSaleType: query.ObjectSaleType,
             CreatedAt: query.CreatedAt,
-            ImageBase64: imageBase64,
-            Model3DBase64: model3DBase64,
-            ObjectTypes: objectTypes,
-            HistoricalPeriods: historicalPeriods);
+            ImageUrl: imageUrl,
+            Model3DUrl: model3DUrl,
+            SpecialInformationUrl: specialInformationUrl,
+            GeneralInformationUrl: generalInformationUrl,
+            ObjectTypes: query.ObjectTypes.Select(ot => new TypeDto(
+                ot.Category.BusinessId,
+                ot.Category.Name,
+                ot.Category.Description
+            )).ToList(),
+            HistoricalPeriods: query.HistoricalPeriods.ToList());
     }
 }
