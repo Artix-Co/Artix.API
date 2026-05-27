@@ -88,8 +88,8 @@ public class Object : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name))
             throw DomainException.InvalidValue(nameof(name));
-        if (string.IsNullOrWhiteSpace(qrCode))
-            throw DomainException.InvalidValue(nameof(qrCode));
+        // if (string.IsNullOrWhiteSpace(qrCode))
+        //     throw DomainException.InvalidValue(nameof(qrCode));
         if (version is < 0)
             throw DomainException.InvalidValue("Version cannot be negative.");
         if (tier is < 0)
