@@ -19,7 +19,7 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
 
         entity.Property(o => o.QrCode)
             .HasMaxLength(200)
-            .IsRequired();
+            .IsRequired(false);
 
         entity.Property(o => o.Description)
             .HasMaxLength(256)
