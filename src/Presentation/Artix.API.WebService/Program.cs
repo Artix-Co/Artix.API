@@ -165,6 +165,34 @@ app.Use(async (ctx, next) =>
 });
 
 // --------------------------------------------------
+// Strip query parameters from static file requests
+// --------------------------------------------------
+app.Use(async (ctx, next) =>
+{
+    if (ctx.Request.Path.StartsWithSegments("/files"))
+    {
+        var path = ctx.Request.Path.ToString();
+        if (path.Contains('&') && !path.Contains('?'))
+        {
+            // Find the first & and treat everything after as query string
+            var ampIndex = path.IndexOf('&');
+            if (ampIndex > 0)
+            {
+                var newPath = path.Substring(0, ampIndex);
+                var queryString = "?" + path.Substring(ampIndex + 1);
+                
+                ctx.Request.Path = newPath;
+                ctx.Request.QueryString = new QueryString(queryString);
+                
+                Log.Debug("Fixed malformed URL. Path: {NewPath}, Query: {Query}", newPath, queryString);
+            }
+        }
+    }
+    
+    await next();
+});
+
+// --------------------------------------------------
 // DB Migrations & Seeding
 // --------------------------------------------------
 using (var scope = app.Services.CreateScope())
@@ -237,21 +265,22 @@ app.UseExceptionHandler(errorApp =>
 app.UseResponseCompression();
 
 // --------------------------------------------------
-// GZip fallback for .gz
+// GZip fallback for .gz (ignores query parameters)
 // --------------------------------------------------
 app.Use(async (ctx, next) =>
 {
     if (ctx.Request.Path.StartsWithSegments("/files", out var remaining))
     {
-        var rel = remaining.Value.TrimStart('/');
-
-        if (rel.Contains(".."))
+        // Get just the path without query string for file lookup
+        var cleanPath = remaining.Value.Split('?')[0].TrimStart('/');
+        
+        if (cleanPath.Contains(".."))
         {
             ctx.Response.StatusCode = 400;
             return;
         }
 
-        var full = Path.Combine(filesPath, rel);
+        var full = Path.Combine(filesPath, cleanPath);
         var gz = full + ".gz";
         var ext = Path.GetExtension(full).ToLowerInvariant();
 

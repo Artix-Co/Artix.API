@@ -131,9 +131,10 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         {
             query = query.Where(x => x.obj.Version == dto.Version.Value);
         }
-
+        
+        
         // Sorting
-        query = dto.SortBy.ToLower() switch
+        query = (dto.SortBy?.ToLower() ?? "createdat") switch
         {
             "name" => dto.SortDescending
                 ? query.OrderByDescending(x => x.obj.Name)
@@ -155,7 +156,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 ? query.OrderByDescending(x => x.obj.CreatedAt)
                 : query.OrderBy(x => x.obj.CreatedAt)
         };
-
+        
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
