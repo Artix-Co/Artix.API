@@ -641,9 +641,9 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("smalldatetime");
 
-                    b.Property<string>("GeneralInformation")
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Description")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -675,10 +675,6 @@ namespace Artix.API.Infra.Sql.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("SpecialInformation")
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Tier")
                         .HasColumnType("int");
