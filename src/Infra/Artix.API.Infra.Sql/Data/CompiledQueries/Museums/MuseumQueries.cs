@@ -90,7 +90,7 @@ internal static class MuseumQueries
                             .Select(mi => mi.FileEntity.FilePath)
                             .FirstOrDefault(),
                         x.Object.Name,
-                        Description = x.Object.GeneralInformation,
+                        x.Object.Description,
                         x.Object.CreatedAt
                     })
                     .Select(x => new MuseumObjectDto(
@@ -165,7 +165,7 @@ internal static class MuseumQueries
                     .Select(o => new PaginateObjectsDto(
                         o.BusinessId,
                         o.Name,
-                        o.GeneralInformation,
+                        o.Description,
                         (from mo in context.MuseumObjects
                             join m in context.Museums on mo.MuseumId equals m.Id
                             where mo.ObjectId == o.Id

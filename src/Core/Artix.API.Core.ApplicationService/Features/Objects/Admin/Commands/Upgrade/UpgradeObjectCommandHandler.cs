@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Primitives;
 
+
+// TODO: fix it with upload md files like create object
 internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeObjectCommand>
 {
     private readonly string[] _allowed3DMimeTypes;
@@ -56,16 +58,16 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         if (!string.IsNullOrWhiteSpace(command.Name))
             obj.Rename(command.Name);
 
-        if (!string.IsNullOrWhiteSpace(command.GeneralInformation) ||
-            !string.IsNullOrWhiteSpace(command.SpecializedInformation) ||
-            command.Tier.HasValue || command.Version.HasValue)
-        {
-            obj.UpdateDetails(
-                command.GeneralInformation,
-                command.SpecializedInformation,
-                command.Version,
-                command.Tier);
-        }
+        // if (!string.IsNullOrWhiteSpace(command.GeneralInformation) ||
+        //     !string.IsNullOrWhiteSpace(command.SpecializedInformation) ||
+        //     command.Tier.HasValue || command.Version.HasValue)
+        // {
+        //     obj.UpdateDetails(
+        //         command.Description,
+        //         command.SpecializedInformation,
+        //         command.Version,
+        //         command.Tier);
+        // }
 
 
         if (command.Model3DUploadId.HasValue)

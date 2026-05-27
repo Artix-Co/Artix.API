@@ -3,11 +3,10 @@
 using Artix.API.Core.Domain.Entities.Object.Enums;
 using Client.Queries.GetPaginateObjects;
 
-public sealed record ObjectDetailsByIdDto(
+public sealed record AdminObjectDetailsByIdDto(
     Guid Id,
     string Name,
-    string? GeneralInformation,
-    string? SpecialInformation,
+    string? Description,
     int? Version,
     int? Tier,
     bool IsSpecial,

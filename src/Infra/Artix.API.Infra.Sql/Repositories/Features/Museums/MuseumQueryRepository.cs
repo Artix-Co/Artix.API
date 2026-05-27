@@ -168,7 +168,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     ? $"{_fileServerBaseUrl}/{Path.GetFileName(x.ObjectImagePath)}"
                     : null,
                 x.obj.Name,
-                x.obj.GeneralInformation,
+                x.obj.Description,
                 x.obj.CreatedAt
             ))
             .ToListAsync(cancellationToken);

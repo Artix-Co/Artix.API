@@ -5,8 +5,8 @@ using Primitives.Handlers;
 public sealed record UpgradeObjectCommand(
     Guid Id,
     string? Name,
-    string? GeneralInformation,
-    string? SpecializedInformation,
+    // string? GeneralInformation,
+    // string? SpecializedInformation,
     int? Tier,
     int? Version,
     Guid? Model3DUploadId,

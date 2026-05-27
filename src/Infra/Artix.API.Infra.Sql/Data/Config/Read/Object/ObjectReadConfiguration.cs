@@ -21,13 +21,11 @@ internal sealed class ObjectReadConfiguration : BaseEntityConfiguration<Object>
             .HasMaxLength(200)
             .IsRequired();
 
-        entity.Property(o => o.GeneralInformation)
-            .HasMaxLength(500)
+        entity.Property(o => o.Description)
+            .HasMaxLength(256)
             .IsRequired(false);
 
-        entity.Property(o => o.SpecialInformation)
-            .HasMaxLength(500)
-            .IsRequired(false);
+   
 
         entity.Property(o => o.Version)
             .IsRequired(false);

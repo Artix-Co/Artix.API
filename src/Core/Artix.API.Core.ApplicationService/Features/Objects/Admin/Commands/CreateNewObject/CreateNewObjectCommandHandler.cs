@@ -52,11 +52,10 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
         }
 
+  
         var obj = Object.Create(
             command.Name,
-            command.QrCode,
-            command.GeneralInformation,
-            command.SpecializedInformation,
+            command.Description,
             command.Version,
             command.Tier,
             command.IsSpecial,
@@ -65,21 +64,23 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
         );
         obj.AssignMuseum(museum.Id);
 
-        
+
         // -------------------------------
         // General Information README file
         // -------------------------------
         if (command.GeneralInformationUploadId.HasValue)
         {
-            var upload = await this._uploadService.GetStatusAsync(command.GeneralInformationUploadId.Value, cancellationToken);
-            
+            var upload =
+                await this._uploadService.GetStatusAsync(command.GeneralInformationUploadId.Value, cancellationToken);
+
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("General information upload session not completed.");
 
             var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
             if (!this._allowedReadmeMimeTypes.Contains(ext))
-                throw new InvalidOperationException($"Invalid readme file type for General Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
+                throw new InvalidOperationException(
+                    $"Invalid readme file type for General Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
 
             var fileEntity = FileEntity.Create(
                 upload.FileName,
@@ -92,7 +93,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
             await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
             obj.AssignGeneralInformationFile(fileEntity.Id, this._allowedReadmeMimeTypes);
 
-            this._logger.LogInformation("General information file attached: ObjectId={ObjectId}, FileId={FileId}", 
+            this._logger.LogInformation("General information file attached: ObjectId={ObjectId}, FileId={FileId}",
                 obj.Id, fileEntity.Id);
         }
 
@@ -101,15 +102,18 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
         // -------------------------------
         if (command.SpecializedInformationUploadId.HasValue)
         {
-            var upload = await this._uploadService.GetStatusAsync(command.SpecializedInformationUploadId.Value, cancellationToken);
-            
+            var upload =
+                await this._uploadService.GetStatusAsync(command.SpecializedInformationUploadId.Value,
+                    cancellationToken);
+
             if (upload == null || !upload.Completed)
                 throw new InvalidOperationException("Specialized information upload session not completed.");
 
             var ext = Path.GetExtension(upload.FileName).ToLowerInvariant();
 
             if (!this._allowedReadmeMimeTypes.Contains(ext))
-                throw new InvalidOperationException($"Invalid readme file type for Specialized Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
+                throw new InvalidOperationException(
+                    $"Invalid readme file type for Specialized Information: {ext}. Allowed types: {string.Join(", ", this._allowedReadmeMimeTypes)}");
 
             var fileEntity = FileEntity.Create(
                 upload.FileName,
@@ -122,11 +126,11 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
             await this._fileCommandRepository.InsertAsync(fileEntity, cancellationToken);
             obj.AssignSpecializedInformationFile(fileEntity.Id, this._allowedReadmeMimeTypes);
 
-            this._logger.LogInformation("Specialized information file attached: ObjectId={ObjectId}, FileId={FileId}", 
+            this._logger.LogInformation("Specialized information file attached: ObjectId={ObjectId}, FileId={FileId}",
                 obj.Id, fileEntity.Id);
         }
-        
-        
+
+
         // -------------------------------
         // 3D Model
         // -------------------------------

@@ -5,8 +5,8 @@ using GetPaginateObjects;
 public sealed record ClientObjectDetailsByIdDto(
     Guid Id,
     string Name,
-    string? GeneralInformation,
-    string? SpecialInformation,
+    string?   Description ,
+    
     string? Model3DUrl,
     string? ImageUrl,
     string? GeneralInformationUrl,

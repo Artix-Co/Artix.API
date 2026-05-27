@@ -50,7 +50,6 @@ public class SqlDataSeeder
         using var activity = new Activity("SqlDataSeeder.SeedAll").Start();
         _logger.LogInformation("SqlDataSeeder | Starting SQL data seeding process");
 
-     
 
         if (await _context.Users.AnyAsync())
         {
@@ -240,12 +239,15 @@ public class SqlDataSeeder
 
         objects.AddRange(new[]
         {
-            Object.Create("Ancient Vase", "QR_VASE_001", "A vase from the Roman era",
-                "Made of clay with intricate designs", 1, 2, true, false, ObjectSaleType.Free),
-            Object.Create("Mona Lisa", "QR_MONA_001", "Famous painting by Leonardo da Vinci",
-                "Iconic portrait with a mysterious smile", 1, 3, true, false, ObjectSaleType.Tokenized),
-            Object.Create("Bronze Statue", "QR_STATUE_001", "A statue from the Greek period",
-                "Depicts a warrior in battle pose", 1, 1, false, true, ObjectSaleType.MemberShip)
+            Object.Create("Ancient Vase",
+                "Made of clay with intricate designs",
+                1, 2, true, false, ObjectSaleType.Free),
+            Object.Create("Mona Lisa",
+                "Iconic portrait with a mysterious smile",
+                1, 3, true, false, ObjectSaleType.Tokenized),
+            Object.Create("Bronze Statue",
+                "Depicts a warrior in battle pose",
+                1, 1, false, true, ObjectSaleType.MemberShip)
         });
 
         objects = objects.Take(OBJECT_SEED_COUNT).ToList();

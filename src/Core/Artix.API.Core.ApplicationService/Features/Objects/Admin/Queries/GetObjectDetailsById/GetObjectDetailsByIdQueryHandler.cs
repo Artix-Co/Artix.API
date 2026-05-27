@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 internal sealed class
-    GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetObjectDetailsByIdQuery, ObjectDetailsByIdDto>
+    GetObjectDetailsByIdQueryHandler : QueryHandlerBase<GetAdminObjectDetailsByIdQuery, AdminObjectDetailsByIdDto>
 {
     private readonly IObjectQueryRepository _objectQueryRepository;
 
@@ -19,10 +19,10 @@ internal sealed class
         this._objectQueryRepository = objectQueryRepository;
     }
 
-    public override async Task<Result<ObjectDetailsByIdDto>> Handle(GetObjectDetailsByIdQuery query,
+    public override async Task<Result<AdminObjectDetailsByIdDto>> Handle(GetAdminObjectDetailsByIdQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._objectQueryRepository.GetObjectDetailsByIdAdminAsync(query, cancellationToken);
-        return Result<ObjectDetailsByIdDto>.Success(result);
+        return Result<AdminObjectDetailsByIdDto>.Success(result);
     }
 }

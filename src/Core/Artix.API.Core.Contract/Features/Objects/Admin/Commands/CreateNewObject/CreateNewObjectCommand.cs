@@ -5,11 +5,10 @@ using Artix.API.Core.Domain.Entities.Object.Enums;
 
 public sealed record CreateNewObjectCommand(
     string Name,
-    string? GeneralInformation,
-    string? SpecializedInformation,
+    string? Description,
     Guid? GeneralInformationUploadId,
     Guid? SpecializedInformationUploadId,
-    string QrCode,
+    // string QrCode,
     int? Tier,
     int? Version,
     bool IsSpecial,

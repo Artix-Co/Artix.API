@@ -66,8 +66,7 @@ public class Museum : AggregateRoot
     public void AddObject(
         string name,
         string? qrCode,
-        string? generalInformation = null,
-        string? specialInformation = null,
+        string? description = null,
         int? version = null,
         int? tier = null,
         bool isSpecial = false,
@@ -80,9 +79,7 @@ public class Museum : AggregateRoot
 
 
         var @object = Object.Create(name,
-            qrCode,
-            generalInformation,
-            specialInformation,
+            description,
             version,
             tier,
             isSpecial,

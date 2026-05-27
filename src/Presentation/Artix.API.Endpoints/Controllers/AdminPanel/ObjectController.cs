@@ -10,7 +10,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using GetObjectDetailsByIdQuery = Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery;
 
 public sealed class ObjectController : AdminBaseController
 {
@@ -30,8 +29,8 @@ public sealed class ObjectController : AdminBaseController
  
 
     [HttpGet("by-id")]
-    [ProducesResponseType(typeof(Result<ObjectDetailsByIdDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetObject([FromQuery] GetObjectDetailsByIdQuery query)
+    [ProducesResponseType(typeof(Result<AdminObjectDetailsByIdDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetObject([FromQuery] GetAdminObjectDetailsByIdQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

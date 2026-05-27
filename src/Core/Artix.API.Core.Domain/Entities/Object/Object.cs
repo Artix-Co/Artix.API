@@ -10,12 +10,12 @@ using Exceptions;
 using JournalEntry;
 using Museum;
 
+// TODO: add description field & remove general and special fields
 public class Object : AggregateRoot
 {
     public string Name { get; private set; }
     public string? QrCode { get; private set; }
-    public string? GeneralInformation { get; private set; }
-    public string? SpecialInformation { get; private set; }
+    public string? Description { get; set; }
     public int? Version { get; private set; }
     public int? Tier { get; private set; }
     public bool IsSpecial { get; private set; } = false;
@@ -29,13 +29,17 @@ public class Object : AggregateRoot
 
     private readonly List<ObjectImage> _objectImages = new();
     public virtual IReadOnlyCollection<ObjectImage> ObjectImages => this._objectImages.AsReadOnly();
-    
-    private readonly List<ObjectGeneralInformation> _objectGeneralInformation = new();
-    public virtual IReadOnlyCollection<ObjectGeneralInformation> ObjectGeneralInformation => this._objectGeneralInformation.AsReadOnly();
 
-    
+    private readonly List<ObjectGeneralInformation> _objectGeneralInformation = new();
+
+    public virtual IReadOnlyCollection<ObjectGeneralInformation> ObjectGeneralInformation =>
+        this._objectGeneralInformation.AsReadOnly();
+
+
     private readonly List<ObjectSpecialInformation> _objectSpecialInformation = new();
-    public virtual IReadOnlyCollection<ObjectSpecialInformation> ObjectSpecialInformation => this._objectSpecialInformation.AsReadOnly();
+
+    public virtual IReadOnlyCollection<ObjectSpecialInformation> ObjectSpecialInformation =>
+        this._objectSpecialInformation.AsReadOnly();
 
 
     private readonly List<ObjectType> _objectTypes = new();
@@ -54,8 +58,7 @@ public class Object : AggregateRoot
 
     private readonly List<JournalEntry> _journalEntries = new();
     public virtual IReadOnlyCollection<JournalEntry> JournalEntries => _journalEntries.AsReadOnly();
-    
-    
+
 
     private readonly List<MarketplaceItem> _marketplaceItems = new();
     public virtual IReadOnlyCollection<MarketplaceItem> MarketplaceItems => _marketplaceItems.AsReadOnly();
@@ -63,7 +66,7 @@ public class Object : AggregateRoot
 
     private readonly List<UserScan> _userScans = new();
     public virtual IReadOnlyCollection<UserScan> UserScans => this._userScans.AsReadOnly();
- 
+
 
     // Protected constructor for EF Core
     protected Object()
@@ -73,8 +76,7 @@ public class Object : AggregateRoot
     private Object(
         string name,
         string? qrCode,
-        string? generalInformation,
-        string? specialInformation,
+        string? description,
         int? version,
         int? tier,
         bool isSpecial,
@@ -95,8 +97,7 @@ public class Object : AggregateRoot
 
         this.Name = name;
         this.QrCode = qrCode;
-        this.GeneralInformation = generalInformation;
-        this.SpecialInformation = specialInformation;
+        this.Description = description;
         this.Version = version;
         this.Tier = tier;
         this.IsSpecial = isSpecial;
@@ -109,8 +110,7 @@ public class Object : AggregateRoot
     private Object(
         string name,
         string? qrCode,
-        string? generalInformation,
-        string? specialInformation,
+        string? description,
         int? version,
         int? tier,
         bool isSpecial,
@@ -128,8 +128,7 @@ public class Object : AggregateRoot
 
         this.Name = name;
         this.QrCode = qrCode;
-        this.GeneralInformation = generalInformation;
-        this.SpecialInformation = specialInformation;
+        this.Description = description;
         this.Version = version;
         this.Tier = tier;
         this.IsSpecial = isSpecial;
@@ -142,8 +141,7 @@ public class Object : AggregateRoot
     {
         private string? _name;
         private string? _qrCode;
-        private string? _generalInformation;
-        private string? _specialInformation;
+        private string? _description;
         private int? _version;
         private int? _tier;
         private bool _isSpecial;
@@ -164,9 +162,9 @@ public class Object : AggregateRoot
             return this;
         }
 
-        public ObjectBuilder WithGeneralInformation(string? generalInformation)
+        public ObjectBuilder WithDescription(string? description)
         {
-            this._generalInformation = generalInformation;
+            this._description = description;
             return this;
         }
 
@@ -176,11 +174,6 @@ public class Object : AggregateRoot
             return this;
         }
 
-        public ObjectBuilder WithSpecialInformation(string? specialInformation)
-        {
-            this._specialInformation = specialInformation;
-            return this;
-        }
 
         public ObjectBuilder WithVersion(int? version)
         {
@@ -255,8 +248,7 @@ public class Object : AggregateRoot
             return new Object(
                 this._name!,
                 this._qrCode,
-                this._generalInformation,
-                this._specialInformation,
+                this._description,
                 this._version,
                 this._tier,
                 this._isSpecial,
@@ -277,9 +269,7 @@ public class Object : AggregateRoot
 
     public static Object Create(
         string name,
-        string? qrCode,
-        string? generalInformation = null,
-        string? specialInformation = null,
+        string? description = null,
         int? version = null,
         int? tier = null,
         bool isSpecial = false,
@@ -289,9 +279,8 @@ public class Object : AggregateRoot
     {
         var objectSalesType = objectSaleType ?? ObjectSaleType.Free;
         return new Object(name,
-            qrCode,
-            generalInformation,
-            specialInformation,
+            null,
+            description,
             version,
             tier,
             isSpecial,
@@ -300,15 +289,15 @@ public class Object : AggregateRoot
         );
     }
 
-    public void UpdateDetails(string? generalInformation, string? specialInformation, int? version, int? tier)
+    public void UpdateDetails(string? description, int? version, int? tier)
     {
         if (version is < 0)
             throw DomainException.InvalidValue("Version cannot be negative.");
         if (tier is < 0)
             throw DomainException.InvalidValue("Tier cannot be negative.");
 
-        this.GeneralInformation = generalInformation;
-        this.SpecialInformation = specialInformation;
+
+        this.Description = description;
         this.Version = version;
         this.Tier = tier;
     }
@@ -440,7 +429,7 @@ public class Object : AggregateRoot
         var objectImage = ObjectImage.Create(Id, fileId);
         _objectImages.Add(objectImage);
     }
-    
+
     public void AssignGeneralInformationFile(long fileId, string[] allowedMimeTypes)
     {
         var existing = this._objectGeneralInformation.FirstOrDefault(i => i.ObjectId == Id);
@@ -453,7 +442,7 @@ public class Object : AggregateRoot
         var objectGeneralInformation = Entities.Object.ObjectGeneralInformation.Create(Id, fileId);
         _objectGeneralInformation.Add(objectGeneralInformation);
     }
-    
+
     public void AssignSpecializedInformationFile(long fileId, string[] allowedMimeTypes)
     {
         var existing = this._objectSpecialInformation.FirstOrDefault(i => i.ObjectId == Id);

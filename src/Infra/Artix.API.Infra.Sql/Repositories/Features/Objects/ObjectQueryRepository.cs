@@ -2,6 +2,7 @@
 
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Features.Objects;
+using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 using Core.Contract.Features.Objects.Client.Queries.GetObjectDetailsById;
 using Core.Contract.Features.Objects.Client.Queries.GetPaginateObjects;
 using Core.Domain.Entities.Object;
@@ -39,8 +40,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             {
                 o.BusinessId,
                 o.Name,
-                o.GeneralInformation,
-                o.SpecialInformation,
+                o.Description,
                 Model3DFilePath = o.ObjectModels
                     .Where(of => !of.FileEntity.IsDeleted &&
                                  this._allowed3DMimeTypes.Contains(of.FileEntity.MimeType))
@@ -56,13 +56,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                                  this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
                     .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
-                
                 SpecialInformationFilePath = o.ObjectGeneralInformation
                     .Where(of => !of.FileEntity.IsDeleted &&
                                  this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
                     .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
-                
                 HistoricalPeriods = o.ObjectHistoricalPeriods
                     .Select(ohp => new HistoricalPeriodDto(
                         ohp.HistoricalPeriod.BusinessId,
@@ -85,11 +83,11 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         var imageUrl = !string.IsNullOrEmpty(query.ImageFilePath)
             ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.ImageFilePath)}"
             : null;
-        
+
         var generalInformationUrl = !string.IsNullOrEmpty(query.GeneralInformationFilePath)
             ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.GeneralInformationFilePath)}"
             : null;
-        
+
         var specialInformationUrl = !string.IsNullOrEmpty(query.SpecialInformationFilePath)
             ? $"{_fileServerBaseUrl}/{Path.GetFileName(query.SpecialInformationFilePath)}"
             : null;
@@ -97,20 +95,20 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
         return new ClientObjectDetailsByIdDto(
             Id: query.BusinessId,
             Name: query.Name,
-            GeneralInformation: query.GeneralInformation,
-            SpecialInformation: query.SpecialInformation,
+            Description: query.Description,
             Model3DUrl: model3DUrl,
             ImageUrl: imageUrl,
             GeneralInformationUrl: generalInformationUrl,
-            SpecialInformationUrl:specialInformationUrl,
+            SpecialInformationUrl: specialInformationUrl,
             HistoricalPeriods: query.HistoricalPeriods.ToList()
         );
     }
 
 
- 
-    public async Task<Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto> GetObjectDetailsByIdAdminAsync(
-        Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery dto, CancellationToken cancellationToken = default)
+    public async Task<AdminObjectDetailsByIdDto>
+        GetObjectDetailsByIdAdminAsync(
+            GetAdminObjectDetailsByIdQuery dto,
+            CancellationToken cancellationToken = default)
     {
         // Validate input
         if (dto?.Id == null)
@@ -183,11 +181,10 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             .ToList();
 
         // Return DTO
-        return new Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto(
+        return new AdminObjectDetailsByIdDto(
             Id: query.BusinessId,
             Name: query.Name,
-            GeneralInformation: query.GeneralInformation,
-            SpecialInformation: query.SpecialInformation,
+            Description: query.Description,
             Version: query.Version,
             Tier: query.Tier,
             IsSpecial: query.IsSpecial,

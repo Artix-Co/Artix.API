@@ -13,6 +13,6 @@ public interface IObjectQueryRepository : IQueryRepository<Object>
  
     
     
-    Task<Admin.Queries.GetObjectDetailsById.ObjectDetailsByIdDto> GetObjectDetailsByIdAdminAsync(Admin.Queries.GetObjectDetailsById.GetObjectDetailsByIdQuery query,
+    Task<Admin.Queries.GetObjectDetailsById.AdminObjectDetailsByIdDto> GetObjectDetailsByIdAdminAsync(Admin.Queries.GetObjectDetailsById.GetAdminObjectDetailsByIdQuery query,
         CancellationToken cancellationToken = default);
 }
