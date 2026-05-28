@@ -145,6 +145,31 @@ public class Object : AggregateRoot
         this.ObjectSaleType = objectSaleType;
     }
 
+    public static Object Create(
+        string name,
+        string slug,
+        string? description = null,
+        int? version = null,
+        int? tier = null,
+        bool isSpecial = false,
+        bool isHidden = false,
+        ObjectSaleType? objectSaleType = null
+    )
+    {
+        var objectSalesType = objectSaleType ?? ObjectSaleType.Free;
+        return new Object(name,
+            null,
+            description,
+            slug,
+            version,
+            tier,
+            isSpecial,
+            isHidden,
+            objectSalesType
+        );
+    }
+
+
     // Builder class
     public class ObjectBuilder
     {
@@ -165,7 +190,7 @@ public class Object : AggregateRoot
             this._name = name;
             return this;
         }
-        
+
         public ObjectBuilder WithSlug(string slug)
         {
             this._slug = slug;
@@ -283,31 +308,6 @@ public class Object : AggregateRoot
         return new ObjectBuilder();
     }
 
-
-    public static Object Create(
-        string name,
-        string slug,
-        string? description = null,
-       
-        int? version = null,
-        int? tier = null,
-        bool isSpecial = false,
-        bool isHidden = false,
-        ObjectSaleType? objectSaleType = null
-    )
-    {
-        var objectSalesType = objectSaleType ?? ObjectSaleType.Free;
-        return new Object(name,
-            null,
-            description,
-            slug,
-            version,
-            tier,
-            isSpecial,
-            isHidden,
-            objectSalesType
-        );
-    }
 
     public void UpdateDetails(string? description, int? version, int? tier)
     {
