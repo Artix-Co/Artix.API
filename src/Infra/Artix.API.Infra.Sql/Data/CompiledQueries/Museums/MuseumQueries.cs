@@ -24,6 +24,7 @@ internal static class MuseumQueries
                 IEnumerable<string> allowedImagesTypes,
                 string fileServerBaseUrl) =>
             context.Museums
+                .Where(m => m.IsDeleted == false)
                 .Where(m => string.IsNullOrEmpty(name) || m.Name.Contains(name))
                 .OrderBy(m => m.Name)
                 .Select(m => new
@@ -70,7 +71,7 @@ internal static class MuseumQueries
                     Guid museumId,
                     IEnumerable<string> allowedImagesTypes,
                     string fileServerBaseUrl) =>
-                context.MuseumObjects
+                context.MuseumObjects.Where(mo => mo.Museum.IsDeleted == false && mo.Museum.BusinessId == museumId)
                     .Join(
                         context.Objects,
                         mo => mo.ObjectId,
@@ -81,7 +82,6 @@ internal static class MuseumQueries
                         x => x.MuseumObject.MuseumId,
                         m => m.Id,
                         (x, m) => new { x.Object, x.MuseumObject, Museum = m })
-                    .Where(x => x.Museum.IsDeleted == false && x.Museum.BusinessId == museumId)
                     .Select(x => new
                     {
                         Id = x.Object.BusinessId,
