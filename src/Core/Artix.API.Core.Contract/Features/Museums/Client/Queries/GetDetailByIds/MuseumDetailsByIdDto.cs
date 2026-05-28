@@ -8,4 +8,5 @@ public sealed record MuseumDetailsByIdDto(
     DateTime CreatedAt,
     bool? IsActive,
     int ObjectCount,
-    int JournalEntryCount);
+    int JournalEntryCount,
+    string Slug);

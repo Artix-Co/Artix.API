@@ -141,7 +141,8 @@ internal static class MuseumQueries
                         x.Museum.CreatedAt,
                         x.Museum.IsActive,
                         ObjectCount = x.MuseumObjects.Count(),
-                        x.JournalEntryCount
+                        x.JournalEntryCount,
+                        x.Museum.Slug
                     })
                     .Select(x => new MuseumDetailsByIdDto(
                         x.BusinessId,
@@ -153,7 +154,8 @@ internal static class MuseumQueries
                         x.CreatedAt,
                         x.IsActive,
                         x.ObjectCount,
-                        x.JournalEntryCount
+                        x.JournalEntryCount,
+                        x.Slug
                     ))
                     .FirstOrDefault()
             );
