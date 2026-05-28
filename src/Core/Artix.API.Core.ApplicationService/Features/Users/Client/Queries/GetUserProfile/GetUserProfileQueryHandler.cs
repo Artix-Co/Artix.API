@@ -18,12 +18,10 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
-        var file = user.GetProfileImage();
-
-        var profileImageBase64String = "";
+     
     
 
-        var result = new UserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, profileImageBase64String,
+        var result = new UserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, "",
             user.PhoneNumber, user.IsPro);
         return Result<UserProfileDto>.Success(result);
     }

@@ -13,6 +13,7 @@ public sealed record PaginateObjectsDto(
     int? Tier,
     int? Version,
     DateTime CreatedAt,
+    string Slug,
     List<TypeDto> Types,
     List<HistoricalPeriodDto> HistoricalPeriods
 );

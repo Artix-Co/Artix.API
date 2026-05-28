@@ -1,9 +1,10 @@
-namespace Artix.API.Core.Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
+namespace Artix.API.Core.Contract.Features.Museums.Admin.Commands.CreateNew;
 
 using Primitives.Handlers;
 
 public sealed record CreateNewMuseumCommand(
     string Name,
-    string Description,
+    string Slug,
+    string? Description,
     Guid? ImageUploadId
 ) : ICommand;

@@ -55,6 +55,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
   
         var obj = Object.Create(
             command.Name,
+            command.Slug,
             command.Description,
             command.Version,
             command.Tier,

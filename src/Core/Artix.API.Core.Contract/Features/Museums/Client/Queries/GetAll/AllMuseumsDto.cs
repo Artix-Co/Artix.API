@@ -7,4 +7,5 @@ public sealed record AllMuseumsDto(
     string? ImageUrl,
     string? Description,
     DateTime CreatedAt,
-    bool? IsActive);
+    bool? IsActive,
+    string Slug);

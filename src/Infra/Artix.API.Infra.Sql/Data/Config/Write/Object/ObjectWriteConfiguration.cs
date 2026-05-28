@@ -25,6 +25,10 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
             .HasMaxLength(256)
             .IsRequired(false);
         
+        entity.Property(o => o.Slug)
+            .HasMaxLength(256)
+            .IsRequired();
+        
 
         entity.Property(o => o.Version)
             .IsRequired(false);

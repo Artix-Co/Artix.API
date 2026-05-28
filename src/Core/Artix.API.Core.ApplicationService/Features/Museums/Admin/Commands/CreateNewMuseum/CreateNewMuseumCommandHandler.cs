@@ -7,7 +7,7 @@ using Artix.API.Core.Contract.Primitives.Infra.File;
 using Artix.API.Core.Domain.Entities.File;
 using Contract.Features.Museums;
 using Contract.Features.Museums.Admin.Commands;
-using Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
+using Contract.Features.Museums.Admin.Commands.CreateNew;
 using Domain.Entities.Museum;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -42,7 +42,7 @@ internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateN
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userId = user.Id;
-        var museum = Museum.Create(command.Name, command.Description);
+        var museum = Museum.Create(command.Name, command.Slug, command.Description);
 
 
         if (command.ImageUploadId.HasValue)

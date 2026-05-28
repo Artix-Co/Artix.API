@@ -7,6 +7,7 @@ public sealed record AdminObjectDetailsByIdDto(
     Guid Id,
     string Name,
     string? Description,
+    string Slug,
     int? Version,
     int? Tier,
     bool IsSpecial,

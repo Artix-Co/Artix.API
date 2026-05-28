@@ -5,6 +5,6 @@ public sealed record UserProfileDto(
     string? Username,
     string? Email,
     string? DisplayName,
-    string? AvatarBase64,
+    string? AvatarUrl,
     string? PhoneNumber,
     bool IsPro);

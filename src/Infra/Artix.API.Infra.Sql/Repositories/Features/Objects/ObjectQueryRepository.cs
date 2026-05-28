@@ -41,6 +41,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                 o.BusinessId,
                 o.Name,
                 o.Description,
+                o.Slug,
                 Model3DFilePath = o.ObjectModels
                     .Where(of => !of.FileEntity.IsDeleted &&
                                  this._allowed3DMimeTypes.Contains(of.FileEntity.MimeType))
@@ -96,6 +97,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             Id: query.BusinessId,
             Name: query.Name,
             Description: query.Description,
+            Slug: query.Slug,
             Model3DUrl: model3DUrl,
             ImageUrl: imageUrl,
             GeneralInformationUrl: generalInformationUrl,
@@ -126,6 +128,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                 o.IsSpecial,
                 o.Tier,
                 o.Version,
+                o.Slug,
                 ObjectTypes = o.ObjectTypes.Select(ot => new
                 {
                     ot.Category // Include the Category navigation property
@@ -186,6 +189,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
             Id: query.BusinessId,
             Name: query.Name,
             Description: query.Description,
+            Slug: query.Slug,
             Version: query.Version,
             Tier: query.Tier,
             IsSpecial: query.IsSpecial,

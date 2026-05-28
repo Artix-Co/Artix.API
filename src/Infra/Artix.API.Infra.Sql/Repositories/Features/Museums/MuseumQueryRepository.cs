@@ -78,7 +78,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var pageNumber = Math.Max(dto.PageNumber, 1);
         var pageSize = Math.Max(dto.PageSize, 1);
-        
+
 
         var query =
             from m in _queryDbContext.Museums
@@ -91,12 +91,11 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                   && _allowedImageMimeTypes.Contains(objImg.FileEntity.MimeType)
             select new
             {
-                m, 
-                mo, 
-                obj, 
-               
+                m,
+                mo,
+                obj,
                 ObjectImagePath = obj
-                    .ObjectImages 
+                    .ObjectImages
                     .Where(oi =>
                         oi.FileEntity != null && !oi.FileEntity.IsDeleted &&
                         _allowedImageMimeTypes.Contains(oi.FileEntity.MimeType))
@@ -131,8 +130,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         {
             query = query.Where(x => x.obj.Version == dto.Version.Value);
         }
-        
-        
+
+
         // Sorting
         query = (dto.SortBy?.ToLower() ?? "createdat") switch
         {
@@ -156,7 +155,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 ? query.OrderByDescending(x => x.obj.CreatedAt)
                 : query.OrderBy(x => x.obj.CreatedAt)
         };
-        
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
@@ -169,7 +168,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                     : null,
                 x.obj.Name,
                 x.obj.Description,
-                x.obj.CreatedAt
+                x.obj.CreatedAt,
+                x.obj.Slug
             ))
             .ToListAsync(cancellationToken);
 
@@ -344,7 +344,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 m.Name,
                 m.Description,
                 m.CreatedAt,
-                m.IsActive))
+                m.IsActive,
+                m.Slug))
             .ToListAsync(cancellationToken);
 
         return new PaginatedResult<PaginatedMuseumsDto>(

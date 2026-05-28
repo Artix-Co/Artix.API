@@ -38,12 +38,10 @@ internal sealed class
         {
             usersQuery = query.SortBy switch
             {
-                nameof(PaginateUsersDto.FirstName) => query.SortDirection == SortDirection.Asc
+                nameof(PaginateUsersDto.DisplayName) => query.SortDirection == SortDirection.Asc
                     ? usersQuery.OrderBy(u => u.FirstName)
                     : usersQuery.OrderByDescending(u => u.FirstName),
-                nameof(PaginateUsersDto.LastName) => query.SortDirection == SortDirection.Asc
-                    ? usersQuery.OrderBy(u => u.LastName)
-                    : usersQuery.OrderByDescending(u => u.LastName),
+
                 nameof(PaginateUsersDto.Email) => query.SortDirection == SortDirection.Asc
                     ? usersQuery.OrderBy(u => u.Email)
                     : usersQuery.OrderByDescending(u => u.Email),
@@ -62,12 +60,20 @@ internal sealed class
             .Take(query.PageSize)
             .Select(u => new
             {
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                Avatar = u.GetProfileImage(),
+                u.FirstName,
+                u.LastName,
+                u.Email,
+                Avatar = "",
                 Plan = ClientType.Emerald,
-                IsActive = !u.LockoutEnabled || u.LockoutEnd == null || u.LockoutEnd < DateTimeOffset.UtcNow
+                IsActive = !u.LockoutEnabled || u.LockoutEnd == null || u.LockoutEnd < DateTimeOffset.UtcNow,
+                Id = u.BusinessId,
+                IsVerified = u.IsVerified,
+                IsEmailConfirmed = u.EmailConfirmed,
+                IsPhoneNumberConfirmed = u.PhoneNumberConfirmed,
+                IsBanned = u.IsBanned,
+                BanReason = u.BanReason,
+                BanExpiration = u.BanExpiration,
+                CreatedAt = u.CreatedAt,
             })
             .ToListAsync(cancellationToken);
 
@@ -88,17 +94,22 @@ internal sealed class
                         ? parsedPlan
                         : null;
 
-                string profileImageBase64String = string.Empty;
-
 
                 userDtos.Add(new PaginateUsersDto(
-                    FirstName: user.FirstName,
-                    LastName: user.LastName,
+                    DisplayName: $"{user.FirstName} {user.LastName}",
                     Email: user.Email,
-                    ProfileImageBase64: profileImageBase64String,
+                    AvatarUrl: "",
                     Plan: plan,
                     Roles: roles.ToList(),
-                    IsActive: user.IsActive
+                    IsActive: user.IsActive,
+                    Id: user.Id,
+                    IsVerified: user.IsVerified,
+                    IsEmailConfirmed: user.IsEmailConfirmed,
+                    IsPhoneConfirmed: user.IsPhoneNumberConfirmed,
+                    IsBanned: user.IsBanned,
+                    BanReason: user.BanReason,
+                    BanExpiration: user.BanExpiration,
+                    CreatedAt: user.CreatedAt
                 ));
             }
         }

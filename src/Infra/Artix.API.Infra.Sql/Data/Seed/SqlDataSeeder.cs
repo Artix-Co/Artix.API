@@ -240,12 +240,15 @@ public class SqlDataSeeder
         objects.AddRange(new[]
         {
             Object.Create("Ancient Vase",
+                "",
                 "Made of clay with intricate designs",
                 1, 2, true, false, ObjectSaleType.Free),
             Object.Create("Mona Lisa",
+                "",
                 "Iconic portrait with a mysterious smile",
                 1, 3, true, false, ObjectSaleType.Tokenized),
             Object.Create("Bronze Statue",
+                "",
                 "Depicts a warrior in battle pose",
                 1, 1, false, true, ObjectSaleType.MemberShip)
         });

@@ -6,7 +6,7 @@ public sealed record UserProfileDto(
     string? Username,
     string? Email,
     string? DisplayName,
-    string? AvatarBase64String,
+    string? AvatarUrl,
     string? PhoneNumber,
     List<string> Roles,
     List<string> Permissions,

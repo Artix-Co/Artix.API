@@ -10,6 +10,7 @@ public class Museum : AggregateRoot
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
+    public string Slug { get; private set; }
     public bool IsActive { get; private set; }
 
     private readonly List<MuseumObject> _museumObjects = new();
@@ -24,19 +25,22 @@ public class Museum : AggregateRoot
     {
     }
 
-    private Museum(string name, string? description, bool isActive)
+    private Museum(string name, string slug, string? description, bool isActive)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw DomainException.InvalidValue(nameof(name));
+        if (string.IsNullOrWhiteSpace(slug))
+            throw DomainException.InvalidValue(nameof(slug));
         Name = name;
+        Slug = slug;
         Description = description;
         IsActive = isActive;
         RaiseDomainEvent(new MuseumCreatedEvent(BusinessId, name, description, isActive));
     }
 
-    public static Museum Create(string name, string? description = null, bool isActive = true)
+    public static Museum Create(string name, string slug, string? description = null, bool isActive = true)
     {
-        return new Museum(name, description, isActive);
+        return new Museum(name, slug, description, isActive);
     }
 
     public void UpdateDetails(string name, string? description = null)
@@ -65,6 +69,7 @@ public class Museum : AggregateRoot
 
     public void AddObject(
         string name,
+        string slug,
         string? qrCode,
         string? description = null,
         int? version = null,
@@ -79,6 +84,7 @@ public class Museum : AggregateRoot
 
 
         var @object = Object.Create(name,
+            slug,
             description,
             version,
             tier,

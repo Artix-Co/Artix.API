@@ -12,6 +12,9 @@ public class AppUser : IdentityUser<long>
     public string? LastName { get; set; }
     public bool IsPro { get; set; } = false;
     public bool IsVerified { get; set; } = false;
+    public bool IsBanned { get; set; } = false;
+    public DateTime? BanExpiration { get; set; }
+    public string? BanReason { get; set; }
 
 
     private readonly List<Collection> _collections = [];
@@ -116,13 +119,7 @@ public class AppUser : IdentityUser<long>
             this._userImages.Remove(existingModel);
     }
 
-    public FileEntity? GetProfileImage()
-    {
-        return this._userImages
-            .FirstOrDefault(of => Is3DModel(of.FileEntity))
-            ?.FileEntity;
-    }
-
+ 
 
     public bool HasProfileImage()
     {

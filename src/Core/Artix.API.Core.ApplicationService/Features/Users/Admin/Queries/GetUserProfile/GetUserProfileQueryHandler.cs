@@ -18,9 +18,9 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
         CancellationToken cancellationToken)
     {
         var userInfo = await this.GetCurrentUserAsync(cancellationToken);
-        var file = userInfo.GetProfileImage();
+ 
 
-        var profileImageBase64String = "";
+ 
  
 
         var claims = await this._userManager.GetClaimsAsync(userInfo);
@@ -36,7 +36,7 @@ internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfi
             Username: userInfo.UserName,
             Email: userInfo.Email,
             DisplayName: displayName,
-            AvatarBase64String: profileImageBase64String,
+            AvatarUrl: "",
             PhoneNumber: userInfo.PhoneNumber,
             Roles: claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList(),
             Permissions: claims.Where(c => c.Type == "permission").Select(c => c.Value).ToList(),

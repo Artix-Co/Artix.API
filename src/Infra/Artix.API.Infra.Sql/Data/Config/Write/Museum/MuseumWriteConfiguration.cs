@@ -19,6 +19,10 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
         entity.Property(e => e.Description)
             .HasMaxLength(500)
             .IsRequired(false);
+        
+        entity.Property(e => e.Slug)
+            .HasMaxLength(256)
+            .IsRequired();
 
         entity.Property(e => e.IsActive)
             .IsRequired()
@@ -33,6 +37,10 @@ internal sealed class MuseumWriteConfiguration : BaseEntityConfiguration<Museum>
         // entity.HasIndex(e => e.Name)
         //     .HasDatabaseName("IX_Museums_Name")
         //     .IsUnique();
+        
+        entity.HasIndex(e => e.Slug)
+            .HasDatabaseName("IX_Museums_Slug")
+            .IsUnique();
 
         entity.HasIndex(e => e.IsActive)
             .HasDatabaseName("IX_Museums_IsActive");

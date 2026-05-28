@@ -40,7 +40,8 @@ internal static class MuseumQueries
                         .FirstOrDefault(),
                     m.Description,
                     m.CreatedAt,
-                    m.IsActive
+                    m.IsActive,
+                    m.Slug
                 })
                 .Select(x => new AllMuseumsDto(
                     x.BusinessId,
@@ -51,7 +52,8 @@ internal static class MuseumQueries
                         : null,
                     x.Description,
                     x.CreatedAt,
-                    x.IsActive
+                    x.IsActive,
+                    x.Slug
                 ))
         );
 
@@ -91,7 +93,8 @@ internal static class MuseumQueries
                             .FirstOrDefault(),
                         x.Object.Name,
                         x.Object.Description,
-                        x.Object.CreatedAt
+                        x.Object.CreatedAt,
+                        x.Object.Slug
                     })
                     .Select(x => new MuseumObjectDto(
                         x.Id,
@@ -101,7 +104,8 @@ internal static class MuseumQueries
                             : null,
                         x.Name,
                         x.Description,
-                        x.CreatedAt
+                        x.CreatedAt,
+                        x.Slug
                     ))
         );
 
@@ -176,6 +180,7 @@ internal static class MuseumQueries
                         o.Tier,
                         o.Version,
                         o.CreatedAt,
+                        o.Slug,
                         context.ObjectTypes
                             .Where(ot => ot.ObjectId == o.Id)
                             .Join(context.Types,

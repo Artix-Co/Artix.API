@@ -8,7 +8,7 @@ public sealed record CreateNewObjectCommand(
     string? Description,
     Guid? GeneralInformationUploadId,
     Guid? SpecializedInformationUploadId,
-    // string QrCode,
+    string Slug,
     int? Tier,
     int? Version,
     bool IsSpecial,

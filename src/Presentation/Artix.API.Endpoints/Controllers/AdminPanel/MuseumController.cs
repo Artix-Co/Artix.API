@@ -1,7 +1,7 @@
 namespace Artix.API.Endpoints.Controllers.AdminPanel;
 
 using Common;
-using Core.Contract.Features.Museums.Admin.Commands.CreateNewMuseum;
+using Core.Contract.Features.Museums.Admin.Commands.CreateNew;
 using Core.Contract.Features.Museums.Admin.Commands.Remove;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateObjects;

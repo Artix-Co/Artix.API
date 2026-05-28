@@ -6,5 +6,6 @@ public sealed record MuseumObjectDto(
     string? ImageUrl,
     string Name,
     string? Description,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string Slug
 );

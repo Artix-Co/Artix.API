@@ -16,6 +16,7 @@ public class Object : AggregateRoot
     public string Name { get; private set; }
     public string? QrCode { get; private set; }
     public string? Description { get; set; }
+    public string Slug { get; set; }
     public int? Version { get; private set; }
     public int? Tier { get; private set; }
     public bool IsSpecial { get; private set; } = false;
@@ -77,6 +78,7 @@ public class Object : AggregateRoot
         string name,
         string? qrCode,
         string? description,
+        string slug,
         int? version,
         int? tier,
         bool isSpecial,
@@ -90,6 +92,8 @@ public class Object : AggregateRoot
             throw DomainException.InvalidValue(nameof(name));
         // if (string.IsNullOrWhiteSpace(qrCode))
         //     throw DomainException.InvalidValue(nameof(qrCode));
+        if (string.IsNullOrWhiteSpace(slug))
+            throw DomainException.InvalidValue(nameof(slug));
         if (version is < 0)
             throw DomainException.InvalidValue("Version cannot be negative.");
         if (tier is < 0)
@@ -98,6 +102,7 @@ public class Object : AggregateRoot
         this.Name = name;
         this.QrCode = qrCode;
         this.Description = description;
+        this.Slug = slug;
         this.Version = version;
         this.Tier = tier;
         this.IsSpecial = isSpecial;
@@ -111,6 +116,7 @@ public class Object : AggregateRoot
         string name,
         string? qrCode,
         string? description,
+        string slug,
         int? version,
         int? tier,
         bool isSpecial,
@@ -119,8 +125,10 @@ public class Object : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name))
             throw DomainException.InvalidValue("Name cannot be null or empty.");
-        if (string.IsNullOrWhiteSpace(qrCode))
-            throw DomainException.InvalidValue("QrCode cannot be null or empty.");
+        // if (string.IsNullOrWhiteSpace(qrCode))
+        //     throw DomainException.InvalidValue("QrCode cannot be null or empty.");
+        if (string.IsNullOrWhiteSpace(slug))
+            throw DomainException.InvalidValue(nameof(slug));
         if (version is < 0)
             throw DomainException.InvalidValue("Version cannot be negative.");
         if (tier is < 0)
@@ -128,6 +136,7 @@ public class Object : AggregateRoot
 
         this.Name = name;
         this.QrCode = qrCode;
+        this.Slug = slug;
         this.Description = description;
         this.Version = version;
         this.Tier = tier;
@@ -142,6 +151,7 @@ public class Object : AggregateRoot
         private string? _name;
         private string? _qrCode;
         private string? _description;
+        private string _slug;
         private int? _version;
         private int? _tier;
         private bool _isSpecial;
@@ -153,6 +163,12 @@ public class Object : AggregateRoot
         public ObjectBuilder WithName(string name)
         {
             this._name = name;
+            return this;
+        }
+        
+        public ObjectBuilder WithSlug(string slug)
+        {
+            this._slug = slug;
             return this;
         }
 
@@ -249,6 +265,7 @@ public class Object : AggregateRoot
                 this._name!,
                 this._qrCode,
                 this._description,
+                this._slug,
                 this._version,
                 this._tier,
                 this._isSpecial,
@@ -269,7 +286,9 @@ public class Object : AggregateRoot
 
     public static Object Create(
         string name,
+        string slug,
         string? description = null,
+       
         int? version = null,
         int? tier = null,
         bool isSpecial = false,
@@ -281,6 +300,7 @@ public class Object : AggregateRoot
         return new Object(name,
             null,
             description,
+            slug,
             version,
             tier,
             isSpecial,

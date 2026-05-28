@@ -5,5 +5,6 @@ public sealed record AdminMuseumObjectDto(
     string? ImageUrl,
     string Name,
     string? Description,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string Slug
 );
