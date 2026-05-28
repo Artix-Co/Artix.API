@@ -115,7 +115,7 @@ internal static class MuseumQueries
             EF.CompileQuery((ArtixQueryDbContext context, Guid businessId, IEnumerable<string> allowedImagesTypes,
                     string fileServerBaseUrl) =>
                 context.Museums
-                    .Where(m => m.BusinessId == businessId)
+                    .Where(m => m.IsDeleted == false && m.BusinessId == businessId)
                     .GroupJoin(
                         context.MuseumObjects,
                         m => m.Id,

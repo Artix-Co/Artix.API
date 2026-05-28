@@ -82,7 +82,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var query =
             from m in _queryDbContext.Museums
-            where m.BusinessId == dto.MuseumId
+            where m.IsDeleted == false && m.BusinessId == dto.MuseumId
             join mo in _queryDbContext.MuseumObjects on m.Id equals mo.MuseumId
             join obj in _queryDbContext.Objects on mo.ObjectId equals obj.Id
             join objImg in _queryDbContext.ObjectImages on obj.Id equals objImg.ObjectId
@@ -295,7 +295,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         var pageNumber = Math.Max(dto.PageNumber, 1);
         var pageSize = Math.Max(dto.PageSize, 1);
 
-        var query = _queryDbContext.Museums
+        var query = _queryDbContext.Museums.Where(m => m.IsDeleted == false)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))

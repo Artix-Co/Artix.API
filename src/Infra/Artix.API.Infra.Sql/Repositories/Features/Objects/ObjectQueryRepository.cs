@@ -57,7 +57,7 @@ public sealed class ObjectQueryRepository : QueryRepository<Object>, IObjectQuer
                                  this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
                     .Select(of => of.FileEntity.FilePath)
                     .FirstOrDefault(),
-                SpecialInformationFilePath = o.ObjectGeneralInformation
+                SpecialInformationFilePath = o.ObjectSpecialInformation
                     .Where(of => !of.FileEntity.IsDeleted &&
                                  this._allowedReadmeMimeTypes.Contains(of.FileEntity.MimeType))
                     .Select(of => of.FileEntity.FilePath)
