@@ -304,6 +304,11 @@ namespace Artix.API.Infra.Sql.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessId")
@@ -317,6 +322,10 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_Museum_IsDeleted");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Museums_Slug");
 
                     b.HasIndex("BusinessId", "IsDeleted")
                         .HasDatabaseName("IX_Museum_BusinessId_IsDeleted");
@@ -674,6 +683,11 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<string>("QrCode")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int?>("Tier")
                         .HasColumnType("int");
@@ -1036,6 +1050,12 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("BanExpiration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BanReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1059,6 +1079,9 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPro")
                         .ValueGeneratedOnAdd()
