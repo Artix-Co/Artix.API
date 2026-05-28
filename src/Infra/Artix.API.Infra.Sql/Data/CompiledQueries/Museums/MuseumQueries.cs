@@ -12,6 +12,56 @@ using Object = Artix.API.Core.Domain.Entities.Object.Object;
 
 internal static class MuseumQueries
 {
+    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, MuseumDetailsByIdDto?>
+        GetDetailsByIdQuery =
+            EF.CompileQuery((ArtixQueryDbContext context, Guid businessId, IEnumerable<string> allowedImagesTypes,
+                    string fileServerBaseUrl) =>
+                context.Museums
+                    .Where(m => m.IsDeleted == false && m.BusinessId == businessId)
+                    .GroupJoin(
+                        context.MuseumObjects.Where(mo => mo.Object.IsDeleted == false && mo.Museum.IsDeleted == false),
+                        m => m.Id,
+                        mo => mo.MuseumId,
+                        (m, moGroup) => new
+                        {
+                            Museum = m,
+                            MuseumObjects = moGroup,
+                            JournalEntryCount = context.JournalEntries
+                                .Count(je => moGroup.Any(mo => mo.ObjectId == je.ObjectId))
+                        })
+                    .Select(x => new
+                    {
+                        x.Museum.BusinessId,
+                        x.Museum.Name,
+                        ImageFilePath = x.Museum.MuseumImages
+                            .Where(mi => mi.FileEntity != null &&
+                                         !mi.FileEntity.IsDeleted &&
+                                         allowedImagesTypes.Contains(mi.FileEntity.MimeType))
+                            .Select(mi => mi.FileEntity.FilePath)
+                            .FirstOrDefault(),
+                        x.Museum.Description,
+                        x.Museum.CreatedAt,
+                        x.Museum.IsActive,
+                        ObjectCount = x.MuseumObjects.Count(),
+                        x.JournalEntryCount,
+                        x.Museum.Slug
+                    })
+                    .Select(x => new MuseumDetailsByIdDto(
+                        x.BusinessId,
+                        x.Name,
+                        !string.IsNullOrEmpty(x.ImageFilePath)
+                            ? $"{fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
+                            : null,
+                        x.Description,
+                        x.CreatedAt,
+                        x.IsActive,
+                        x.ObjectCount,
+                        x.JournalEntryCount,
+                        x.Slug
+                    ))
+                    .FirstOrDefault()
+            );
+
     internal static readonly Func<
         ArtixQueryDbContext,
         string?,
@@ -31,7 +81,9 @@ internal static class MuseumQueries
                 {
                     m.BusinessId,
                     m.Name,
-                    ObjectCount = context.MuseumObjects.Count(o => o.MuseumId == m.Id),
+                    ObjectCount =
+                        context.MuseumObjects.Count(mo =>
+                            mo.Museum.IsDeleted == false && mo.Object.IsDeleted == false && mo.MuseumId == m.Id),
                     ImageFilePath = context.MuseumImages
                         .Where(mi =>
                             mi.MuseumId == m.Id &&
@@ -109,56 +161,6 @@ internal static class MuseumQueries
                     ))
         );
 
-
-    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, MuseumDetailsByIdDto?>
-        GetDetailsByIdQuery =
-            EF.CompileQuery((ArtixQueryDbContext context, Guid businessId, IEnumerable<string> allowedImagesTypes,
-                    string fileServerBaseUrl) =>
-                context.Museums
-                    .Where(m => m.IsDeleted == false && m.BusinessId == businessId)
-                    .GroupJoin(
-                        context.MuseumObjects,
-                        m => m.Id,
-                        mo => mo.MuseumId,
-                        (m, moGroup) => new
-                        {
-                            Museum = m,
-                            MuseumObjects = moGroup,
-                            JournalEntryCount = context.JournalEntries
-                                .Count(je => moGroup.Any(mo => mo.ObjectId == je.ObjectId))
-                        })
-                    .Select(x => new
-                    {
-                        x.Museum.BusinessId,
-                        x.Museum.Name,
-                        ImageFilePath = x.Museum.MuseumImages
-                            .Where(mi => mi.FileEntity != null &&
-                                         !mi.FileEntity.IsDeleted &&
-                                         allowedImagesTypes.Contains(mi.FileEntity.MimeType))
-                            .Select(mi => mi.FileEntity.FilePath)
-                            .FirstOrDefault(),
-                        x.Museum.Description,
-                        x.Museum.CreatedAt,
-                        x.Museum.IsActive,
-                        ObjectCount = x.MuseumObjects.Count(),
-                        x.JournalEntryCount,
-                        x.Museum.Slug
-                    })
-                    .Select(x => new MuseumDetailsByIdDto(
-                        x.BusinessId,
-                        x.Name,
-                        !string.IsNullOrEmpty(x.ImageFilePath)
-                            ? $"{fileServerBaseUrl}/{Path.GetFileName(x.ImageFilePath)}"
-                            : null,
-                        x.Description,
-                        x.CreatedAt,
-                        x.IsActive,
-                        x.ObjectCount,
-                        x.JournalEntryCount,
-                        x.Slug
-                    ))
-                    .FirstOrDefault()
-            );
 
     internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<PaginateObjectsDto>>
         GetAllObjectsQuery =
