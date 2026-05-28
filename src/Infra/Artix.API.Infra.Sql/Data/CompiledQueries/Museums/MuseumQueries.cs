@@ -81,7 +81,7 @@ internal static class MuseumQueries
                         x => x.MuseumObject.MuseumId,
                         m => m.Id,
                         (x, m) => new { x.Object, x.MuseumObject, Museum = m })
-                    .Where(x => x.Museum.BusinessId == museumId)
+                    .Where(x => x.Museum.IsDeleted == false && x.Museum.BusinessId == museumId)
                     .Select(x => new
                     {
                         Id = x.Object.BusinessId,
