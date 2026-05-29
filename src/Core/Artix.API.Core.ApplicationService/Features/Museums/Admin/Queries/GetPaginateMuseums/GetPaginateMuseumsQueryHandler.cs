@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 internal sealed class
-    GetPaginateMuseumsQueryHandler : QueryHandlerBase<GetPaginateMuseumsQuery, PaginatedResult<PaginatedMuseumsDto>>
+    GetPaginateMuseumsQueryHandler : QueryHandlerBase<GetAdminPaginateMuseumsQuery, PaginatedResult<AdminPaginatedMuseumsDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
@@ -18,10 +18,10 @@ internal sealed class
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<Result<PaginatedResult<PaginatedMuseumsDto>>> Handle(GetPaginateMuseumsQuery query,
+    public override async Task<Result<PaginatedResult<AdminPaginatedMuseumsDto>>> Handle(GetAdminPaginateMuseumsQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetAllMuseumsAdminAsync(query, cancellationToken);
-        return Result<PaginatedResult<PaginatedMuseumsDto>>.Success(result);
+        return Result<PaginatedResult<AdminPaginatedMuseumsDto>>.Success(result);
     }
 }

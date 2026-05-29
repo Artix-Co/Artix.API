@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCommand>
+internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ClientScanObjectCommand>
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly IObjectCommandRepository _objectCommandRepository;
@@ -21,7 +21,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
     public ScanObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<ScanObjectCommand>> logger,
+        ILogger<CommandHandlerBase<ClientScanObjectCommand>> logger,
         IMuseumCommandRepository museumCommandRepository,
         IObjectCommandRepository objectCommandRepository,
         IRequestRatePolicy requestRatePolicy
@@ -33,7 +33,7 @@ internal sealed class ScanObjectCommandHandler : CommandHandlerBase<ScanObjectCo
         this._requestRatePolicy = requestRatePolicy;
     }
 
-    public override async Task<Guid> Handle(ScanObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(ClientScanObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         Console.WriteLine("user scans:", user.UserScans.Count.ToString());

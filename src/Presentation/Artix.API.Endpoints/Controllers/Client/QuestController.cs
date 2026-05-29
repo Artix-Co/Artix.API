@@ -14,8 +14,8 @@ public class QuestController : ClientBaseController
     }
 
     [HttpGet("shuffled")]
-    [ProducesResponseType(typeof(Result<IEnumerable<ShuffledQuizzesDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetShuffledQuestsAsync([FromQuery] GetShuffledQuizzesQuery query)
+    [ProducesResponseType(typeof(Result<IEnumerable<ClientShuffledQuizzesDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetShuffledQuestsAsync([FromQuery] GetClientShuffledQuizzesQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

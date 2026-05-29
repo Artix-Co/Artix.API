@@ -13,8 +13,8 @@ using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
 internal sealed class
-    GetUserRecentMuseumsVisitsQueryHandler : QueryHandlerBase<GetUserRecentMuseumsVisitQuery,
-    IEnumerable<UserRecentMuseumsVisitDto>>
+    GetUserRecentMuseumsVisitsQueryHandler : QueryHandlerBase<GetClientUserRecentMuseumsVisitQuery,
+    IEnumerable<ClientUserRecentMuseumsVisitDto>>
 {
     private readonly ICacheRepository<List<RecentMuseumDto>> _museumCache;
     private readonly ILogger<GetUserRecentMuseumsVisitsQueryHandler> _logger;
@@ -29,8 +29,8 @@ internal sealed class
         this._logger = logger;
     }
 
-    public override async Task<Result<IEnumerable<UserRecentMuseumsVisitDto>>> Handle(
-        GetUserRecentMuseumsVisitQuery query,
+    public override async Task<Result<IEnumerable<ClientUserRecentMuseumsVisitDto>>> Handle(
+        GetClientUserRecentMuseumsVisitQuery query,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
@@ -40,16 +40,16 @@ internal sealed class
         if (cached != null)
         {
             this._logger.LogInformation("Cache hit for recent museums UserId={UserId}", user.BusinessId);
-            var result = cached.Select(dto => new UserRecentMuseumsVisitDto(
+            var result = cached.Select(dto => new ClientUserRecentMuseumsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,
                 Name: dto.Name,
                 ObjectCount: dto.ObjectCount));
 
-            return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success(result);
+            return Result<IEnumerable<ClientUserRecentMuseumsVisitDto>>.Success(result);
         }
 
         this._logger.LogInformation("Cache miss for recent museums UserId={UserId}", user.BusinessId);
-        return Result<IEnumerable<UserRecentMuseumsVisitDto>>.Success([]);
+        return Result<IEnumerable<ClientUserRecentMuseumsVisitDto>>.Success([]);
     }
 }

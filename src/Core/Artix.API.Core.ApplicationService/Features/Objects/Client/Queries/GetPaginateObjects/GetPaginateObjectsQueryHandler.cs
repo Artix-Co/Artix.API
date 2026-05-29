@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 // TODO: develop validator for this handler
-internal sealed class GetPaginateObjectsQueryHandler : QueryHandlerBase<GetPaginateObjectsQuery, PaginatedResult<PaginateObjectsDto>>
+internal sealed class GetPaginateObjectsQueryHandler : QueryHandlerBase<GetClientPaginateObjectsQuery, PaginatedResult<ClientPaginateObjectsDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
@@ -19,12 +19,12 @@ internal sealed class GetPaginateObjectsQueryHandler : QueryHandlerBase<GetPagin
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<Result<PaginatedResult<PaginateObjectsDto>>> Handle(GetPaginateObjectsQuery query,
+    public override async Task<Result<PaginatedResult<ClientPaginateObjectsDto>>> Handle(GetClientPaginateObjectsQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._museumQueryRepository.GetAllObjectsAsync(query, cancellationToken);
 
 
-        return Result<PaginatedResult<PaginateObjectsDto>>.Success(result);
+        return Result<PaginatedResult<ClientPaginateObjectsDto>>.Success(result);
     }
 }

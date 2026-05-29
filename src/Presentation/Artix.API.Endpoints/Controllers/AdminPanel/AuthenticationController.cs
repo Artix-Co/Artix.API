@@ -19,7 +19,7 @@ public sealed class AuthenticationController: AdminBaseController
     
     [HttpPost("register")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterAdminAdmin([FromBody] RegisterCommand command)
+    public async Task<IActionResult> RegisterAdminAdmin([FromBody] AdminRegisterCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -27,8 +27,8 @@ public sealed class AuthenticationController: AdminBaseController
 
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(Result<LoginDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> LoginAsync([FromBody] GetLoginQuery query)
+    [ProducesResponseType(typeof(Result<AdminLoginDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> LoginAsync([FromBody] GetAdminLoginQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -36,8 +36,8 @@ public sealed class AuthenticationController: AdminBaseController
     
     [Authorize]
     [HttpPost("logout")]
-    [ProducesResponseType(typeof(Result<LogoutDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> LogoutAsync([FromBody] GetLogoutQuery query)
+    [ProducesResponseType(typeof(Result<AdminLogoutDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> LogoutAsync([FromBody] GetAdminLogoutQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

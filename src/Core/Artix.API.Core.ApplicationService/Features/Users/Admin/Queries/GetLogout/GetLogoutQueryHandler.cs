@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
 
-internal sealed class GetLogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>
+internal sealed class GetLogoutQueryHandler : QueryHandlerBase<GetAdminLogoutQuery, AdminLogoutDto>
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -19,13 +19,13 @@ internal sealed class GetLogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, L
         this._authenticationService = authenticationService;
     }
 
-    public override async Task<Result<LogoutDto>> Handle(GetLogoutQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<AdminLogoutDto>> Handle(GetAdminLogoutQuery query, CancellationToken cancellationToken)
     {
         var authenticationResult =
             await this._authenticationService.AdminLogoutAsync(new AdminLogoutRequest(), cancellationToken);
         
         
-        var result = new LogoutDto();
-        return Result<LogoutDto>.Success(result);
+        var result = new AdminLogoutDto();
+        return Result<AdminLogoutDto>.Success(result);
     }
 }

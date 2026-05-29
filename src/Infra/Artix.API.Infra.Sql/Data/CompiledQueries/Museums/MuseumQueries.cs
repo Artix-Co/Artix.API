@@ -12,7 +12,7 @@ using Object = Artix.API.Core.Domain.Entities.Object.Object;
 
 internal static class MuseumQueries
 {
-    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, MuseumDetailsByIdDto?>
+    internal static readonly Func<ArtixQueryDbContext, Guid, IEnumerable<string>, string, ClientMuseumDetailsByIdDto?>
         GetDetailsByIdQuery =
             EF.CompileQuery((ArtixQueryDbContext context, Guid businessId, IEnumerable<string> allowedImagesTypes,
                     string fileServerBaseUrl) =>
@@ -46,7 +46,7 @@ internal static class MuseumQueries
                         x.JournalEntryCount,
                         x.Museum.Slug
                     })
-                    .Select(x => new MuseumDetailsByIdDto(
+                    .Select(x => new ClientMuseumDetailsByIdDto(
                         x.BusinessId,
                         x.Name,
                         !string.IsNullOrEmpty(x.ImageFilePath)
@@ -67,7 +67,7 @@ internal static class MuseumQueries
         string?,
         IEnumerable<string>,
         string,
-        IEnumerable<AllMuseumsDto>
+        IEnumerable<ClientAllMuseumsDto>
     > GetAllMuseumsClientQuery =
         EF.CompileQuery((ArtixQueryDbContext context,
                 string? name,
@@ -96,7 +96,7 @@ internal static class MuseumQueries
                     m.IsActive,
                     m.Slug
                 })
-                .Select(x => new AllMuseumsDto(
+                .Select(x => new ClientAllMuseumsDto(
                     x.BusinessId,
                     x.Name,
                     x.ObjectCount,
@@ -116,7 +116,7 @@ internal static class MuseumQueries
         Guid,
         IEnumerable<string>,
         string,
-        IEnumerable<MuseumObjectDto>
+        IEnumerable<ClientMuseumObjectDto>
     > GetMuseumObjectsQuery =
         EF.CompileQuery(
             (ArtixQueryDbContext context,
@@ -148,7 +148,7 @@ internal static class MuseumQueries
                         x.Object.CreatedAt,
                         x.Object.Slug
                     })
-                    .Select(x => new MuseumObjectDto(
+                    .Select(x => new ClientMuseumObjectDto(
                         x.Id,
                         x.MuseumId,
                         !string.IsNullOrEmpty(x.ImageFilePath)
@@ -162,7 +162,7 @@ internal static class MuseumQueries
         );
 
 
-    internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<PaginateObjectsDto>>
+    internal static readonly Func<ArtixQueryDbContext, string?, int, int, IEnumerable<ClientPaginateObjectsDto>>
         GetAllObjectsQuery =
             EF.CompileQuery((ArtixQueryDbContext context, string? nameFilter, int pageNumber, int pageSize) =>
                 context.Objects
@@ -170,7 +170,7 @@ internal static class MuseumQueries
                     .OrderBy(o => o.Name)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(o => new PaginateObjectsDto(
+                    .Select(o => new ClientPaginateObjectsDto(
                         o.BusinessId,
                         o.Name,
                         o.Description,

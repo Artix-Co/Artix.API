@@ -11,14 +11,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 internal sealed class
-    GetPaginatedUsersQueryHandler : QueryHandlerBase<GetPaginateUsersQuery, PaginatedResult<PaginateUsersDto>>
+    GetPaginatedUsersQueryHandler : QueryHandlerBase<GetAdminPaginateUsersQuery, PaginatedResult<AdminPaginateUsersDto>>
 {
     public GetPaginatedUsersQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) :
         base(httpContextAccessor, userManager)
     {
     }
 
-    public override async Task<Result<PaginatedResult<PaginateUsersDto>>> Handle(GetPaginateUsersQuery query,
+    public override async Task<Result<PaginatedResult<AdminPaginateUsersDto>>> Handle(GetAdminPaginateUsersQuery query,
         CancellationToken cancellationToken)
     {
         var usersQuery = this._userManager.Users.AsQueryable();
@@ -38,11 +38,11 @@ internal sealed class
         {
             usersQuery = query.SortBy switch
             {
-                nameof(PaginateUsersDto.DisplayName) => query.SortDirection == SortDirection.Asc
+                nameof(AdminPaginateUsersDto.DisplayName) => query.SortDirection == SortDirection.Asc
                     ? usersQuery.OrderBy(u => u.FirstName)
                     : usersQuery.OrderByDescending(u => u.FirstName),
 
-                nameof(PaginateUsersDto.Email) => query.SortDirection == SortDirection.Asc
+                nameof(AdminPaginateUsersDto.Email) => query.SortDirection == SortDirection.Asc
                     ? usersQuery.OrderBy(u => u.Email)
                     : usersQuery.OrderByDescending(u => u.Email),
                 _ => usersQuery.OrderBy(u => u.Id)
@@ -77,7 +77,7 @@ internal sealed class
             })
             .ToListAsync(cancellationToken);
 
-        var userDtos = new List<PaginateUsersDto>();
+        var userDtos = new List<AdminPaginateUsersDto>();
         foreach (var user in users)
         {
             var appUser =
@@ -95,7 +95,7 @@ internal sealed class
                         : null;
 
 
-                userDtos.Add(new PaginateUsersDto(
+                userDtos.Add(new AdminPaginateUsersDto(
                     DisplayName: $"{user.FirstName} {user.LastName}",
                     Email: user.Email,
                     AvatarUrl: "",
@@ -114,7 +114,7 @@ internal sealed class
             }
         }
 
-        var result = new PaginatedResult<PaginateUsersDto>(
+        var result = new PaginatedResult<AdminPaginateUsersDto>(
             Items: userDtos.AsReadOnly(),
             TotalCount: totalCount,
             PageNumber: query.PageNumber,
@@ -122,6 +122,6 @@ internal sealed class
             PageSize: query.PageSize
         );
 
-        return Result<PaginatedResult<PaginateUsersDto>>.Success(result);
+        return Result<PaginatedResult<AdminPaginateUsersDto>>.Success(result);
     }
 }

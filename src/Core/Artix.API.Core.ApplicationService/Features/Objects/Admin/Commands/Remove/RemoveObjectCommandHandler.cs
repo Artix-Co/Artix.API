@@ -8,18 +8,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-internal sealed class RemoveObjectCommandHandler : CommandHandlerBase<RemoveObjectCommand>
+internal sealed class RemoveObjectCommandHandler : CommandHandlerBase<AdminRemoveObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
 
     public RemoveObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<RemoveObjectCommand>> logger,
+        ILogger<CommandHandlerBase<AdminRemoveObjectCommand>> logger,
         IObjectCommandRepository objectCommandRepository) : base(httpContextAccessor, userManager, logger)
     {
         this._objectCommandRepository = objectCommandRepository;
     }
 
-    public override async Task<Guid> Handle(RemoveObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminRemoveObjectCommand command, CancellationToken cancellationToken)
     {
         await this._objectCommandRepository.DeleteAsync(command.Id, cancellationToken);
         return command.Id;

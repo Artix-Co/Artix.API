@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 // TODO: develop validator for this handler
 internal sealed class
-    GetMuseumObjectsQueryHandler : QueryHandlerBase<GetMuseumObjectsQuery, IEnumerable<MuseumObjectDto>>
+    GetMuseumObjectsQueryHandler : QueryHandlerBase<GetClientMuseumObjectsQuery, IEnumerable<ClientMuseumObjectDto>>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
 
@@ -20,10 +20,10 @@ internal sealed class
         this._museumQueryRepository = museumQueryRepository;
     }
 
-    public override async Task<Result<IEnumerable<MuseumObjectDto>>> Handle(GetMuseumObjectsQuery query,
+    public override async Task<Result<IEnumerable<ClientMuseumObjectDto>>> Handle(GetClientMuseumObjectsQuery query,
         CancellationToken cancellationToken)
     {
         var result = this._museumQueryRepository.GetObjects(query);
-        return Result<IEnumerable<MuseumObjectDto>>.Success(result);
+        return Result<IEnumerable<ClientMuseumObjectDto>>.Success(result);
     }
 }

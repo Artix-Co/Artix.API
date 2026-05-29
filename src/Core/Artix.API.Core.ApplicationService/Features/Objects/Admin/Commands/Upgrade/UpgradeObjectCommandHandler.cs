@@ -16,7 +16,7 @@ using Primitives;
 
 
 // TODO: fix it with upload md files like create object
-internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeObjectCommand>
+internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<AdminUpgradeObjectCommand>
 {
     private readonly string[] _allowed3DMimeTypes;
     private readonly string[] _allowedImageMimeTypes;
@@ -29,7 +29,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
     public UpgradeObjectCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<UpgradeObjectCommand>> logger,
+        ILogger<CommandHandlerBase<AdminUpgradeObjectCommand>> logger,
         IObjectCommandRepository objectCommandRepository,
         IOptions<FileSettings> options,
         IUploadService uploadService,
@@ -43,7 +43,7 @@ internal sealed class UpgradeObjectCommandHandler : CommandHandlerBase<UpgradeOb
         this._fileCommandRepository = fileCommandRepository;
     }
 
-    public override async Task<Guid> Handle(UpgradeObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminUpgradeObjectCommand command, CancellationToken cancellationToken)
     {
         this._logger.LogInformation("Starting upgrade for object {ObjectId}", command.Id);
 

@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateNewObjectCommand>
+internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<AdminCreateNewObjectCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly IMuseumCommandRepository _museumCommandRepository;
@@ -27,7 +27,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
     private readonly string[] _allowedReadmeMimeTypes;
 
     public CreateNewObjectCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<CreateNewObjectCommand>> logger, IObjectCommandRepository objectCommandRepository,
+        ILogger<CommandHandlerBase<AdminCreateNewObjectCommand>> logger, IObjectCommandRepository objectCommandRepository,
         IMuseumCommandRepository museumCommandRepository, IFileCommandRepository fileCommandRepository,
         IUploadService uploadService, IOptions<FileSettings> options) : base(
         httpContextAccessor, userManager, logger)
@@ -42,7 +42,7 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<CreateN
         this._allowedReadmeMimeTypes = options.Value.AllowedReadmeMimeTypes;
     }
 
-    public override async Task<Guid> Handle(CreateNewObjectCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminCreateNewObjectCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userId = user.Id;

@@ -6,6 +6,6 @@ using Primitives.Repositories;
 
 public interface IQuizQueryRepository : IQueryRepository<Quiz>
 {
-    ValueTask<IEnumerable<ShuffledQuizzesDto>> GetShuffledAsync(GetShuffledQuizzesQuery dto,
+    ValueTask<IEnumerable<ClientShuffledQuizzesDto>> GetShuffledAsync(GetClientShuffledQuizzesQuery dto,
         CancellationToken cancellationToken = default);
 }

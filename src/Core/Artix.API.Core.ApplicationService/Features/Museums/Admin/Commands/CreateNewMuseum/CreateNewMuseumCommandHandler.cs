@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 // TODO: develop validator
-internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateNewMuseumCommand>
+internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<AdminCreateNewMuseumCommand>
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
     private readonly string[] _allowedImageMimeTypes;
@@ -26,7 +26,7 @@ internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateN
 
     public CreateNewMuseumCommandHandler(IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<CreateNewMuseumCommand>> logger,
+        ILogger<CommandHandlerBase<AdminCreateNewMuseumCommand>> logger,
         IMuseumCommandRepository museumCommandRepository,
         IOptions<FileSettings> options,
         IUploadService uploadService,
@@ -38,7 +38,7 @@ internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<CreateN
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 
-    public override async Task<Guid> Handle(CreateNewMuseumCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminCreateNewMuseumCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
         var userId = user.Id;

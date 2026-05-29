@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validator for this handler
-internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<GetUserRecentObjectsVisitQuery, IEnumerable<UserRecentObjectsVisitDto>>
+internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<GetClientUserRecentObjectsVisitQuery, IEnumerable<ClientUserRecentObjectsVisitDto>>
 {
     private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;
     private readonly ILogger<GetUserRecentObjectsVisitsQueryHandler> _logger;
@@ -27,8 +27,8 @@ internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<
         this._logger = logger;
     }
 
-    public override async Task<Result<IEnumerable<UserRecentObjectsVisitDto>>> Handle(
-        GetUserRecentObjectsVisitQuery query,
+    public override async Task<Result<IEnumerable<ClientUserRecentObjectsVisitDto>>> Handle(
+        GetClientUserRecentObjectsVisitQuery query,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
@@ -38,17 +38,17 @@ internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<
         if (cached != null)
         {
             this._logger.LogInformation("Cache hit for recent objects UserId={UserId}", user.BusinessId);
-            var result = cached.Select(dto => new UserRecentObjectsVisitDto(
+            var result = cached.Select(dto => new ClientUserRecentObjectsVisitDto(
                 Id: dto.Id,
                 ImageUrl: dto.ImageUrl,
                 Model3DUrl: dto.Model3DUrl,
                 Name: dto.Name,
                 HistoricalPeriod: dto.HistoricalPeriod));
 
-            return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(result);
+            return Result<IEnumerable<ClientUserRecentObjectsVisitDto>>.Success(result);
         }
 
         this._logger.LogInformation("Cache miss for recent objects UserId={UserId}", user.Id);
-        return Result<IEnumerable<UserRecentObjectsVisitDto>>.Success(Enumerable.Empty<UserRecentObjectsVisitDto>());
+        return Result<IEnumerable<ClientUserRecentObjectsVisitDto>>.Success(Enumerable.Empty<ClientUserRecentObjectsVisitDto>());
     }
 }

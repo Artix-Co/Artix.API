@@ -12,21 +12,21 @@ using Microsoft.Extensions.Logging;
 using Primitives;
 
 // TODO: develop validation for this handler
-internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBase<AddObjectToUserCollectionCommand>
+internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBase<AddCleintObjectToUserCollectionCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
     private readonly ICollectionCommandRepository _collectionCommandRepository;
     private readonly IUnitOfWork _unitOfWork;
 
 
-    public AddObjectToUserCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ILogger<CommandHandlerBase<AddObjectToUserCollectionCommand>> logger, IObjectCommandRepository objectCommandRepository, ICollectionCommandRepository collectionCommandRepository, IUnitOfWork unitOfWork) : base(httpContextAccessor, userManager, logger)
+    public AddObjectToUserCollectionCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager, ILogger<CommandHandlerBase<AddCleintObjectToUserCollectionCommand>> logger, IObjectCommandRepository objectCommandRepository, ICollectionCommandRepository collectionCommandRepository, IUnitOfWork unitOfWork) : base(httpContextAccessor, userManager, logger)
     {
         this._objectCommandRepository = objectCommandRepository;
         this._collectionCommandRepository = collectionCommandRepository;
         this._unitOfWork = unitOfWork;
     }
 
-    public override async Task<Guid> Handle(AddObjectToUserCollectionCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AddCleintObjectToUserCollectionCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 

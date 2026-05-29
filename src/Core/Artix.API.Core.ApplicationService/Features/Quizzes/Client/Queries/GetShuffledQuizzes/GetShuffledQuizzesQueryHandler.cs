@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 internal sealed class
-    GetShuffledQuizzesQueryHandler : QueryHandlerBase<GetShuffledQuizzesQuery, IEnumerable<ShuffledQuizzesDto>>
+    GetShuffledQuizzesQueryHandler : QueryHandlerBase<GetClientShuffledQuizzesQuery, IEnumerable<ClientShuffledQuizzesDto>>
 {
     private readonly IQuizQueryRepository _quizQueryRepository;
 
@@ -19,10 +19,10 @@ internal sealed class
         this._quizQueryRepository = quizQueryRepository;
     }
 
-    public override async Task<Result<IEnumerable<ShuffledQuizzesDto>>> Handle(GetShuffledQuizzesQuery query,
+    public override async Task<Result<IEnumerable<ClientShuffledQuizzesDto>>> Handle(GetClientShuffledQuizzesQuery query,
         CancellationToken cancellationToken)
     {
         var result = await this._quizQueryRepository.GetShuffledAsync(query, cancellationToken);
-        return Result<IEnumerable<ShuffledQuizzesDto>>.Success(result);
+        return Result<IEnumerable<ClientShuffledQuizzesDto>>.Success(result);
     }
 }

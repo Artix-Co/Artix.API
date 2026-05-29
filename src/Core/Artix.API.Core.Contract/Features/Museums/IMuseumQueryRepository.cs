@@ -14,11 +14,11 @@ using Objects.Client.Queries.GetPaginateObjects;
 
 public interface IMuseumQueryRepository : IQueryRepository<Museum>
 {
-    IEnumerable<AllMuseumsDto> GetAllMuseumsClient(GetAllMuseumsQuery dto);
+    IEnumerable<ClientAllMuseumsDto> GetAllMuseumsClient(GetClientAllMuseumsQuery dto);
 
-    MuseumDetailsByIdDto GetDetailsById(GetMuseumDetailsByIdQuery dto);
+    ClientMuseumDetailsByIdDto GetDetailsById(GetClientMuseumDetailsByIdQuery dto);
 
-    IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto);
+    IEnumerable<ClientMuseumObjectDto> GetObjects(GetClientMuseumObjectsQuery dto);
 
     Task<PaginatedResult<AdminMuseumObjectDto>> GetAdminObjectsAsync(GetAdminMuseumObjectsQuery dto,
         CancellationToken cancellationToken = default);
@@ -29,9 +29,9 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
         CancellationToken cancellationToken = default);
 
 
-    Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAsync(GetPaginateObjectsQuery dto,
+    Task<PaginatedResult<ClientPaginateObjectsDto>> GetAllObjectsAsync(GetClientPaginateObjectsQuery dto,
         CancellationToken cancellationToken = default);
 
-    Task<PaginatedResult<PaginatedMuseumsDto>> GetAllMuseumsAdminAsync(GetPaginateMuseumsQuery dto,
+    Task<PaginatedResult<AdminPaginatedMuseumsDto>> GetAllMuseumsAdminAsync(GetAdminPaginateMuseumsQuery dto,
         CancellationToken cancellationToken = default);
 }

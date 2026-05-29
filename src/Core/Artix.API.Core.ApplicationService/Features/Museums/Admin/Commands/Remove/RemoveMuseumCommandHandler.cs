@@ -8,18 +8,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-internal sealed class RemoveMuseumCommandHandler : CommandHandlerBase<RemoveMuseumCommand>
+internal sealed class RemoveMuseumCommandHandler : CommandHandlerBase<AdminRemoveMuseumCommand>
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;
 
     public RemoveMuseumCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<RemoveMuseumCommand>> logger,
+        ILogger<CommandHandlerBase<AdminRemoveMuseumCommand>> logger,
         IMuseumCommandRepository museumCommandRepository) : base(httpContextAccessor, userManager, logger)
     {
         this._museumCommandRepository = museumCommandRepository;
     }
 
-    public override async Task<Guid> Handle(RemoveMuseumCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminRemoveMuseumCommand command, CancellationToken cancellationToken)
     {
         await this._museumCommandRepository.DeleteAsync(command.Id, cancellationToken);
         return command.Id;

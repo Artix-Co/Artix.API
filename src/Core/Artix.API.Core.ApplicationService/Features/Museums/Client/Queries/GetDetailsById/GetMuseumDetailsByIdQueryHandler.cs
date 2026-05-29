@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 // TODO: develop validator for this handler
 
 internal sealed class GetMuseumDetailsByIdQueryHandler
-    : QueryHandlerBase<GetMuseumDetailsByIdQuery, MuseumDetailsByIdDto>
+    : QueryHandlerBase<GetClientMuseumDetailsByIdQuery, ClientMuseumDetailsByIdDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;
     private readonly ICacheRepository<List<RecentMuseumDto>> _museumCache;
@@ -35,8 +35,8 @@ internal sealed class GetMuseumDetailsByIdQueryHandler
         _logger = logger;
     }
 
-    public override async Task<Result<MuseumDetailsByIdDto>> Handle(
-        GetMuseumDetailsByIdQuery query,
+    public override async Task<Result<ClientMuseumDetailsByIdDto>> Handle(
+        GetClientMuseumDetailsByIdQuery query,
         CancellationToken cancellationToken)
     {
         // 1. کاربر جاری (owner کش)
@@ -49,7 +49,7 @@ internal sealed class GetMuseumDetailsByIdQueryHandler
         var museumDetailsDto = _museumQueryRepository.GetDetailsById(query);
         if (museumDetailsDto == null)
             throw ApplicationServiceNotFoundException.ForEntity(
-                nameof(MuseumDetailsByIdDto),
+                nameof(ClientMuseumDetailsByIdDto),
                 query.Id);
 
         // 4. ساخت آیتم recent از دیتای واقعی
@@ -91,6 +91,6 @@ internal sealed class GetMuseumDetailsByIdQueryHandler
             currentList.Count);
 
         // 11. بازگرداندن پاسخ اصلی
-        return Result<MuseumDetailsByIdDto>.Success(museumDetailsDto);
+        return Result<ClientMuseumDetailsByIdDto>.Success(museumDetailsDto);
     }
 }

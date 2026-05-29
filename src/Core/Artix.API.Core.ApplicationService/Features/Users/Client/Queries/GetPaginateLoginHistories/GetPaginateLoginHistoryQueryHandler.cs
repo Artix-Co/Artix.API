@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<GetPaginateLoginHistoryQuery,
-    PaginatedResult<PaginateLoginHistoryDto>>
+internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<GetClientPaginateLoginHistoryQuery,
+    PaginatedResult<ClientPaginateLoginHistoryDto>>
 {
     private readonly ILogger<GetPaginateLoginHistoryQueryHandler> _logger;
 
@@ -22,8 +22,8 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
         _logger = logger;
     }
 
-    public override async Task<Result<PaginatedResult<PaginateLoginHistoryDto>>> Handle(
-        GetPaginateLoginHistoryQuery query,
+    public override async Task<Result<PaginatedResult<ClientPaginateLoginHistoryDto>>> Handle(
+        GetClientPaginateLoginHistoryQuery query,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
@@ -43,7 +43,7 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
             .Select(ulh =>
-                new PaginateLoginHistoryDto
+                new ClientPaginateLoginHistoryDto
                 {
                     IpAddress = ulh.IpAddress,
                     UserAgent = ulh.UserAgent,
@@ -57,7 +57,7 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
             "Returning {PagedCount} records for page {Page}.",
             pagedHistories.Count, query.PageNumber);
 
-        var result = new PaginatedResult<PaginateLoginHistoryDto>(
+        var result = new PaginatedResult<ClientPaginateLoginHistoryDto>(
             Items: pagedHistories,
             TotalCount: totalCount,
             PageNumber: query.PageNumber,
@@ -65,6 +65,6 @@ internal sealed class GetPaginateLoginHistoryQueryHandler : QueryHandlerBase<Get
             Draw: true
         );
 
-        return Result<PaginatedResult<PaginateLoginHistoryDto>>.Success(result);
+        return Result<PaginatedResult<ClientPaginateLoginHistoryDto>>.Success(result);
     }
 }

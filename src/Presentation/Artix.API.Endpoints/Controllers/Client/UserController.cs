@@ -19,8 +19,8 @@ public sealed class UserController : ClientBaseController
 
     [Authorize]
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(Result<UserProfileDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
+    [ProducesResponseType(typeof(Result<ClientUserProfileDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetClientUserProfileQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -30,7 +30,7 @@ public sealed class UserController : ClientBaseController
     [Authorize]
     [HttpPatch("modify-profile")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> ModifyProfileAsync([FromBody] ModifyProfileCommand command)
+    public async Task<IActionResult> ModifyProfileAsync([FromBody] ClientModifyProfileCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -40,7 +40,7 @@ public sealed class UserController : ClientBaseController
     [Authorize]
     [HttpDelete("delete-profile")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> DeActivateProfileAsync([FromQuery] DeleteProfileCommand command)
+    public async Task<IActionResult> DeActivateProfileAsync([FromQuery] ClientDeleteProfileCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -48,8 +48,8 @@ public sealed class UserController : ClientBaseController
 
     [Authorize]
     [HttpGet("login-history")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateLoginHistoryDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfileAsync([FromQuery] GetPaginateLoginHistoryQuery query)
+    [ProducesResponseType(typeof(Result<PaginatedResult<ClientPaginateLoginHistoryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync([FromQuery] GetClientPaginateLoginHistoryQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

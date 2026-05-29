@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity;
 
 // TODO: develop validator for this handler
 
-internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetLoginQuery, LoginDto>
+internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetAdminLoginQuery, AdminLoginDto>
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -21,14 +21,14 @@ internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetLoginQuery, Log
         this._authenticationService = authenticationService;
     }
 
-    public override async Task<Result<LoginDto>> Handle(GetLoginQuery query, CancellationToken cancellationToken)
+    public override async Task<Result<AdminLoginDto>> Handle(GetAdminLoginQuery query, CancellationToken cancellationToken)
     {
         var authenticationResult =
             await this._authenticationService.AdminLoginAsync(new AdminLoginRequest(query.Username, query.Password),
                 cancellationToken);
 
 
-        var result = new LoginDto(
+        var result = new AdminLoginDto(
             AccessToken: authenticationResult.AccessToken,
             RefreshToken: authenticationResult.RefreshToken,
             AccessTokenExpiresAt: authenticationResult.AccessTokenExpiresAt,
@@ -37,6 +37,6 @@ internal sealed class GetLoginQueryHandler : QueryHandlerBase<GetLoginQuery, Log
             DisplayName: authenticationResult.DisplayName,
             Roles: authenticationResult.Roles.ToArray().AsReadOnly());
 
-        return Result<LoginDto>.Success(result);
+        return Result<AdminLoginDto>.Success(result);
     }
 }

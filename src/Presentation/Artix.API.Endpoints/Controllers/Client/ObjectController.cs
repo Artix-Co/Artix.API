@@ -19,8 +19,8 @@ public sealed class ObjectController : ClientBaseController
     }
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateObjectsDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetPaginateObjectsQuery query)
+    [ProducesResponseType(typeof(Result<PaginatedResult<ClientPaginateObjectsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllObjectsAsync([FromQuery] GetClientPaginateObjectsQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -29,7 +29,7 @@ public sealed class ObjectController : ClientBaseController
     [Authorize]
     [HttpPost("scan")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> ScanObject([FromBody] ScanObjectCommand command)
+    public async Task<IActionResult> ScanObject([FromBody] ClientScanObjectCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -49,7 +49,7 @@ public sealed class ObjectController : ClientBaseController
     [Authorize]
     [HttpPost("add-to-collection")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddObjectToUserCollection([FromBody] AddObjectToUserCollectionCommand command)
+    public async Task<IActionResult> AddObjectToUserCollection([FromBody] AddCleintObjectToUserCollectionCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -58,8 +58,8 @@ public sealed class ObjectController : ClientBaseController
 
     [Authorize]
     [HttpGet("recent")]
-    [ProducesResponseType(typeof(Result<IEnumerable<UserRecentObjectsVisitDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentObjectsVisitQuery query)
+    [ProducesResponseType(typeof(Result<IEnumerable<ClientUserRecentObjectsVisitDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetClientUserRecentObjectsVisitQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

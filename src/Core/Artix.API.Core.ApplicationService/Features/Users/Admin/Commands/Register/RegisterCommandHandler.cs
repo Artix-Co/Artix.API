@@ -10,19 +10,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 // TODO: develop validation for this handler
-internal sealed class RegisterCommandHandler : CommandHandlerBase<RegisterCommand>
+internal sealed class RegisterCommandHandler : CommandHandlerBase<AdminRegisterCommand>
 {
     private readonly RoleManager<AppRole> _roleManager;
 
 
     public RegisterCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<RegisterCommand>> logger,
+        ILogger<CommandHandlerBase<AdminRegisterCommand>> logger,
         RoleManager<AppRole> roleManager) : base(httpContextAccessor, userManager, logger)
     {
         this._roleManager = roleManager;
     }
 
-    public override async Task<Guid> Handle(RegisterCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(AdminRegisterCommand command, CancellationToken cancellationToken)
     {
         var existingUser = await this._userManager.Users
             .FirstOrDefaultAsync(u => u.UserName == command.Username, cancellationToken);

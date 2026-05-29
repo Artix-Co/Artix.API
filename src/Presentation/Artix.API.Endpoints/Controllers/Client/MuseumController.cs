@@ -17,8 +17,8 @@ public sealed class MuseumController : ClientBaseController
     public MuseumController(IMediator mediator) : base(mediator) { }
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<IEnumerable<AllMuseumsDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAllMuseumsQuery query)
+    [ProducesResponseType(typeof(Result<IEnumerable<ClientAllMuseumsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetClientAllMuseumsQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -26,8 +26,8 @@ public sealed class MuseumController : ClientBaseController
 
     [Authorize]
     [HttpGet("by-id")]
-    [ProducesResponseType(typeof(Result<MuseumDetailsByIdDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetMuseumDetailsByIdQuery query)
+    [ProducesResponseType(typeof(Result<ClientMuseumDetailsByIdDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMuseumByIdAsync([FromQuery] GetClientMuseumDetailsByIdQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -35,8 +35,8 @@ public sealed class MuseumController : ClientBaseController
 
     [Authorize]
     [HttpGet("objects")]
-    [ProducesResponseType(typeof(Result<IEnumerable<MuseumObjectDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetMuseumObjectsQuery query)
+    [ProducesResponseType(typeof(Result<IEnumerable<ClientMuseumObjectDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetClientMuseumObjectsQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);
@@ -65,8 +65,8 @@ public sealed class MuseumController : ClientBaseController
     
     [Authorize]
     [HttpGet("recent")]
-    [ProducesResponseType(typeof(Result<IEnumerable<UserRecentMuseumsVisitDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetUserRecentMuseumsVisitQuery query)
+    [ProducesResponseType(typeof(Result<IEnumerable<ClientUserRecentMuseumsVisitDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentVisitedAsync([FromQuery] GetClientUserRecentMuseumsVisitQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

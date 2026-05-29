@@ -27,8 +27,8 @@ public sealed class UserController : AdminBaseController
     
     [Authorize]
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<PaginateUsersDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllUsersAsync([FromQuery] GetPaginateUsersQuery query)
+    [ProducesResponseType(typeof(Result<PaginatedResult<AdminPaginateUsersDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsersAsync([FromQuery] GetAdminPaginateUsersQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

@@ -15,8 +15,8 @@ public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuizQuery
     {
     }
 
-    public async ValueTask<IEnumerable<ShuffledQuizzesDto>> GetShuffledAsync(
-        GetShuffledQuizzesQuery dto,
+    public async ValueTask<IEnumerable<ClientShuffledQuizzesDto>> GetShuffledAsync(
+        GetClientShuffledQuizzesQuery dto,
         CancellationToken cancellationToken = default)
     {
         this._logger.LogInformation("Fetching historical quizzes for shuffling...");
@@ -36,7 +36,7 @@ public sealed class QuizQueryRepository : MongoQueryRepository<Quiz>, IQuizQuery
 
         var shuffled = quizzes
             .OrderBy(_ => Guid.NewGuid())
-            .Select(q => new ShuffledQuizzesDto(
+            .Select(q => new ClientShuffledQuizzesDto(
                 Id: q.BusinessId,
                 Title: q.Title,
                 Description: q.Description,

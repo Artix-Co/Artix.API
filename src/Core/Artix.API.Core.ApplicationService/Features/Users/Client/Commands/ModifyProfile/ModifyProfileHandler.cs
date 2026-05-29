@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 // TODO: develop validation for this handler
-internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCommand>
+internal sealed class ModifyProfileHandler : CommandHandlerBase<ClientModifyProfileCommand>
 {
     private readonly string[] _allowedImageMimeTypes;
 
@@ -19,13 +19,13 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ModifyProfileCom
     public ModifyProfileHandler(
         IHttpContextAccessor httpContextAccessor,
         UserManager<AppUser> userManager,
-        ILogger<CommandHandlerBase<ModifyProfileCommand>> logger,
+        ILogger<CommandHandlerBase<ClientModifyProfileCommand>> logger,
         IOptions<FileSettings> options) : base(httpContextAccessor, userManager, logger)
     {
         this._allowedImageMimeTypes = options.Value.AllowedImageMimeTypes;
     }
 
-    public override async Task<Guid> Handle(ModifyProfileCommand command, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(ClientModifyProfileCommand command, CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
 

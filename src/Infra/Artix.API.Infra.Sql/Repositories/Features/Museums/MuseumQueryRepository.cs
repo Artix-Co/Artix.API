@@ -38,7 +38,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         this._fileServerBaseUrl = fileSettingOptions.Value.BaseUrl;
     }
 
-    public IEnumerable<AllMuseumsDto> GetAllMuseumsClient(GetAllMuseumsQuery dto)
+    public IEnumerable<ClientAllMuseumsDto> GetAllMuseumsClient(GetClientAllMuseumsQuery dto)
     {
         _logger.LogInformation("Fetching all museums with query: {@Query}", dto);
 
@@ -60,7 +60,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     }
 
 
-    public IEnumerable<MuseumObjectDto> GetObjects(GetMuseumObjectsQuery dto)
+    public IEnumerable<ClientMuseumObjectDto> GetObjects(GetClientMuseumObjectsQuery dto)
     {
         _logger.LogInformation("Fetching objects for museum ID: {MuseumId}", dto.MuseumId);
 
@@ -182,7 +182,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         );
     }
 
-    public MuseumDetailsByIdDto GetDetailsById(GetMuseumDetailsByIdQuery dto)
+    public ClientMuseumDetailsByIdDto GetDetailsById(GetClientMuseumDetailsByIdQuery dto)
     {
         _logger.LogInformation("Fetching museum with ID: {MuseumId}", dto.Id);
 
@@ -198,7 +198,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
         return museum;
     }
 
-    public async Task<PaginatedResult<PaginateObjectsDto>> GetAllObjectsAsync(GetPaginateObjectsQuery dto,
+    public async Task<PaginatedResult<ClientPaginateObjectsDto>> GetAllObjectsAsync(GetClientPaginateObjectsQuery dto,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching objects with query: {@Query}", dto);
@@ -214,7 +214,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             .Where(o => string.IsNullOrWhiteSpace(dto.NameFilter) || o.Name.Contains(dto.NameFilter))
             .CountAsync(cancellationToken);
 
-        return new PaginatedResult<PaginateObjectsDto>(
+        return new PaginatedResult<ClientPaginateObjectsDto>(
             objects,
             totalCount,
             dto.PageNumber,
@@ -288,8 +288,8 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
     }
 
 
-    public async Task<PaginatedResult<PaginatedMuseumsDto>> GetAllMuseumsAdminAsync(
-        GetPaginateMuseumsQuery dto,
+    public async Task<PaginatedResult<AdminPaginatedMuseumsDto>> GetAllMuseumsAdminAsync(
+        GetAdminPaginateMuseumsQuery dto,
         CancellationToken cancellationToken = default)
     {
         var pageNumber = Math.Max(dto.PageNumber, 1);
@@ -339,7 +339,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
             .Take(pageSize);
 
         var pagedItems = await query
-            .Select(m => new PaginatedMuseumsDto(
+            .Select(m => new AdminPaginatedMuseumsDto(
                 m.BusinessId,
                 m.Name,
                 m.Description,
@@ -348,7 +348,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
                 m.Slug))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResult<PaginatedMuseumsDto>(
+        return new PaginatedResult<AdminPaginatedMuseumsDto>(
             Items: pagedItems,
             TotalCount: totalCount,
             PageNumber: pageNumber,

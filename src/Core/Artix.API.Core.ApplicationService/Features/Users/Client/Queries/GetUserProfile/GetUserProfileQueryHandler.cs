@@ -8,21 +8,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 // TODO: develop validator for this handler
-internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetUserProfileQuery, UserProfileDto>
+internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetClientUserProfileQuery, ClientUserProfileDto>
 {
     public GetUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)
     {
     }
 
-    public override async Task<Result<UserProfileDto>> Handle(GetUserProfileQuery query,
+    public override async Task<Result<ClientUserProfileDto>> Handle(GetClientUserProfileQuery query,
         CancellationToken cancellationToken)
     {
         var user = await this.GetCurrentUserAsync(cancellationToken);
      
     
 
-        var result = new UserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, "",
+        var result = new ClientUserProfileDto(user.BusinessId, user.UserName, user.Email, user.DisplayName, "",
             user.PhoneNumber, user.IsPro);
-        return Result<UserProfileDto>.Success(result);
+        return Result<ClientUserProfileDto>.Success(result);
     }
 }

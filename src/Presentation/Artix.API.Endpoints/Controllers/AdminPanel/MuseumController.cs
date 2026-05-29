@@ -19,8 +19,8 @@ public sealed class MuseumController : AdminBaseController
 
 
     [HttpGet("all")]
-    [ProducesResponseType(typeof(Result<PaginatedResult<PaginatedMuseumsDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetPaginateMuseumsQuery clientQuery)
+    [ProducesResponseType(typeof(Result<PaginatedResult<AdminPaginatedMuseumsDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAdminPaginateMuseumsQuery clientQuery)
     {
         var result = await this._mediator.Send(clientQuery);
         return this.Ok(result);
@@ -38,7 +38,7 @@ public sealed class MuseumController : AdminBaseController
     [Authorize]
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddNewMuseumAsync([FromBody] CreateNewMuseumCommand command)
+    public async Task<IActionResult> AddNewMuseumAsync([FromBody] AdminCreateNewMuseumCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -48,7 +48,7 @@ public sealed class MuseumController : AdminBaseController
     [Authorize]
     [HttpDelete("remove")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RemoveMuseumAsync([FromBody] RemoveMuseumCommand command)
+    public async Task<IActionResult> RemoveMuseumAsync([FromBody] AdminRemoveMuseumCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);

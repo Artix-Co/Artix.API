@@ -20,7 +20,7 @@ public sealed class ObjectController : AdminBaseController
     [Authorize]
     [HttpPatch("upgrade")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpgradeObject([FromBody] UpgradeObjectCommand command)
+    public async Task<IActionResult> UpgradeObject([FromBody] AdminUpgradeObjectCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -39,7 +39,7 @@ public sealed class ObjectController : AdminBaseController
     [Authorize]
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddNewObjectAsync([FromBody] CreateNewObjectCommand command)
+    public async Task<IActionResult> AddNewObjectAsync([FromBody] AdminCreateNewObjectCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
@@ -50,7 +50,7 @@ public sealed class ObjectController : AdminBaseController
     [Authorize]
     [HttpDelete("remove")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RemoveObjectAsync([FromBody] RemoveObjectCommand command)
+    public async Task<IActionResult> RemoveObjectAsync([FromBody] AdminRemoveObjectCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
