@@ -2,5 +2,5 @@
 
 public interface IRequestRatePolicy
 {
-    Task<bool> IsAllowedAsync(string key, CancellationToken ct = default);
+    Task<bool> IsAllowedAsync(string key, int windowSeconds, int limit, CancellationToken ct = default);
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Middlewares;
 
 public static class DependencyInjection
 {
@@ -73,5 +74,6 @@ public static class DependencyInjection
 
         // app.UseMiddleware<ApiVersionCheckMiddleware>();
         // app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
+        app.UseMiddleware<RateLimitingMiddleware>();
     }
 }

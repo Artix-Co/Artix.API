@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
+using Attributes;
 using Common;
 using Core.Contract.Features.Users.Client.Commands.InitiateOTPAuth;
 using Core.Contract.Features.Users.Client.Queries.GetLogout;
@@ -13,23 +14,25 @@ using Microsoft.AspNetCore.Mvc;
 
 
 public sealed class AuthenticationController : ClientBaseController
-{
+{    
     public AuthenticationController(IMediator mediator) : base(mediator)
     {
     }
 
 
     [HttpPost("send-otp")]
+    [RateLimit("send_otp", 120, 2)]     
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterMobileAsync(InitiateOTPAuthCommand command)
+    public async Task<IActionResult> SendOtpAsync(InitiateOTPAuthCommand command)
     {
         var result = await this._mediator.Send(command);
         return this.Ok(result);
     }
 
     [HttpPost("verify-otp")]
+    [RateLimit("verify_otp", 60, 5)]
     [ProducesResponseType(typeof(Result<VerifyOTPAuthDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterMobileAsync([FromBody] GetVerifyOTPAuthQuery query)
+    public async Task<IActionResult> VerifyOtpAsync([FromBody] GetVerifyOTPAuthQuery query)
     {
         var result = await this._mediator.Send(query);
         return this.Ok(result);

@@ -325,7 +325,7 @@ app.UseStaticFiles(new StaticFileOptions
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
     }
 });
-
+app.UseRouting();
 app.UseCustomMiddlewares(app.Environment);
 
 if (true)
@@ -335,12 +335,11 @@ if (true)
 }
 
 app.UseResponseCaching();
-app.UseRouting();
+
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health");
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub")
     .RequireAuthorization();

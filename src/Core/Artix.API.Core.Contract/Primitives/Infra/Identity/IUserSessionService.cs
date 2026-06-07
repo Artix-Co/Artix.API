@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Core.Contract.Primitives.Infra.Identity;
 
+using Domain.Entities.User;
 
 public interface IUserSessionService
 {
@@ -26,6 +27,13 @@ public interface IUserSessionService
         CancellationToken cancellationToken = default);
 
     Task RevokeAllAsync(
+        long userId,
+        CancellationToken cancellationToken = default);
+    
+    Task<bool> IsValidSessionAsync(long userId, string jwtId, CancellationToken cancellationToken = default);
+    Task<UserSession?> GetActiveSessionByJwtIdAsync(string jwtId, CancellationToken cancellationToken = default);
+
+    Task<UserSession?> GetLastSessionByUserIdAsync(
         long userId,
         CancellationToken cancellationToken = default);
 }

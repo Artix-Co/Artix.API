@@ -100,4 +100,37 @@ public sealed class UserSessionService : IUserSessionService
         if (sessions.Any())
             await _dbContext.SaveChangesAsync(cancellationToken);
     }
+    
+    public async Task<bool> IsValidSessionAsync(
+        long userId, 
+        string jwtId, 
+        CancellationToken cancellationToken = default)
+    {
+        var session = await _dbContext.UserSessions
+            .FirstOrDefaultAsync(s => s.UserId == userId && 
+                                      s.JwtId == jwtId && 
+                                      s.IsActive, cancellationToken);
+    
+        return session != null && session.ExpiresAt > DateTime.UtcNow;
+    }
+
+    public async Task<UserSession?> GetActiveSessionByJwtIdAsync(
+        string jwtId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.UserSessions
+            .FirstOrDefaultAsync(s => s.JwtId == jwtId && 
+                                      s.IsActive && 
+                                      s.ExpiresAt > DateTime.UtcNow, cancellationToken);
+    }
+    
+    public async Task<UserSession?> GetLastSessionByUserIdAsync(
+        long userId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.UserSessions
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
