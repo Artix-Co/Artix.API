@@ -14,17 +14,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using IAuthenticationService = Core.Contract.Primitives.Infra.Identity.Authentication.IAuthenticationService;
 
- 
 internal sealed class AuthenticationService : IAuthenticationService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
-    private readonly ISessionStore _sessionStore;
+
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IUserSessionService _userSessionService;
     private readonly ITokenRevocationStore _tokenRevocationStore;
@@ -33,7 +27,6 @@ internal sealed class AuthenticationService : IAuthenticationService
     public AuthenticationService(
         UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager,
-        ISessionStore sessionStore,
         IJwtTokenGenerator jwtTokenGenerator,
         IUserSessionService userSessionService,
         ITokenRevocationStore tokenRevocationStore,
@@ -41,14 +34,12 @@ internal sealed class AuthenticationService : IAuthenticationService
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _sessionStore = sessionStore;
         _jwtTokenGenerator = jwtTokenGenerator;
         _userSessionService = userSessionService;
         _tokenRevocationStore = tokenRevocationStore;
         _httpContextAccessor = httpContextAccessor;
     }
 
- 
 
     public async Task<ClientLogoutResponse> ClientLogoutAsync(
         ClientLogoutRequest request,
@@ -69,11 +60,11 @@ internal sealed class AuthenticationService : IAuthenticationService
     private async Task LogoutInternalAsync(CancellationToken ct)
     {
         var context = _httpContextAccessor.HttpContext
-            ?? throw new UnauthorizedAccessException();
+                      ?? throw new UnauthorizedAccessException();
 
         var userId = context.User
-            .FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException();
+                         .FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? throw new UnauthorizedAccessException();
 
         await _userSessionService.RevokeAllAsync(long.Parse(userId), ct);
 
