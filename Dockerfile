@@ -24,9 +24,6 @@ COPY src/Infra/Artix.API.Infra.RabbitMQ/Artix.API.Infra.RabbitMQ.csproj src/Infr
 COPY src/Infra/Artix.API.Infra.Redis/Artix.API.Infra.Redis.csproj src/Infra/Artix.API.Infra.Redis/
 COPY src/Infra/Artix.API.Infra.Sql/Artix.API.Infra.Sql.csproj src/Infra/Artix.API.Infra.Sql/
 
-COPY src/Orchestration/Artix.API.Orchestration.AppHost/Artix.API.Orchestration.AppHost.csproj src/Orchestration/Artix.API.Orchestration.AppHost/
-COPY src/Orchestration/Artix.API.Orchestration.ServiceDefaults/Artix.API.Orchestration.ServiceDefaults.csproj src/Orchestration/Artix.API.Orchestration.ServiceDefaults/
-
 COPY src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj src/Presentation/Artix.API.WebService/
 COPY src/Presentation/Artix.API.Endpoints/Artix.API.Endpoints.csproj src/Presentation/Artix.API.Endpoints/
 COPY src/Utils/Artix.API.Utils/Artix.API.Utils.csproj src/Utils/Artix.API.Utils/

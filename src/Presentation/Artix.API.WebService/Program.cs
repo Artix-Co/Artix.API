@@ -6,7 +6,6 @@ using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
-using Artix.API.Orchestration.ServiceDefaults;
 using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
 using Microsoft.AspNetCore.DataProtection;
@@ -45,7 +44,7 @@ builder.Host.UseSerilog((context, services, config) =>
     }
 });
 
-builder.AddServiceDefaults();
+
 builder.Services.AddSignalR();
 
 var environment = builder.Environment;

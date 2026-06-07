@@ -39,7 +39,6 @@
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.RabbitMQ\Artix.API.Infra.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Redis\Artix.API.Infra.Redis.csproj" />
     <ProjectReference Include="..\..\Infra\Artix.API.Infra.Sql\Artix.API.Infra.Sql.csproj" />
-    <ProjectReference Include="..\..\Orchestration\Artix.API.Orchestration.ServiceDefaults\Artix.API.Orchestration.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Artix.API.Endpoints\Artix.API.Endpoints.csproj" />
   </ItemGroup>
 </Project>
