@@ -52,28 +52,33 @@ public static class DependencyInjection
     {
         // if (env.IsProduction())
         // {
-        //     app.UseHsts();
+        app.UseHsts();
         // }
 
-        // app.Use(async (context, next) =>
-        // {
-        //     context.Response.Headers.Remove("Server");
-        //     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-        //     context.Response.Headers["X-Frame-Options"] = "DENY";
-        //     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-        //     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        //     context.Response.Headers["Permissions-Policy"] =
-        //         "accelerometer=(), autoplay=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";
-        //
-        //     await next();
-        // });
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Remove("Server");
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            context.Response.Headers["X-Frame-Options"] = "DENY";
+            context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+            context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            context.Response.Headers["Permissions-Policy"] =
+                "accelerometer=(), autoplay=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";
+        
+            await next();
+        });
 
-        // app.UseHttpsRedirection();
+        app.UseHttpsRedirection();
 
         app.UseCors("CorsPolicy");
 
-        // app.UseMiddleware<ApiVersionCheckMiddleware>();
-        // app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
-        app.UseMiddleware<RateLimitingMiddleware>();
+        app.UseMiddleware<RateLimitingMiddleware>();        // 1. اول Rate Limiting
+        app.UseMiddleware<GeoFencingMiddleware>();          // 2. محدودیت جغرافیایی
+        // app.UseMiddleware<RequestSigningMiddleware>();      // 3. امضای درخواست
+        app.UseMiddleware<ContinuousAuthorizationMiddleware>(); // 4. احراز هویت پیوسته
+
+        app.UseMiddleware<ApiVersionCheckMiddleware>();
+        app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
+      
     }
 }

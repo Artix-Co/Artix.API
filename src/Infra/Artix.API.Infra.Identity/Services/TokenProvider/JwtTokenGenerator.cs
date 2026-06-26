@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Primitives.Infra.Identity;
 using Core.Domain.Entities.User;
@@ -100,6 +101,9 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
         authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         authClaims.AddRange(userClaims.Where(c => c.Type == "ClientType"));
+
+        var fingerprint = CreateFingerprint();
+        authClaims.Add(new Claim("fingerprint", fingerprint));
 
         // ==========================================
         // ❌ حذف شد: بخش Revoke قبلی که از دیتابیس می‌خواند
@@ -213,6 +217,24 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
+    }
+
+    private string CreateFingerprint()
+    {
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null)
+            return "unknown";
+
+        var fingerprint = new
+        {
+            UserAgent = context.Request.Headers["User-Agent"].ToString(),
+            AcceptLanguage = context.Request.Headers["Accept-Language"].ToString(),
+            SecChUa = context.Request.Headers["Sec-CH-UA"].ToString(),
+            IpHash = Hash(GetClientIp())
+        };
+
+        var json = JsonSerializer.Serialize(fingerprint);
+        return Hash(json);
     }
 
     private async Task StoreRefreshTokenAsync(

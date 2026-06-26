@@ -9,6 +9,7 @@ using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.Entities.User;
 using Core.Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,11 +27,37 @@ public static class DependencyInjection
     public static void AddIdentityService(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddIdentity<AppUser, AppRole>(options =>
+            
+            
             {
-                options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
-                options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = false;
+                
+                // Password
+                options.Password.RequireDigit = true; // حداقل یک عدد
+                options.Password.RequireLowercase = true; // حداقل یک حرف کوچک
+                options.Password.RequireUppercase = true; // حداقل یک حرف بزرگ
+                options.Password.RequireNonAlphanumeric = true; // حداقل یک کاراکتر خاص
+                options.Password.RequiredLength = 12; // حداقل طول رمز
+                options.Password.RequiredUniqueChars = 6; // جلوگیری از Password های ساده
+
+
+                // User
+                options.User.RequireUniqueEmail = true; // جلوگیری از Email تکراری
+
+
+                // Lockout
+                options.Lockout.MaxFailedAccessAttempts = 5; // بعد از ۵ بار Login اشتباه
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); // ۱۵ دقیقه قفل
+                options.Lockout.AllowedForNewUsers = true;
+
+
+                // SignIn
+                options.SignIn.RequireConfirmedEmail = true; // تا Email تایید نشود Login ندارد
+                options.SignIn.RequireConfirmedAccount = true;
+
+
+                // Tokens
+                options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+                
             })
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
@@ -38,24 +65,61 @@ public static class DependencyInjection
         var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
         ValidateAuthenticationSettings(authSettings);
 
+
+        services.Configure<PasswordHasherOptions>(options =>
+        {
+            options.CompatibilityMode =
+                PasswordHasherCompatibilityMode.IdentityV3;
+
+            options.IterationCount = 300000;
+        }).ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.Name = "__Host.Auth";
+
+            options.Cookie.HttpOnly = true;
+
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+            options.Cookie.SameSite = SameSiteMode.Strict;
+
+            options.SlidingExpiration = false;
+
+            options.ExpireTimeSpan =
+                TimeSpan.FromMinutes(20);
+
+            options.Cookie.IsEssential = true;
+        });
+        ;
+
+
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = false;
+                options.IncludeErrorDetails = false;
+                options.RefreshOnIssuerKeyNotFound = true;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
+                    ValidateActor = true,
+                    ValidateTokenReplay = true,
+                    RequireExpirationTime = true,
+                    RequireSignedTokens = true,
+                    ClockSkew = TimeSpan.FromSeconds(30),
                     ValidIssuer = authSettings.Issuer,
                     ValidAudience = authSettings.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
-                    ClockSkew = TimeSpan.FromMinutes(1),
                     NameClaimType = "nameid"
                 };
 
