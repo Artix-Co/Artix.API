@@ -49,29 +49,41 @@ Elasticsearch is optional; leave `Elasticsearch__Uri` empty to disable.
 
 ## Deploy
 
-**Principle:** CI builds and pushes the image once. The server only pulls and restarts — no `docker compose build` on the server.
+**Principle:** CI builds the image once (on the GitLab runner / host Podman). Production only restarts with the new tag — no rebuild on deploy.
 
-### GitHub Actions
+### Production URL
 
-- Workflow: `.github/workflows/ci.yml`
-- Publishes to `ghcr.io/<owner>/<repo>` on push to `dev`
-- Deploy job needs repository secrets/variables:
-  - `SERVER_SSH_KEY`
-  - `DEPLOY_HOST`, `DEPLOY_PATH` (repository variables)
+- https://api.studioartix.ir  
+- Health: https://api.studioartix.ir/health/ready  
 
-### GitLab CI
+Server path: `/root/artix-api`  
+Compose: `docker-compose -p artix ...`
 
-- Pipeline: `.gitlab-ci.yml`
-- Uses built-in container registry
-- Manual deploy job; set `SSH_PRIVATE_KEY`, `DEPLOY_HOST`, `DEPLOY_PATH`, `DEPLOY_USER`
+### GitLab CI (primary)
 
-On the server:
+1. Create project `studioartix/api` (or import from GitHub `Artix-Co/Artix.API`).
+2. Push `main` / `dev` to GitLab.
+3. Set CI/CD variables:
+   - `DEPLOY_HOST` (e.g. `127.0.0.1` or server public IP)
+   - `DEPLOY_USER` (`root`)
+   - `DEPLOY_PATH` (`/root/artix-api`)
+   - `SSH_PRIVATE_KEY_BASE64` (same pattern as frontend projects)
+4. Pipeline:
+   - `feat/*`, `fix/*`, `dev`, `main` → **build** image
+   - `main` → **deploy_production** (manual)
+
+On the server after first manual bring-up, keep `.env` in place (never commit it).
 
 ```bash
-export APP_IMAGE=registry.example.com/artix/api:latest
-docker compose pull app1
-docker compose up -d --no-build
+cd /root/artix-api
+docker-compose -p artix ps
+curl -fsS http://127.0.0.1:8080/health/ready
 ```
+
+### GitHub Actions (optional)
+
+- Workflow: `.github/workflows/ci.yml`
+- Can publish to GHCR; not required if GitLab is the source of truth.
 
 ## Project layout
 
