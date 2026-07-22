@@ -1,8 +1,10 @@
-# Local / server stack. Requires a .env file (see .env.example).
-# Local:  cp .env.example .env && docker compose up --build -d
-# Deploy: set APP_IMAGE to a prebuilt tag, then docker compose pull && docker compose up -d
+# Compatible with docker-compose 1.29 (server) and Compose V2 (local).
+# Project name: use `docker-compose -p artix ...` or COMPOSE_PROJECT_NAME=artix
+#
+# Local:  cp .env.example .env && docker-compose -p artix up --build -d
+# Deploy: set APP_IMAGE, then docker-compose -p artix pull && docker-compose -p artix up -d
 
-name: artix
+version: "2.4"
 
 networks:
   internal_net:
@@ -90,7 +92,6 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
-    # Host port remapped so it does not collide with other local Redis containers (e.g. :6379).
     ports:
       - "${REDIS_HOST_PORT:-6380}:6379"
     networks:
@@ -138,9 +139,10 @@ services:
       retries: 8
       start_period: 120s
 
+  # Container name artix-nginx avoids clashing mentally with host nginx.
   nginx:
     image: nginx:1.27-alpine
-    container_name: nginx
+    container_name: artix-nginx
     ports:
       - "${HTTP_PORT:-8080}:80"
     depends_on:
