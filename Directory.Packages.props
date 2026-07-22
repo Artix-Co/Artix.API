@@ -41,11 +41,7 @@
     <PackageVersion Include="RedLock.net" Version="2.3.2" />
     <PackageVersion Include="StackExchange.Redis" Version="2.8.58" />
 
-    
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.2.1" />
-    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0-rc.2.617" />
-    <PackageVersion Include="AspNetCore.HealthChecks.RabbitMQ" Version="9.0.0-rc.2.617" />
-    <PackageVersion Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0-rc.2.617" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="RestSharp" Version="112.1.0" />

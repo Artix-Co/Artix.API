@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.7
 
 # ==============================
-# Build Stage
+# Build
 # ==============================
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
@@ -9,9 +9,6 @@ WORKDIR /src
 COPY Directory.Packages.props .
 COPY Artix.API.sln .
 
-# ------------------------------
-# Copy only csproj files for restore
-# ------------------------------
 COPY src/Core/Artix.API.Core.Contract/Artix.API.Core.Contract.csproj src/Core/Artix.API.Core.Contract/
 COPY src/Core/Artix.API.Core.Domain/Artix.API.Core.Domain.csproj src/Core/Artix.API.Core.Domain/
 COPY src/Core/Artix.API.Core.DomainService/Artix.API.Core.DomainService.csproj src/Core/Artix.API.Core.DomainService/
@@ -28,39 +25,36 @@ COPY src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj src/Prese
 COPY src/Presentation/Artix.API.Endpoints/Artix.API.Endpoints.csproj src/Presentation/Artix.API.Endpoints/
 COPY src/Utils/Artix.API.Utils/Artix.API.Utils.csproj src/Utils/Artix.API.Utils/
 
-# copy test projects
-COPY tests/Artix.API.Tests.EndToEnd/Artix.API.Tests.EndToEnd.csproj tests/Artix.API.Tests.EndToEnd/
-COPY tests/Artix.API.Tests.Integration/Artix.API.Tests.Integration.csproj tests/Artix.API.Tests.Integration/
-COPY tests/Artix.API.Tests.Unit/Artix.API.Tests.Unit.csproj tests/Artix.API.Tests.Unit/
-COPY tests/Directory.Build.props tests/
+# Restore only the host project graph (no test projects → less NuGet traffic)
+RUN dotnet restore src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj -v:m
 
-# Restore
-RUN dotnet restore Artix.API.sln -v:m
-
-# Copy source code
 COPY src/ ./src/
-COPY tests/ ./tests/
 
-# Publish
 RUN dotnet publish src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj \
     -c Release \
+    --no-restore \
     /p:UseAppHost=false \
     -o /app/publish
 
 # ==============================
-# Runtime Stage - Debian-based (حل کامل مشکل ICU)
+# Runtime
 # ==============================
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# فقط پورت ۸۰ رو باز می‌کنیم (Nginx به همین می‌زنه)
-EXPOSE 80
+# curl is only for container healthchecks; keep the layer small and cacheable
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# کپی فایل‌های منتشرشده
+ENV ASPNETCORE_URLS=http://+:8080 \
+    DOTNET_RUNNING_IN_CONTAINER=true
+
+EXPOSE 8080
+
 COPY --from=build /app/publish .
 
-# هیچ ENV برای URL نزنیم → Kestrel خودش کنترل کنه
-# ENV ASPNETCORE_URLS حذف شد!
+# Stay root: named volumes for /app/files and dataprotection-keys are root-owned by default.
+# Switch to a non-root user only after an entrypoint chown strategy exists.
 
 ENTRYPOINT ["dotnet", "Artix.API.WebService.dll"]
-

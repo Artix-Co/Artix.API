@@ -8,7 +8,22 @@ public static class ElasticsearchExtensions
 {
     public static ElasticsearchStatus AddElasticsearch(this IServiceCollection services, IConfiguration config)
     {
-        var elastic = config.GetSection("Elasticsearch").Get<ElasticsearchSettings>();
+        var elastic = config.GetSection("Elasticsearch").Get<ElasticsearchSettings>()
+                      ?? new ElasticsearchSettings();
+
+        if (string.IsNullOrWhiteSpace(elastic.Uri))
+        {
+            var disabled = new ElasticsearchStatus
+            {
+                IsValid = false,
+                Uri = string.Empty,
+                Index = string.Empty,
+                Settings = elastic
+            };
+            services.AddSingleton(disabled);
+            return disabled;
+        }
+
         var resolvedIndex = string.Format(elastic.IndexFormat, DateTime.UtcNow);
 
         var settings = new ConnectionSettings(new Uri(elastic.Uri))
@@ -30,9 +45,7 @@ public static class ElasticsearchExtensions
             Settings = elastic
         };
 
-        // این خط حیاتیه → وضعیت رو به DI اضافه کن
         services.AddSingleton(status);
-
         return status;
     }
 }
@@ -44,4 +57,3 @@ public sealed class ElasticsearchStatus
     public string Index { get; set; } = default!;
     public ElasticsearchSettings Settings { get; set; } = default!;
 }
-
