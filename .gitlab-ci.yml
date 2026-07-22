@@ -23,6 +23,8 @@ variables:
   IMAGE_TAG: localhost/artix-api:$CI_COMMIT_SHORT_SHA
   DOCKER_HOST: unix:///var/run/docker.sock
   FF_NETWORK_PER_BUILD: "true"
+  # Classic builder — BuildKit/buildx hits Docker Hub for frontends and fails (403) behind Podman
+  DOCKER_BUILDKIT: "0"
 
 .build_rules: &build_rules
   rules:

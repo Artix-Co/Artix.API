@@ -1,7 +1,6 @@
-# syntax=docker/dockerfile:1.7
-
 # ==============================
 # Build
+# (no # syntax= directive — Docker Hub/CloudFront is often 403 on this host)
 # ==============================
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
