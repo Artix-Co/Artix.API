@@ -41,17 +41,22 @@ build:
   script:
     - docker version
     - docker build -t "$IMAGE_TAG" -t "${IMAGE_LOCAL}:local" -t "${IMAGE_LOCAL}:latest" .
+    # Registry push is optional. Deploy uses host-local tags (localhost/artix-api:...).
+    # GitLab injects CI_REGISTRY_* even when registry is broken (502) — never fail the job for that.
     - |
-      if [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ]; then
-        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-        REG_TAG="$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-        docker tag "$IMAGE_TAG" "$REG_TAG"
-        docker tag "$IMAGE_TAG" "$CI_REGISTRY_IMAGE:latest"
-        docker push "$REG_TAG"
-        docker push "$CI_REGISTRY_IMAGE:latest"
-        echo "Pushed $REG_TAG"
+      if [ "${ENABLE_REGISTRY_PUSH:-}" = "true" ] && [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ]; then
+        if echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"; then
+          REG_TAG="$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+          docker tag "$IMAGE_TAG" "$REG_TAG"
+          docker tag "$IMAGE_TAG" "$CI_REGISTRY_IMAGE:latest"
+          docker push "$REG_TAG"
+          docker push "$CI_REGISTRY_IMAGE:latest"
+          echo "Pushed $REG_TAG"
+        else
+          echo "WARNING: registry login failed; keeping local image $IMAGE_TAG"
+        fi
       else
-        echo "Registry login skipped; using local image $IMAGE_TAG"
+        echo "Registry push skipped; using local image $IMAGE_TAG"
       fi
   after_script:
     - docker images "${IMAGE_LOCAL}" --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' || true
