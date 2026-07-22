@@ -61,8 +61,8 @@ Compose: `docker-compose -p artix ...`
 
 ### GitLab CI (primary)
 
-1. Create project `studioartix/api` (or import from GitHub `Artix-Co/Artix.API`).
-2. Push `main` / `dev` to GitLab.
+1. Use existing GitLab project `studioartix/Backend`.
+2. Push `main` / `dev` to that project.
 3. Set CI/CD variables:
    - `DEPLOY_HOST` (e.g. `127.0.0.1` or server public IP)
    - `DEPLOY_USER` (`root`)
