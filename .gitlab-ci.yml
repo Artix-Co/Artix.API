@@ -101,12 +101,7 @@ deploy_production:
       git fetch origin
       git checkout main
       git pull --ff-only origin main
-      export APP_IMAGE="${IMAGE_TAG}"
-      docker-compose -p artix up -d --no-build
-      docker-compose -p artix ps
-      sleep 5
-      curl -fsS http://127.0.0.1:8080/health/ready
-      echo " OK"
+      /root/scripts/zdd-api.sh "$DEPLOY_PATH" "${IMAGE_TAG}"
 
 sync_github_mirror:
   stage: sync
