@@ -34,9 +34,30 @@ variables:
     - if: $CI_COMMIT_BRANCH =~ /^feat\//
     - if: $CI_COMMIT_BRANCH =~ /^fix\//
 
+.build_prepare: &build_prepare
+  - |
+    set -e
+    avail_kb=$(df -Pk / | awk 'NR==2{print $4}')
+    echo "Free disk before cleanup: $((avail_kb/1024))MB"
+    if [ "$avail_kb" -lt 6144000 ]; then
+      echo "Low disk — pruning dangling images/builders..."
+      docker image prune -af || true
+      docker builder prune -af || true
+    fi
+    avail_kb=$(df -Pk / | awk 'NR==2{print $4}')
+    echo "Free disk before build: $((avail_kb/1024))MB"
+    if [ "$avail_kb" -lt 3145728 ]; then
+      echo "ERROR: need at least ~3GB free disk for build"
+      df -h /
+      docker system df || true
+      exit 1
+    fi
+
 build:
   stage: build
   <<: *build_rules
+  before_script:
+    *build_prepare
   script:
     - docker version
     - docker system df || true
