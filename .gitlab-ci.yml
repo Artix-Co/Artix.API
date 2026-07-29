@@ -101,7 +101,7 @@ deploy_production:
       git fetch origin
       git checkout main
       git pull --ff-only origin main
-      /root/scripts/zdd-api.sh "$DEPLOY_PATH" "${IMAGE_TAG}"
+      /opt/artix/bin/zdd-api.sh "$DEPLOY_PATH" "${IMAGE_TAG}"
 
 sync_github_mirror:
   stage: sync
