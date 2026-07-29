@@ -1,18 +1,17 @@
 # Artix.API — GitLab CI
-# Runner on this host uses Podman via /var/run/docker.sock (no DinD).
+# Runner: shell executor on this host, Podman aliased as docker via DOCKER_HOST.
+# No DinD, no image pull for CI jobs — commands run directly on the host shell.
 #
 # Branches:
 #   feat/* fix/*  → build image
 #   dev           → build image
 #   main          → build + manual deploy to production
 #
-# Required CI/CD variables (project or group):
-#   DEPLOY_HOST              e.g. 127.0.0.1 or 46.38.148.98
-#   DEPLOY_USER              e.g. root
-#   DEPLOY_PATH              e.g. /root/artix-api
-#   SSH_PRIVATE_KEY_BASE64   base64 of the private key (same pattern as frontend)
+# Required CI/CD variables:
+#   (none for deploy — runner is on same host as deploy target)
 # Optional:
-#   SSH_PRIVATE_KEY          raw key if you prefer not to use base64
+#   ENABLE_REGISTRY_PUSH=true  + CI_REGISTRY_* for registry push
+#   GITHUB_MIRROR_REPO + GITHUB_MIRROR_TOKEN for GitHub sync
 
 stages:
   - build
@@ -22,12 +21,10 @@ stages:
 variables:
   IMAGE_LOCAL: localhost/artix-api
   IMAGE_TAG: localhost/artix-api:$CI_COMMIT_SHORT_SHA
-  DOCKER_HOST: unix:///var/run/docker.sock
-  FF_NETWORK_PER_BUILD: "true"
+  DOCKER_HOST: unix:///var/run/podman/podman.sock
+  DOCKER_BUILDKIT: "0"
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
-  # Classic builder — BuildKit/buildx hits Docker Hub for frontends and fails (403) behind Podman
-  DOCKER_BUILDKIT: "0"
 
 .build_rules: &build_rules
   rules:
@@ -39,14 +36,11 @@ variables:
 
 build:
   stage: build
-  image: docker:27-cli
   <<: *build_rules
   script:
     - docker version
     - docker system df || true
     - docker build -t "$IMAGE_TAG" -t "${IMAGE_LOCAL}:local" -t "${IMAGE_LOCAL}:latest" .
-    # Registry push is optional. Deploy uses host-local tags (localhost/artix-api:...).
-    # GitLab injects CI_REGISTRY_* even when registry is broken (502) — never fail the job for that.
     - |
       if [ "${ENABLE_REGISTRY_PUSH:-}" = "true" ] && [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ]; then
         if echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"; then
@@ -64,12 +58,12 @@ build:
       fi
   after_script:
     - docker images "${IMAGE_LOCAL}" --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' || true
+    - docker system df || true
     - docker image prune -af --filter "until=24h" || true
     - docker builder prune -af || true
 
 deploy_production:
   stage: deploy
-  image: alpine:3.20
   needs: ["build"]
   resource_group: production
   environment:
@@ -78,54 +72,36 @@ deploy_production:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
-  before_script:
-    - apk add --no-cache openssh-client curl
-    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - |
-      if [ -n "${SSH_PRIVATE_KEY_BASE64:-}" ]; then
-        echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/id_rsa
-      elif [ -n "${SSH_PRIVATE_KEY:-}" ]; then
-        printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-      else
-        echo "Missing SSH_PRIVATE_KEY_BASE64 (or SSH_PRIVATE_KEY)"
-        exit 1
-      fi
-    - chmod 600 ~/.ssh/id_rsa
-    - printf 'Host *\n\tStrictHostKeyChecking no\n' > ~/.ssh/config
   script:
     - |
-      test -n "${DEPLOY_HOST:-}"
-      test -n "${DEPLOY_USER:-}"
-      test -n "${DEPLOY_PATH:-}"
-      ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "
-        set -e
-        cd '${DEPLOY_PATH}'
-        git fetch origin
-        git checkout main
-        git pull --ff-only origin main
-        export APP_IMAGE='${IMAGE_TAG}'
-        docker-compose -p artix up -d --no-build
-        docker-compose -p artix ps
-        curl -fsS http://127.0.0.1:8080/health/ready
-        echo
-      "
+      set -e
+      DEPLOY_PATH="${DEPLOY_PATH:-/root/artix-api}"
+      cd "$DEPLOY_PATH"
+      git fetch origin
+      git checkout main
+      git pull --ff-only origin main
+      export APP_IMAGE="${IMAGE_TAG}"
+      docker-compose -p artix up -d --no-build
+      docker-compose -p artix ps
+      sleep 5
+      curl -fsS http://127.0.0.1:8080/health/ready
+      echo " OK"
 
 sync_github_mirror:
   stage: sync
-  image: alpine:3.20
   needs: ["build"]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "dev"
-  before_script:
-    - apk add --no-cache git
   script:
     - |
       if [ -z "${GITHUB_MIRROR_REPO:-}" ] || [ -z "${GITHUB_MIRROR_TOKEN:-}" ]; then
         echo "GitHub mirror skipped. Set GITHUB_MIRROR_REPO and GITHUB_MIRROR_TOKEN to enable."
         exit 0
       fi
-      git clone "$CI_REPOSITORY_URL" repo
-      cd repo
+      TMPDIR=$(mktemp -d)
+      git clone "$CI_REPOSITORY_URL" "$TMPDIR/repo"
+      cd "$TMPDIR/repo"
       git remote add github "https://${GITHUB_MIRROR_TOKEN}@github.com/${GITHUB_MIRROR_REPO}.git"
       git push github "HEAD:${CI_COMMIT_BRANCH}"
+      rm -rf "$TMPDIR"
