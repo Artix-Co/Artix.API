@@ -6,9 +6,15 @@ on:
   pull_request:
     branches: [dev, main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
 
 jobs:
   build-and-test:
@@ -23,8 +29,8 @@ jobs:
 
       - name: Restore and test
         run: |
-          dotnet restore Artix.API.sln
-          dotnet test Artix.API.sln -c Release --no-restore
+          dotnet restore Artix.API.sln --disable-parallel
+          dotnet test Artix.API.sln -c Release --no-restore -m:1
 
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -34,7 +40,13 @@ jobs:
           load: true
           tags: artix-api:ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
+
+      - name: Cleanup Docker data
+        if: always()
+        run: |
+          docker image prune -af || true
+          docker builder prune -af || true
 
   publish:
     needs: build-and-test
@@ -64,7 +76,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
+
+      - name: Cleanup Docker data
+        if: always()
+        run: |
+          docker image prune -af || true
+          docker builder prune -af || true
 
   deploy:
     needs: publish

@@ -32,6 +32,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${RABBITMQ_MEM_LIMIT:-512m}
+    mem_reservation: ${RABBITMQ_MEM_RESERVATION:-256m}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
       interval: 10s
@@ -54,6 +56,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${MSSQL_MEM_LIMIT:-2g}
+    mem_reservation: ${MSSQL_MEM_RESERVATION:-1g}
     healthcheck:
       test:
         [
@@ -79,6 +83,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${MONGO_MEM_LIMIT:-1g}
+    mem_reservation: ${MONGO_MEM_RESERVATION:-512m}
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
@@ -97,6 +103,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${REDIS_MEM_LIMIT:-256m}
+    mem_reservation: ${REDIS_MEM_RESERVATION:-128m}
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
@@ -132,6 +140,8 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${APP_MEM_LIMIT:-1g}
+    mem_reservation: ${APP_MEM_RESERVATION:-512m}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health/ready"]
       interval: 15s
@@ -153,3 +163,5 @@ services:
     networks:
       - internal_net
     restart: unless-stopped
+    mem_limit: ${NGINX_MEM_LIMIT:-128m}
+    mem_reservation: ${NGINX_MEM_RESERVATION:-64m}

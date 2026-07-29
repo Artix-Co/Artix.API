@@ -16,6 +16,7 @@
 
 stages:
   - build
+  - sync
   - deploy
 
 variables:
@@ -23,6 +24,8 @@ variables:
   IMAGE_TAG: localhost/artix-api:$CI_COMMIT_SHORT_SHA
   DOCKER_HOST: unix:///var/run/docker.sock
   FF_NETWORK_PER_BUILD: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
   # Classic builder — BuildKit/buildx hits Docker Hub for frontends and fails (403) behind Podman
   DOCKER_BUILDKIT: "0"
 
@@ -40,6 +43,7 @@ build:
   <<: *build_rules
   script:
     - docker version
+    - docker system df || true
     - docker build -t "$IMAGE_TAG" -t "${IMAGE_LOCAL}:local" -t "${IMAGE_LOCAL}:latest" .
     # Registry push is optional. Deploy uses host-local tags (localhost/artix-api:...).
     # GitLab injects CI_REGISTRY_* even when registry is broken (502) — never fail the job for that.
@@ -60,6 +64,8 @@ build:
       fi
   after_script:
     - docker images "${IMAGE_LOCAL}" --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' || true
+    - docker image prune -af --filter "until=24h" || true
+    - docker builder prune -af || true
 
 deploy_production:
   stage: deploy
@@ -103,3 +109,23 @@ deploy_production:
         curl -fsS http://127.0.0.1:8080/health/ready
         echo
       "
+
+sync_github_mirror:
+  stage: sync
+  image: alpine:3.20
+  needs: ["build"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "dev"
+  before_script:
+    - apk add --no-cache git
+  script:
+    - |
+      if [ -z "${GITHUB_MIRROR_REPO:-}" ] || [ -z "${GITHUB_MIRROR_TOKEN:-}" ]; then
+        echo "GitHub mirror skipped. Set GITHUB_MIRROR_REPO and GITHUB_MIRROR_TOKEN to enable."
+        exit 0
+      fi
+      git clone "$CI_REPOSITORY_URL" repo
+      cd repo
+      git remote add github "https://${GITHUB_MIRROR_TOKEN}@github.com/${GITHUB_MIRROR_REPO}.git"
+      git push github "HEAD:${CI_COMMIT_BRANCH}"
