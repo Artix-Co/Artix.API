@@ -21,7 +21,8 @@ internal sealed class
     public override async Task<Result<PaginatedResult<AdminPaginatedMuseumsDto>>> Handle(GetAdminPaginateMuseumsQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await this._museumQueryRepository.GetAllMuseumsAdminAsync(query, cancellationToken);
+        var allowedMuseumIds = await this.GetAllowedMuseumIdsAsync(cancellationToken);
+        var result = await this._museumQueryRepository.GetAllMuseumsAdminAsync(query, allowedMuseumIds, cancellationToken);
         return Result<PaginatedResult<AdminPaginatedMuseumsDto>>.Success(result);
     }
 }

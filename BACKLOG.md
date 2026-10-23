@@ -16,8 +16,8 @@
 - [x] تعریف Scope: Global، AssignedMuseum، AggregateOnly و Self/SupportLimited در صورت نیاز.
 - [x] Seed نقش‌ها و مجوزهای پیش‌فرض.
 - [x] اعمال authorization سمت سرور روی endpointهای مدیریتی.
-- [ ] اعمال محدودیت Museum Admin در query/repository، نه فقط در UI.
-- [ ] ثبت audit برای login، تغییر نقش/مجوز، تأیید/رد/انتشار، حذف و عملیات مالی حساس.
+- [x] اعمال محدودیت Museum Admin در query/repository، نه فقط در UI.
+- [ ] ثبت audit برای login، تغییر نقش/مجوز، تأیید/رد/انتشار، حذف و عملیات مالی حساس. (فعلاً audit درخواست‌های پنل ثبت می‌شود.)
 - [ ] افزودن تست‌های authorization برای دسترسی افقی و عمودی.
 - [ ] ساخت migration و اجرای build/test.
 

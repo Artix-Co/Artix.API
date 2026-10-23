@@ -2,6 +2,7 @@
 
 using System.Security.Claims;
 using Contract.Primitives.Handlers;
+using Contract.Primitives.Authorization;
 using Contract.Primitives.Models;
 using Domain.Entities.User;
 using Domain.Entities.User.Enums;
@@ -49,6 +50,35 @@ public abstract class QueryHandlerBase<TQuery, TResponse> : IQueryHandler<TQuery
         var claims = await _userManager.GetClaimsAsync(user);
         if (!claims.Any(c => c is { Type: "ClientType", Value: nameof(ClientType.Emerald) }))
             throw new UnauthorizedAccessException("User is not an Emerald client.");
+    }
+
+    protected async Task EnsureMuseumAccessAsync(Guid museumBusinessId, CancellationToken cancellationToken)
+    {
+        var user = await GetCurrentUserAsync(cancellationToken);
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.SuperAdmin)))
+            return;
+
+        var claims = await _userManager.GetClaimsAsync(user);
+        if (!claims.Any(x => x.Type == AdminPermission.MuseumScopeClaim &&
+                             string.Equals(x.Value, museumBusinessId.ToString(), StringComparison.OrdinalIgnoreCase)))
+            throw new UnauthorizedAccessException("User is not assigned to this museum.");
+    }
+
+    protected async Task<IReadOnlyCollection<Guid>?> GetAllowedMuseumIdsAsync(CancellationToken cancellationToken)
+    {
+        var user = await GetCurrentUserAsync(cancellationToken);
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.SuperAdmin)))
+            return null;
+
+        var claims = await _userManager.GetClaimsAsync(user);
+        return claims.Where(x => x.Type == AdminPermission.MuseumScopeClaim)
+            .Select(x => Guid.TryParse(x.Value, out var id) ? id : (Guid?)null)
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
+            .Distinct()
+            .ToArray();
     }
 
     protected string? GetRemoteIp() =>
