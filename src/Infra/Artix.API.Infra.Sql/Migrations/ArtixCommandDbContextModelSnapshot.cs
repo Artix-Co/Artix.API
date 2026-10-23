@@ -697,6 +697,13 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ContentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Draft");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("smalldatetime");
 
