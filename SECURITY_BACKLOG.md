@@ -4,6 +4,22 @@
 
 این فهرست حاصل بازبینی استاتیک کل مسیرهای API، احراز هویت، فایل، ورودی، middleware و تنظیمات موجود در مخزن است. اولویت‌ها بر اساس اثر قابل‌انتظار و سهولت سوءاستفاده مرتب شده‌اند. مواردی که از روی کد قطعی هستند با **تأییدشده (Static)** مشخص شده‌اند؛ برای اثبات رفتاری در محیط اجرا هنوز تست end-to-end لازم است.
 
+## وضعیت پس از اصلاحات اخیر
+
+موارد زیر در کد فعلی پیاده‌سازی شده‌اند و باید با تست محیطی تأیید شوند:
+
+| مورد | وضعیت | شواهد |
+|---|---|---|
+| RBAC و Role Claims استاندارد | اصلاح‌شده | `AdminPermission`, `AdminAuthorization`, `AspNetRoleClaims` |
+| محدودسازی Museum Admin | اصلاح‌شده | claim `museum_scope` و فیلتر repository |
+| Audit مدیریتی | اصلاح‌شده | `AdminAuditEntries` و migration `20261023131239_AddAdminAuditEntry` |
+| گردش‌کار محتوای اثر | اصلاح‌شده | `ContentStatus` و migration `20261023135526_AddObjectContentWorkflow` |
+| MFA برای عملیات حساس | کنترل پایه اضافه‌شده | claim `amr=mfa`; جریان صدور MFA هنوز لازم است |
+| دسترسی اضطراری زمان‌دار | کنترل پایه اضافه‌شده | claim `emergency_until` |
+| تست policyهای authorization | اضافه‌شده | `tests/Artix.API.Tests.Unit/Authorization` |
+
+مواردی که هنوز **آسیب‌پذیری باز** هستند: OTP ثابت، ثبت‌نام عمومی Admin، آپلود عمومی و IDOR، refresh token plaintext/rotation، اعتماد به `X-Forwarded-For`، rate limit ناقص OTP، endpointهای خواندنی Admin، اعتبارسنجی ناکافی، security stamp غیرفعال و افشای خطای production. این موارد در بخش‌های C/H پایین‌تر باید قبل از انتشار بسته شوند.
+
 ## خلاصه اولویت
 
 | اولویت | تعداد | وضعیت |
