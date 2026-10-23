@@ -21,4 +21,6 @@ public static class AdminPermission
     public const string GamificationRead = "admin.gamification.read";
     public const string GamificationManage = "admin.gamification.manage";
     public const string AnalyticsRead = "admin.analytics.read";
+    public const string SupportRead = "admin.support.read";
+    public const string SupportManage = "admin.support.manage";
 }
