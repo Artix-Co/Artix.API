@@ -12,6 +12,8 @@
     <PackageReference Include="Elastic.Serilog.Sinks" />
     <PackageReference Include="Elasticsearch.Net" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
 
     <PackageReference Include="NEST" />
 

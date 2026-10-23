@@ -2,6 +2,7 @@ using System.IO.Compression;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
+using Artix.API.Endpoints.Middlewares;
 using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.Seed;

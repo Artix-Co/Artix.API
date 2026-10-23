@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Primitives;
+using Core.Contract.Primitives.Infra.Audit;
+using Services;
 
 public static class DependencyInjection
 {
@@ -49,6 +51,7 @@ public static class DependencyInjection
         services.AddTransient<SqlMigration>();
         services.AddTransient<SqlDataRemover>();
         services.AddTransient<SqlDataSeeder>();
+        services.AddScoped<IAdminAuditWriter, AdminAuditWriter>();
     
     }
 }

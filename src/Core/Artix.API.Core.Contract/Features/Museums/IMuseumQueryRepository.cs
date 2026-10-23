@@ -33,5 +33,6 @@ public interface IMuseumQueryRepository : IQueryRepository<Museum>
         CancellationToken cancellationToken = default);
 
     Task<PaginatedResult<AdminPaginatedMuseumsDto>> GetAllMuseumsAdminAsync(GetAdminPaginateMuseumsQuery dto,
+        IReadOnlyCollection<Guid>? allowedMuseumIds = null,
         CancellationToken cancellationToken = default);
 }
