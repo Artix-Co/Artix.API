@@ -581,6 +581,9 @@ Temporary Items
 # End of https://www.toptal.com/developers/gitignore/api/macos,dotnetcore,csharp,jetbrains+all,rider
 
 
-./graphify-out
+./graphify-out/*
 
-./mssql-data
+./mssql-data/*
+
+# Graphify generated knowledge graph
+/graphify-out/
