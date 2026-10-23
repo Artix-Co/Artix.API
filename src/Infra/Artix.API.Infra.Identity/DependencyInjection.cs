@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Infra.Identity;
 
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
@@ -21,247 +22,329 @@ using Services.SessionService;
 using Services.TokenProvider;
 using Services.TokenService;
 using Sql.Data.DbContexts;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 public static class DependencyInjection
 {
     public static void AddIdentityService(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddIdentity<AppUser, AppRole>(options =>
-            
-            
+        services.AddSingleton<IDeviceFingerprintService, DeviceFingerprintService>();
+
+
+        services
+            .AddIdentity<AppUser, AppRole>(options =>
             {
-                
-                // Password
-                options.Password.RequireDigit = true; // حداقل یک عدد
-                options.Password.RequireLowercase = true; // حداقل یک حرف کوچک
-                options.Password.RequireUppercase = true; // حداقل یک حرف بزرگ
-                options.Password.RequireNonAlphanumeric = true; // حداقل یک کاراکتر خاص
-                options.Password.RequiredLength = 12; // حداقل طول رمز
-                options.Password.RequiredUniqueChars = 6; // جلوگیری از Password های ساده
-
-
+                // -------------------------------------------------
                 // User
-                options.User.RequireUniqueEmail = true; // جلوگیری از Email تکراری
+                // -------------------------------------------------
 
+                options.User.RequireUniqueEmail = false;
 
+                options.User.AllowedUserNameCharacters =
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+
+                // -------------------------------------------------
+                // SignIn
+                // -------------------------------------------------
+
+                options.SignIn.RequireConfirmedAccount = false;
+
+                options.SignIn.RequireConfirmedEmail = false;
+
+                options.SignIn.RequireConfirmedPhoneNumber = true;
+
+                // -------------------------------------------------
+                // Password
+                // فقط برای Admin استفاده می‌شود
+                // -------------------------------------------------
+
+                options.Password.RequireDigit = true;
+
+                options.Password.RequireLowercase = true;
+
+                options.Password.RequireUppercase = true;
+
+                options.Password.RequireNonAlphanumeric = true;
+
+                options.Password.RequiredLength = 14;
+
+                options.Password.RequiredUniqueChars = 8;
+
+                // -------------------------------------------------
                 // Lockout
-                options.Lockout.MaxFailedAccessAttempts = 5; // بعد از ۵ بار Login اشتباه
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15); // ۱۵ دقیقه قفل
+                // -------------------------------------------------
+
                 options.Lockout.AllowedForNewUsers = true;
 
+                options.Lockout.MaxFailedAccessAttempts = 5;
 
-                // SignIn
-                options.SignIn.RequireConfirmedEmail = true; // تا Email تایید نشود Login ندارد
-                options.SignIn.RequireConfirmedAccount = true;
+                options.Lockout.DefaultLockoutTimeSpan =
+                    TimeSpan.FromMinutes(30);
 
+                // -------------------------------------------------
+                // Claims
+                // -------------------------------------------------
 
+                options.ClaimsIdentity.UserIdClaimType =
+                    ClaimTypes.NameIdentifier;
+
+                options.ClaimsIdentity.UserNameClaimType =
+                    ClaimTypes.Name;
+
+                options.ClaimsIdentity.RoleClaimType =
+                    ClaimTypes.Role;
+
+                options.ClaimsIdentity.SecurityStampClaimType =
+                    "sst";
+
+                // -------------------------------------------------
                 // Tokens
-                options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
-                
+                // -------------------------------------------------
+
+                options.Tokens.AuthenticatorIssuer = "Artix";
+
+                options.Tokens.ChangeEmailTokenProvider =
+                    TokenOptions.DefaultProvider;
+
+                options.Tokens.ChangePhoneNumberTokenProvider =
+                    TokenOptions.DefaultPhoneProvider;
+
+                options.Tokens.PasswordResetTokenProvider =
+                    TokenOptions.DefaultProvider;
             })
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
 
-        var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
-        ValidateAuthenticationSettings(authSettings);
 
-
-        services.Configure<PasswordHasherOptions>(options =>
-        {
-            options.CompatibilityMode =
-                PasswordHasherCompatibilityMode.IdentityV3;
-
-            options.IterationCount = 300000;
-        }).ConfigureApplicationCookie(options =>
-        {
-            options.Cookie.Name = "__Host.Auth";
-
-            options.Cookie.HttpOnly = true;
-
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-
-            options.Cookie.SameSite = SameSiteMode.Strict;
-
-            options.SlidingExpiration = false;
-
-            options.ExpireTimeSpan =
-                TimeSpan.FromMinutes(20);
-
-            options.Cookie.IsEssential = true;
-        });
-        ;
-
-
-        services.AddAuthentication(options =>
+        services
+            .AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
+                options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
             {
+                var authSettings = configuration.GetSection("Authentication").Get<AuthenticationSettings>();
+                authSettings = ValidateAuthenticationSettings(authSettings);
+
+
+                var key = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey));
+
                 options.RequireHttpsMetadata = true;
+
                 options.SaveToken = false;
+
                 options.IncludeErrorDetails = false;
+
                 options.RefreshOnIssuerKeyNotFound = true;
+
+                options.MapInboundClaims = false;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidateActor = true,
-                    ValidateTokenReplay = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = true,
+                    ValidIssuer = authSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = authSettings.Audience,
+                    ValidateLifetime = true,
                     RequireExpirationTime = true,
                     RequireSignedTokens = true,
-                    ClockSkew = TimeSpan.FromSeconds(30),
-                    ValidIssuer = authSettings.Issuer,
-                    ValidAudience = authSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(authSettings.IssuerSigningKey)),
-                    NameClaimType = "nameid"
+                    ClockSkew = TimeSpan.Zero,
+                    ValidateActor = false,
+                    ValidateTokenReplay = false,
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role
                 };
-
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        var accessToken = context.Request.Query["access_token"];
-                        if (!string.IsNullOrEmpty(accessToken) &&
-                            context.Request.Path.StartsWithSegments("/notificationHub"))
+                        if (string.IsNullOrWhiteSpace(context.Token))
                         {
-                            context.Token = accessToken;
+                            context.NoResult();
                         }
 
                         return Task.CompletedTask;
                     },
                     OnTokenValidated = async context =>
                     {
-                        // 1. چک Revocation از طریق Redis
-                        var revocationStore = context.HttpContext.RequestServices
-                            .GetRequiredService<ITokenRevocationStore>();
-                        var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                        var services = context.HttpContext.RequestServices;
 
-                        if (!string.IsNullOrEmpty(jti) && await revocationStore.IsRevokedAsync(jti))
-                        {
-                            context.Fail("Token has been revoked.");
-                            return;
-                        }
+                        // var principal = context.Principal;
+                        // if (principal is null)
+                        // {
+                        //     context.Fail("Unauthorized.");
+                        //     return;
+                        // }
 
-                        // 2. دریافت اطلاعات کاربر
-                        var userManager = context.HttpContext.RequestServices
-                            .GetRequiredService<UserManager<AppUser>>();
-                        var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                                          context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                        // ----------------------------------------------------
+                        // Claims
+                        // ----------------------------------------------------
 
-                        if (string.IsNullOrEmpty(userIdClaim))
-                        {
-                            context.Fail("Unauthorized: User ID claim missing.");
-                            return;
-                        }
+                        // var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                        // var jtiClaim = principal.FindFirst(JwtRegisteredClaimNames.Jti);
 
-                        var user = await userManager.FindByIdAsync(userIdClaim);
-                        if (user == null)
-                        {
-                            context.Fail("Unauthorized: User not found.");
-                            return;
-                        }
+                        // if (userIdClaim is null || jtiClaim is null)
+                        // {
+                        //     context.Fail("Invalid token.");
+                        //     return;
+                        // }
+                        //
+                        // if (!long.TryParse(userIdClaim.Value, out var userId))
+                        // {
+                        //     context.Fail("Invalid user.");
+                        //     return;
+                        // }
 
-                        // 3. چک تطابق Session (جدید)
-                        var sessionService = context.HttpContext.RequestServices
-                            .GetRequiredService<IUserSessionService>();
+                        // ----------------------------------------------------
+                        // User
+                        // ----------------------------------------------------
 
-                        var userIdLong = long.Parse(userIdClaim);
-                        var isValidSession = await sessionService.IsValidSessionAsync(userIdLong, jti);
+                        // var userManager = services.GetRequiredService<UserManager<AppUser>>();
 
-                        if (!isValidSession)
-                        {
-                            context.Fail("Session is no longer active. Please login again.");
-                            return;
-                        }
+                        // var user = await userManager.FindByIdAsync(userId.ToString());
 
-                        // 4. دریافت Session برای چک‌های بعدی (IP, UserAgent)
-                        var session = await sessionService.GetActiveSessionByJwtIdAsync(jti);
-                        if (session == null)
-                        {
-                            context.Fail("Session not found.");
-                            return;
-                        }
+                        // if (user is null)
+                        // {
+                        //     context.Fail("User not found.");
+                        //     return;
+                        // }
+                        //
+                        // if (user.IsBanned)
+                        // {
+                        //     context.Fail("User is banned.");
+                        //     return;
+                        // }
 
-                        // 5. اضافه کردن Session به HttpContext برای استفاده در سایر سرویس‌ها
-                        context.HttpContext.Items["UserSession"] = session;
+                        // ----------------------------------------------------
+                        // SecurityStamp
+                        // ----------------------------------------------------
 
-                        // 6. چک IP و UserAgent (مرحله 4 - اینجا هم انجام می‌شود)
-                        var currentIp = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                        var currentUserAgent = context.HttpContext.Request.Headers["User-Agent"].ToString();
+                        // var tokenStamp = principal.FindFirst("sst")?.Value;
 
-                        // اگر از X-Forwarded-For استفاده می‌کنید
-                        if (context.HttpContext.Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
-                        {
-                            currentIp = forwarded.FirstOrDefault()?.Split(',').FirstOrDefault() ?? currentIp;
-                        }
+                        // if (string.IsNullOrWhiteSpace(tokenStamp))
+                        // {
+                        //     context.Fail("Security stamp missing.");
+                        //     return;
+                        // }
 
-                        if (session.IpAddress != currentIp && session.IpAddress != "unknown")
-                        {
-                            // آپشن 1: فقط لاگ کن و اجازه بده
-                            var logger = context.HttpContext.RequestServices
-                                .GetRequiredService<ILogger<JwtBearerEvents>>();
-                            logger.LogWarning(
-                                "IP address mismatch for user {UserId}. Session IP: {SessionIp}, Current IP: {CurrentIp}",
-                                userIdLong, session.IpAddress, currentIp);
+                        // var currentStamp = await userManager.GetSecurityStampAsync(user);
 
-                            // آپشن 2: رد درخواست (امنیت بالاتر)
-                            // context.Fail("IP address mismatch. Possible token theft.");
-                            // return;
-                        }
+                        // if (!string.Equals(
+                        //         tokenStamp,
+                        //         currentStamp,
+                        //         StringComparison.Ordinal))
+                        // {
+                        //     context.Fail("Security stamp mismatch.");
+                        //     return;
+                        // }
+                        // ----------------------------------------------------
+                        // Revocation
+                        // ----------------------------------------------------
 
-                        if (session.UserAgent != currentUserAgent && session.UserAgent != "unknown")
-                        {
-                            var logger = context.HttpContext.RequestServices
-                                .GetRequiredService<ILogger<JwtBearerEvents>>();
-                            logger.LogWarning("UserAgent mismatch for user {UserId}", userIdLong);
-                        }
+                        // var revocationStore =
+                        //     services.GetRequiredService<ITokenRevocationStore>();
+
+                        // if (await revocationStore.IsRevokedAsync(jtiClaim.Value))
+                        // {
+                        //     context.Fail("Token revoked.");
+                        //     return;
+                        // }
+
+                        // ----------------------------------------------------
+                        // Session
+                        // ----------------------------------------------------
+
+                        // var sessionService =
+                        //     services.GetRequiredService<IUserSessionService>();
+
+                        // var sessionValid =
+                        //     await sessionService.IsValidSessionAsync(
+                        //         userId,
+                        //         jtiClaim.Value,
+                        //         context.HttpContext.RequestAborted);
+
+                        // if (!sessionValid)
+                        // {
+                        //     context.Fail("Session expired.");
+                        //     return;
+                        // }
+
+                        // ----------------------------------------------------
+                        // Fingerprint
+                        // ----------------------------------------------------
+
+                        // var fingerprintService =
+                        //     services.GetRequiredService<IDeviceFingerprintService>();
+                        //
+                        // var expected =
+                        //     fingerprintService.Create(context.HttpContext);
+                        //
+                        // var actual =
+                        //     principal.FindFirst("fingerprint")?.Value;
+
+                        // if (string.IsNullOrWhiteSpace(actual))
+                        // {
+                        //     context.Fail("Fingerprint missing.");
+                        //     return;
+                        // }
+                        //
+                        // if (!string.Equals(
+                        //         tokenStamp,
+                        //         currentStamp,
+                        //         StringComparison.Ordinal))
+                        // {
+                        //     context.Fail("Security stamp mismatch.");
+                        //     return;
+                        // }
                     },
-                    OnAuthenticationFailed = context =>
+                    // OnAuthenticationFailed = context =>
+                    // {
+                    //     context.NoResult();
+                    //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    //     return Task.CompletedTask;
+                    // },
+                    // OnChallenge = context =>
+                    // {
+                    //     context.HandleResponse();
+                    //
+                    //     context.Response.StatusCode = 401;
+                    //
+                    //     return context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+                    // },
+                    OnForbidden = context =>
                     {
-                        Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                        return Task.CompletedTask;
+                        context.Response.StatusCode = 403;
+
+                        return context.Response.WriteAsJsonAsync(new { error = "Forbidden" });
                     }
                 };
             });
 
-        services.AddAuthorization(options =>
-        {
-            // Policy for all Clients (regardless of ClientType)
-            options.AddPolicy("ClientPolicy", policy =>
-                policy.RequireRole(nameof(Role.Client)));
+        services
+            .AddOptions<AuthenticationSettings>()
+            .Bind(configuration.GetSection("Authentication"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-            // Policy for Admin
-            options.AddPolicy("AdminPolicy", policy =>
-                policy.RequireRole(nameof(Role.Admin)));
+        services.AddHttpContextAccessor();
 
-            // Policy for Emerald Clients
-            options.AddPolicy("EmeraldClientPolicy", policy =>
-                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Emerald)));
+        services.AddSingleton(TimeProvider.System);
 
-            // Policy for Ruby Clients
-            options.AddPolicy("RubyClientPolicy", policy =>
-                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Ruby)));
+        services.AddScoped<
+            IPasswordHasher<AppUser>,
+            PasswordHasher<AppUser>>();
 
-            // Policy for Turquoise Clients
-            options.AddPolicy("TurquoiseClientPolicy", policy =>
-                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Turquoise)));
+        services.AddSingleton<ILookupNormalizer,
+            UpperInvariantLookupNormalizer>();
 
-            // Policy for Pro Clients
-            options.AddPolicy("ProClientPolicy", policy =>
-                policy.RequireRole(nameof(Role.Client)).RequireClaim("ClientType", nameof(ClientType.Pro)));
 
-            // Optional: Policy for any user with a specific ClientType (if needed)
-            options.AddPolicy("AnyClientTypePolicy", policy =>
-                policy.RequireClaim("ClientType", nameof(ClientType.Emerald), nameof(ClientType.Ruby),
-                    nameof(ClientType.Turquoise), nameof(ClientType.Pro)));
-        });
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 
         services.AddScoped<IUserSessionService, UserSessionService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -269,7 +352,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
     }
 
-    private static void ValidateAuthenticationSettings(AuthenticationSettings? settings)
+    private static AuthenticationSettings ValidateAuthenticationSettings(AuthenticationSettings? settings)
     {
         if (settings == null ||
             string.IsNullOrEmpty(settings.Issuer) ||
@@ -279,5 +362,7 @@ public static class DependencyInjection
             throw new InvalidOperationException(
                 "Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");
         }
+
+        return settings;
     }
 }

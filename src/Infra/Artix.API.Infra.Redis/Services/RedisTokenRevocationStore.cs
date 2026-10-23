@@ -14,7 +14,7 @@ public sealed class RedisTokenRevocationStore : ITokenRevocationStore
         _logger = logger;
     }
 
-    public async Task RevokeAsync(string jti, DateTimeOffset expiry)
+    public async Task RevokeAsync(string jti, DateTimeOffset expiry, CancellationToken cancelationToken = default)
     {
         var db = _factory.Connection.GetDatabase();
         var key = $"revoked:{jti}";
@@ -24,7 +24,7 @@ public sealed class RedisTokenRevocationStore : ITokenRevocationStore
         _logger.LogWarning("Token revoked JTI={Jti} TTL={TtlSeconds}s", jti, ttl.TotalSeconds);
     }
 
-    public async Task<bool> IsRevokedAsync(string jti)
+    public async Task<bool> IsRevokedAsync(string jti, CancellationToken cancelationToken = default)
     {
         var db = _factory.Connection.GetDatabase();
         var key = $"revoked:{jti}";

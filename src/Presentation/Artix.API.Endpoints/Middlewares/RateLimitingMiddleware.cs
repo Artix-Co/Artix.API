@@ -24,14 +24,14 @@ public class RateLimitingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // لاگ برای دیباگ - حتماً این خط را ببینید
+
         this._logger.LogInformation($"[RATE-LIMIT] Request to: {context.Request.Path}");
 
         var endpoint = context.GetEndpoint();
         this._logger.LogInformation($"[RATE-LIMIT] Endpoint: {endpoint?.DisplayName ?? "NULL"}");
 
         var rateLimitAttribute = endpoint?.Metadata.GetMetadata<RateLimitAttribute>();
-        this._logger.LogInformation($"[RATE-LIMIT] Attribute found: {rateLimitAttribute != null}");
+
 
         if (rateLimitAttribute != null)
         {

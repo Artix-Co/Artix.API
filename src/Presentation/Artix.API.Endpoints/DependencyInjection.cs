@@ -62,9 +62,7 @@ public static class DependencyInjection
             context.Response.Headers["X-Frame-Options"] = "DENY";
             context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
             context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-            context.Response.Headers["Permissions-Policy"] =
-                "accelerometer=(), autoplay=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";
-        
+
             await next();
         });
 
@@ -77,8 +75,8 @@ public static class DependencyInjection
         // app.UseMiddleware<RequestSigningMiddleware>();      // 3. امضای درخواست
         app.UseMiddleware<ContinuousAuthorizationMiddleware>(); // 4. احراز هویت پیوسته
 
-        app.UseMiddleware<ApiVersionCheckMiddleware>();
-        app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
-      
+        // app.UseMiddleware<ApiVersionCheckMiddleware>();
+        // app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
+
     }
 }
