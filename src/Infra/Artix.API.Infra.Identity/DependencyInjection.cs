@@ -118,9 +118,16 @@ public static class DependencyInjection
 
         services.AddAuthorization(options =>
         {
+            options.AddPolicy(AdminPermission.ClientAccess, policy => policy.RequireAssertion(context =>
+                context.User.IsInRole(nameof(Role.Client)) ||
+                context.User.IsInRole(nameof(Role.Admin)) ||
+                context.User.IsInRole(nameof(Role.SuperAdmin))));
+
             foreach (var permission in typeof(AdminPermission).GetFields()
                          .Where(x => x.IsLiteral && x.FieldType == typeof(string))
-                         .Select(x => (string)x.GetRawConstantValue()!))
+                         .Select(x => (string)x.GetRawConstantValue()!)
+                         .Where(x => x != AdminPermission.ClientAccess)
+                         )
             {
                 options.AddPolicy(permission, policy => policy.RequireAssertion(context =>
                     AdminAuthorization.IsAllowed(context.User, permission)));

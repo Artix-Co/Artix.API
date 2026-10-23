@@ -2,6 +2,7 @@ namespace Artix.API.Core.Contract.Primitives.Authorization;
 
 public static class AdminPermission
 {
+    public const string ClientAccess = "client.access";
     public const string MuseumScopeClaim = "museum_scope";
     public const string PortalRead = "admin.portal.read";
     public const string MuseumRead = "admin.museum.read";

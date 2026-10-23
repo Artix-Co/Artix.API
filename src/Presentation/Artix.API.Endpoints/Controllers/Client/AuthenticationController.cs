@@ -21,6 +21,7 @@ public sealed class AuthenticationController : ClientBaseController
 
 
     [HttpPost("send-otp")]
+    [AllowAnonymous]
     // [RateLimit("send_otp", 120, 2)]     
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> SendOtpAsync(InitiateOTPAuthCommand command)
@@ -30,6 +31,7 @@ public sealed class AuthenticationController : ClientBaseController
     }
 
     [HttpPost("verify-otp")]
+    [AllowAnonymous]
     [RateLimit("verify_otp", 60, 5)]
     [ProducesResponseType(typeof(Result<VerifyOTPAuthDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> VerifyOtpAsync([FromBody] GetVerifyOTPAuthQuery query)
@@ -43,6 +45,7 @@ public sealed class AuthenticationController : ClientBaseController
 
 
     [HttpPost("renew-access-token")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(Result<ReNewAccessTokenDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LoginAsync([FromBody] GetReNewAccessTokenQuery query)
     {
