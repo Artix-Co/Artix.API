@@ -23,4 +23,6 @@ public static class AdminPermission
     public const string AnalyticsRead = "admin.analytics.read";
     public const string SupportRead = "admin.support.read";
     public const string SupportManage = "admin.support.manage";
+    public const string SensitiveOperations = "admin.sensitive.operations";
+    public const string EmergencyAccess = "admin.emergency.access";
 }
