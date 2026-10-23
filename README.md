@@ -11,10 +11,10 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-- API (via nginx): http://localhost:8080  
-- Liveness (`self` only): http://localhost:8080/health/live  
-- Readiness (SQL, Mongo, Redis, RabbitMQ): http://localhost:8080/health/ready  
-- Full report (JSON): http://localhost:8080/health  
+- API (via nginx): http://localhost:8080
+- Liveness (`self` only): http://localhost:8080/health/live
+- Readiness (SQL, Mongo, Redis, RabbitMQ): http://localhost:8080/health/ready
+- Full report (JSON): http://localhost:8080/health
 - Swagger (dev only): set `EnableSwagger=true` in `.env`
 
 ## Local development (without Docker)
@@ -53,10 +53,10 @@ Elasticsearch is optional; leave `Elasticsearch__Uri` empty to disable.
 
 ### Production URL
 
-- https://api.studioartix.ir  
-- Health: https://api.studioartix.ir/health/ready  
+- https://api.studioartix.ir
+- Health: https://api.studioartix.ir/health/ready
 
-Server path: `/root/artix-api`  
+Server path: `/root/artix-api`
 Compose: `docker-compose -p artix ...`
 
 ### GitLab CI (primary)

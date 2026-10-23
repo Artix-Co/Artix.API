@@ -8,6 +8,7 @@ using Artix.API.Core.Domain.Entities.JournalEntry;
 using Artix.API.Core.Domain.Entities.Museum;
 using Artix.API.Core.Domain.Entities.Season;
 using Artix.API.Core.Domain.Entities.User;
+using Core.Domain.Entities.Audit;
 using Core.Domain.Entities.File;
 using Core.Domain.Entities.Notification;
 using Core.Domain.Entities.Object;
@@ -65,6 +66,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
     public DbSet<UserXp> UserXps { get; set; }
     public DbSet<OTP> OTPs { get; set; }
     public DbSet<UserSession> UserSessions { get; set; }
+    public DbSet<AdminAuditEntry> AdminAuditEntries { get; set; }
 
 
     public DbSet<Museum> Museums { get; set; }

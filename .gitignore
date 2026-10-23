@@ -585,3 +585,7 @@ Temporary Items
 !.env.example
 dataprotection-keys/
 mssql-data/
+
+# Graphify generated knowledge graph
+/graphify-out/
+

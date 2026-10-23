@@ -9,8 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="coverlet.collector"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="xunit"/>
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,6 +28,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\Artix.API.Core.Domain\Artix.API.Core.Domain.csproj"/>
+    <ProjectReference Include="..\..\src\Core\Artix.API.Core.Contract\Artix.API.Core.Contract.csproj"/>
+    <ProjectReference Include="..\..\src\Infra\Artix.API.Infra.Identity\Artix.API.Infra.Identity.csproj"/>
   </ItemGroup>
 
 </Project>

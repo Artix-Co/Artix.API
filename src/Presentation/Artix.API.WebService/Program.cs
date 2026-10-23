@@ -2,6 +2,7 @@ using System.IO.Compression;
 using Artix.API.Core.ApplicationService.Exceptions;
 using Artix.API.Core.Contract.Primitives.Models;
 using Artix.API.Endpoints;
+using Artix.API.Endpoints.Middlewares;
 using Artix.API.Infra.Mongo.Data.Seed;
 using Artix.API.Infra.RabbitMQ.Services.Notification;
 using Artix.API.Infra.Sql.Data.Seed;
@@ -187,15 +188,15 @@ app.Use(async (ctx, next) =>
             {
                 var newPath = path.Substring(0, ampIndex);
                 var queryString = "?" + path.Substring(ampIndex + 1);
-                
+
                 ctx.Request.Path = newPath;
                 ctx.Request.QueryString = new QueryString(queryString);
-                
+
                 Log.Debug("Fixed malformed URL. Path: {NewPath}, Query: {Query}", newPath, queryString);
             }
         }
     }
-    
+
     await next();
 });
 
@@ -280,7 +281,7 @@ app.Use(async (ctx, next) =>
     {
         // Get just the path without query string for file lookup
         var cleanPath = remaining.Value.Split('?')[0].TrimStart('/');
-        
+
         if (cleanPath.Contains(".."))
         {
             ctx.Response.StatusCode = 400;
@@ -333,7 +334,7 @@ app.UseStaticFiles(new StaticFileOptions
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
     }
 });
-
+app.UseRouting();
 app.UseCustomMiddlewares(app.Environment);
 
 var enableSwagger = builder.Configuration.GetValue("EnableSwagger", isDevelopmentEnv);
@@ -343,11 +344,13 @@ if (enableSwagger)
     app.UseSwaggerUI();
 }
 
+app.UseForwardedHeaders();
 app.UseResponseCaching();
-app.UseRouting();
+
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AdminAuditMiddleware>();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

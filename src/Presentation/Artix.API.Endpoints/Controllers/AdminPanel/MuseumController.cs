@@ -6,6 +6,7 @@ using Core.Contract.Features.Museums.Admin.Commands.Remove;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateMuseums;
 using Core.Contract.Features.Museums.Admin.Queries.GetPaginateObjects;
 using Core.Contract.Primitives.Models;
+using Core.Contract.Primitives.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,7 @@ public sealed class MuseumController : AdminBaseController
 
 
     [HttpGet("all")]
+    [Authorize(Policy = AdminPermission.MuseumRead)]
     [ProducesResponseType(typeof(Result<PaginatedResult<AdminPaginatedMuseumsDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllMuseumsAsync([FromQuery] GetAdminPaginateMuseumsQuery clientQuery)
     {
@@ -28,6 +30,7 @@ public sealed class MuseumController : AdminBaseController
     
     
     [HttpGet("objects")]
+    [Authorize(Policy = AdminPermission.ObjectRead)]
     [ProducesResponseType(typeof(Result<PaginatedResult<AdminMuseumObjectDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMuseumObjectsAsync([FromQuery] GetAdminMuseumObjectsQuery clientQuery)
     {
@@ -35,7 +38,7 @@ public sealed class MuseumController : AdminBaseController
         return this.Ok(result);
     }
 
-    [Authorize]
+    [Authorize(Policy = AdminPermission.MuseumWrite)]
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddNewMuseumAsync([FromBody] AdminCreateNewMuseumCommand command)
@@ -45,7 +48,7 @@ public sealed class MuseumController : AdminBaseController
     }
     
     
-    [Authorize]
+    [Authorize(Policy = AdminPermission.MuseumDelete)]
     [HttpDelete("remove")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> RemoveMuseumAsync([FromBody] AdminRemoveMuseumCommand command)

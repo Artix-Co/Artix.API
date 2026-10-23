@@ -6,6 +6,7 @@ using Core.Contract.Features.Objects.Admin.Commands.Remove;
 using Core.Contract.Features.Objects.Admin.Commands.Upgrade;
 using Core.Contract.Features.Objects.Admin.Queries.GetObjectDetailsById;
 using Core.Contract.Primitives.Models;
+using Core.Contract.Primitives.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,7 @@ public sealed class ObjectController : AdminBaseController
     {
     }
 
-    [Authorize]
+    [Authorize(Policy = AdminPermission.ObjectWrite)]
     [HttpPatch("upgrade")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpgradeObject([FromBody] AdminUpgradeObjectCommand command)
@@ -29,6 +30,7 @@ public sealed class ObjectController : AdminBaseController
  
 
     [HttpGet("by-id")]
+    [Authorize(Policy = AdminPermission.ObjectRead)]
     [ProducesResponseType(typeof(Result<AdminObjectDetailsByIdDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetObject([FromQuery] GetAdminObjectDetailsByIdQuery query)
     {
@@ -36,7 +38,7 @@ public sealed class ObjectController : AdminBaseController
         return this.Ok(result);
     }
 
-    [Authorize]
+    [Authorize(Policy = AdminPermission.ObjectWrite)]
     [HttpPost("add-new")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddNewObjectAsync([FromBody] AdminCreateNewObjectCommand command)
@@ -47,7 +49,7 @@ public sealed class ObjectController : AdminBaseController
     
     
     
-    [Authorize]
+    [Authorize(Policy = AdminPermission.ObjectDelete)]
     [HttpDelete("remove")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> RemoveObjectAsync([FromBody] AdminRemoveObjectCommand command)

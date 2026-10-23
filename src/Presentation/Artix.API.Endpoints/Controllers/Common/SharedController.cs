@@ -1,9 +1,11 @@
 namespace Artix.API.Endpoints.Controllers.Common;
 
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/shared/[controller]")]
 public abstract class SharedController: ControllerBase
 {

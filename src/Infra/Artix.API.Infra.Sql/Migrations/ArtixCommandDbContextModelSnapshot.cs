@@ -25,6 +25,56 @@ namespace Artix.API.Infra.Sql.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Artix.API.Core.Domain.Entities.Audit.AdminAuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("Roles")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Path");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("AdminAuditEntries", (string)null);
+                });
+
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.Collection.Collection", b =>
                 {
                     b.Property<long>("Id")
@@ -646,6 +696,13 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Draft");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("smalldatetime");
@@ -1515,8 +1572,15 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("smalldatetime");
 
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("IpAddress")
                         .IsRequired()
@@ -1530,24 +1594,49 @@ namespace Artix.API.Infra.Sql.Migrations
 
                     b.Property<string>("JwtId")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("LastRefreshAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("smalldatetime");
 
+                    b.Property<int>("RefreshCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RefreshTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RefreshTokenFamilyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("RefreshTokenHash")
                         .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid?>("ReplacedBySessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RevokeReason")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("UserAgent")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
@@ -1560,32 +1649,39 @@ namespace Artix.API.Infra.Sql.Migrations
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("IX_UserSession_CreatedAt");
 
-                    b.HasIndex("ExpiresAt")
-                        .HasDatabaseName("IX_UserSession_ExpiresAt");
+                    b.HasIndex("DeviceId")
+                        .HasDatabaseName("IX_UserSessions_DeviceId");
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_UserSession_IsDeleted");
 
                     b.HasIndex("JwtId")
                         .IsUnique()
-                        .HasDatabaseName("UX_UserSession_JwtId");
+                        .HasDatabaseName("IX_UserSessions_JwtId");
 
-                    b.HasIndex("RevokedAt")
-                        .HasDatabaseName("IX_UserSession_RevokedAt");
+                    b.HasIndex("RefreshTokenFamilyId")
+                        .HasDatabaseName("IX_UserSessions_RefreshTokenFamilyId");
+
+                    b.HasIndex("RefreshTokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserSessions_RefreshTokenHash");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("IX_UserSession_UserId");
+                        .HasDatabaseName("IX_UserSessions_UserId");
 
                     b.HasIndex("BusinessId", "IsDeleted")
                         .HasDatabaseName("IX_UserSession_BusinessId_IsDeleted");
 
-                    b.HasIndex("UserId", "RevokedAt")
-                        .HasDatabaseName("IX_UserSession_UserId_RevokedAt");
+                    b.HasIndex("UserId", "LastSeenAt")
+                        .HasDatabaseName("IX_UserSessions_UserId_LastSeenAt");
 
-                    b.ToTable("UserSessions", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_UserSession_ExpiresAfterCreated", "[ExpiresAt] > [CreatedAt]");
-                        });
+                    b.HasIndex("UserId", "RefreshTokenExpiresAt")
+                        .HasDatabaseName("IX_UserSessions_UserId_RefreshTokenExpiresAt");
+
+                    b.HasIndex("UserId", "RevokedAt")
+                        .HasDatabaseName("IX_UserSessions_UserId_RevokedAt");
+
+                    b.ToTable("UserSessions", (string)null);
                 });
 
             modelBuilder.Entity("Artix.API.Core.Domain.Entities.User.UserStrike", b =>

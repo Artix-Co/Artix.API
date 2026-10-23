@@ -290,6 +290,7 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
     public async Task<PaginatedResult<AdminPaginatedMuseumsDto>> GetAllMuseumsAdminAsync(
         GetAdminPaginateMuseumsQuery dto,
+        IReadOnlyCollection<Guid>? allowedMuseumIds = null,
         CancellationToken cancellationToken = default)
     {
         var pageNumber = Math.Max(dto.PageNumber, 1);
@@ -297,6 +298,9 @@ public sealed class MuseumQueryRepository : QueryRepository<Museum>, IMuseumQuer
 
         var query = _queryDbContext.Museums.Where(m => m.IsDeleted == false)
             .AsQueryable();
+
+        if (allowedMuseumIds is not null)
+            query = query.Where(m => allowedMuseumIds.Contains(m.BusinessId));
 
         if (!string.IsNullOrWhiteSpace(dto.GlobalSearch))
         {

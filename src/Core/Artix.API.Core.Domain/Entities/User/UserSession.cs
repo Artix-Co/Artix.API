@@ -6,113 +6,136 @@ using Exceptions;
 public class UserSession : BaseEntity
 {
     public long UserId { get; private set; }
-    public virtual AppUser User { get; private set; }
+    public virtual AppUser User { get; private set; } = null!;
 
-    public string JwtId { get; private set; }
-    public string RefreshTokenHash { get; private set; }
+    // Session
+    public Guid SessionId { get; private set; }
 
-    public string IpAddress { get; private set; }
-    public string UserAgent { get; private set; }
+    // JWT
+    public string JwtId { get; private set; } = null!;
 
+    // Refresh Token
+    public Guid RefreshTokenFamilyId { get; private set; }
+    public string RefreshTokenHash { get; private set; } = null!;
+    public DateTime RefreshTokenExpiresAt { get; private set; }
 
-    public DateTime ExpiresAt { get; private set; }
+    // Device
+    public string DeviceId { get; private set; } = null!;
+    public string Fingerprint { get; private set; } = null!;
+
+    // Client
+    public string IpAddress { get; private set; } = null!;
+    public string UserAgent { get; private set; } = null!;
+
+    // Audit
+    public DateTime LastSeenAt { get; private set; }
+
+    // Revocation
     public DateTime? RevokedAt { get; private set; }
+    public string? RevokeReason { get; private set; }
+    public Guid? ReplacedBySessionId { get; private set; }
+
+    public DateTime? LastRefreshAt { get; private set; }
+
+    public int RefreshCount { get; private set; }
 
     public bool IsActive =>
-        RevokedAt == null && DateTime.UtcNow < ExpiresAt;
+        RevokedAt is null &&
+        DateTime.UtcNow < RefreshTokenExpiresAt;
 
-    protected UserSession()
+    private UserSession()
     {
     }
 
-    private UserSession(
-        long userId,
-        string jwtId,
-        string refreshTokenHash,
-        string ipAddress,
-        string userAgent,
-        TimeSpan lifetime)
-    {
-        if (userId <= 0)
-            throw DomainException.InvalidValue(nameof(userId));
-
-        if (string.IsNullOrWhiteSpace(jwtId))
-            throw DomainException.InvalidValue(nameof(JwtId));
-
-        if (string.IsNullOrWhiteSpace(refreshTokenHash))
-            throw DomainException.InvalidValue(nameof(RefreshTokenHash));
-
-        if (string.IsNullOrWhiteSpace(ipAddress))
-            throw DomainException.InvalidValue(nameof(IpAddress));
-
-        if (string.IsNullOrWhiteSpace(userAgent))
-            throw DomainException.InvalidValue(nameof(UserAgent));
-
-        if (lifetime <= TimeSpan.Zero)
-            throw DomainException.InvalidOperation("Session lifetime must be positive");
-
-
-        UserId = userId;
-        JwtId = jwtId;
-        RefreshTokenHash = refreshTokenHash;
-        IpAddress = ipAddress;
-        UserAgent = userAgent;
-
-
-        ExpiresAt = CreatedAt.Add(lifetime);
-    }
-
-
-    // ----------------------------
-    // Factory Method
-    // ----------------------------
     public static UserSession Create(
         long userId,
+        Guid sessionId,
+        Guid familyId,
         string jwtId,
         string refreshTokenHash,
+        DateTime refreshTokenExpiresAt,
+        string deviceId,
+        string fingerprint,
         string ipAddress,
-        string userAgent,
-        TimeSpan lifetime)
+        string userAgent)
     {
-        return new UserSession(
-            userId,
-            jwtId,
-            refreshTokenHash,
-            ipAddress,
-            userAgent,
-            lifetime);
+        return new UserSession
+        {
+            UserId = userId,
+            SessionId = sessionId,
+            RefreshTokenFamilyId = familyId,
+            JwtId = jwtId,
+            RefreshTokenHash = refreshTokenHash,
+            RefreshTokenExpiresAt = refreshTokenExpiresAt,
+            DeviceId = deviceId,
+            Fingerprint = fingerprint,
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
+            CreatedAt = DateTime.UtcNow,
+            LastSeenAt = DateTime.UtcNow
+        };
     }
 
-    // ----------------------------
-    // Domain Behaviors
-    // ----------------------------
-    public void Revoke()
+    public void Touch()
     {
-        if (RevokedAt != null)
-            return;
+        LastSeenAt = DateTime.UtcNow;
+    }
 
+    public void Revoke(string reason)
+    {
         RevokedAt = DateTime.UtcNow;
+        RevokeReason = reason;
     }
 
-    public void Extend(TimeSpan lifetime)
+    public void Replace(Guid newSessionId)
     {
-        if (!IsActive)
-            throw DomainException.InvalidOperation("Cannot extend inactive session");
-
-        if (lifetime <= TimeSpan.Zero)
-            throw DomainException.InvalidOperation("Session lifetime must be positive");
-
-        ExpiresAt = DateTime.UtcNow.Add(lifetime);
+        ReplacedBySessionId = newSessionId;
     }
 
-    public void RotateRefreshToken(string newHash)
+    public void RecordRefresh()
     {
-        if (!IsActive)
-            throw DomainException.InvalidOperation("Cannot rotate token for inactive session");
+        LastRefreshAt = DateTime.UtcNow;
+        RefreshCount++;
+    }
 
-        if (string.IsNullOrWhiteSpace(newHash))
-            throw DomainException.InvalidValue(nameof(RefreshTokenHash));
+    public void UpdateLastSeen()
+    {
+        LastSeenAt = DateTime.UtcNow;
+    }
 
-        RefreshTokenHash = newHash;
+
+
+    public void RecordRefresh(DateTime utcNow)
+    {
+        LastRefreshAt = utcNow;
+        RefreshCount++;
+    }
+    public void Rotate(
+        string newJwtId,
+        string newRefreshTokenHash,
+        DateTime refreshTokenExpiresAt,
+        DateTime utcNow)
+    {
+        JwtId = newJwtId;
+        RefreshTokenHash = newRefreshTokenHash;
+        RefreshTokenExpiresAt = refreshTokenExpiresAt;
+
+        LastRefreshAt = utcNow;
+        LastSeenAt = utcNow;
+
+        RefreshCount++;
+    }
+
+    public void UpdateLastSeen(DateTime utcNow)
+    {
+        LastSeenAt = utcNow;
+    }
+
+    public void Revoke(
+        string reason,
+        DateTime utcNow)
+    {
+        RevokedAt = utcNow;
+        RevokeReason = reason;
     }
 }

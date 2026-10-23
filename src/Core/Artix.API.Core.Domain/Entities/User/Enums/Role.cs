@@ -4,4 +4,14 @@ public enum Role
 {
     Client,
     Admin,
+    SuperAdmin,
+    MuseumAdmin,
+    ContentAdmin,
+    ReviewerModerator,
+    FinanceAdmin,
+    TechnicalAdmin,
+    DigitalAssetManager,
+    EngagementGamificationManager,
+    CustomerSupportAdmin,
+    ProductBusinessAnalyst,
 }

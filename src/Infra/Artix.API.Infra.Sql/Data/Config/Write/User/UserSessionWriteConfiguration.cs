@@ -3,7 +3,8 @@
 using Core.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-internal sealed class UserSessionWriteConfiguration 
+
+internal sealed class UserSessionWriteConfiguration
     : BaseEntityConfiguration<UserSession>
 {
     public override void Configure(EntityTypeBuilder<UserSession> entity)
@@ -13,72 +14,94 @@ internal sealed class UserSessionWriteConfiguration
         entity.ToTable("UserSessions");
 
         // --------------------
-        // Ignore computed props
-        // --------------------
-        entity.Ignore(x => x.IsActive);
-
-        // --------------------
         // Properties
         // --------------------
+
+        entity.Property(x => x.SessionId)
+            .IsRequired();
+
         entity.Property(x => x.JwtId)
-            .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(64)
+            .IsRequired();
+
+        entity.Property(x => x.RefreshTokenFamilyId)
+            .IsRequired();
 
         entity.Property(x => x.RefreshTokenHash)
-            .IsRequired()
-            .HasMaxLength(256);
+            .HasMaxLength(64)
+            .IsRequired();
+
+        entity.Property(x => x.DeviceId)
+            .HasMaxLength(128)
+            .IsRequired();
+
+        entity.Property(x => x.Fingerprint)
+            .HasMaxLength(128)
+            .IsRequired();
 
         entity.Property(x => x.IpAddress)
-            .IsRequired()
-            .HasMaxLength(45);
+            .HasMaxLength(45)
+            .IsRequired();
 
         entity.Property(x => x.UserAgent)
-            .IsRequired()
-            .HasMaxLength(500);
+            .HasMaxLength(1024)
+            .IsRequired();
+
+        entity.Property(x => x.RefreshTokenExpiresAt)
+            .IsRequired();
 
         entity.Property(x => x.CreatedAt)
             .IsRequired();
 
-        entity.Property(x => x.ExpiresAt)
+        entity.Property(x => x.LastSeenAt)
             .IsRequired();
 
-        entity.Property(x => x.RevokedAt)
-            .IsRequired(false);
+        entity.Property(x => x.RevokedAt);
+
+        entity.Property(x => x.RevokeReason)
+            .HasMaxLength(256);
 
         // --------------------
         // Relationships
         // --------------------
+
         entity.HasOne(x => x.User)
-            .WithMany(u => u.UserSessions)
+            .WithMany(x => x.UserSessions)
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade); 
-        
+            .OnDelete(DeleteBehavior.Cascade);
 
         // --------------------
-        // Indexes (critical)
+        // Indexes
         // --------------------
-        entity.HasIndex(x => x.JwtId)
-            .IsUnique()
-            .HasDatabaseName("UX_UserSession_JwtId");
 
         entity.HasIndex(x => x.UserId)
-            .HasDatabaseName("IX_UserSession_UserId");
+            .HasDatabaseName("IX_UserSessions_UserId");
 
-        entity.HasIndex(x => x.ExpiresAt)
-            .HasDatabaseName("IX_UserSession_ExpiresAt");
+        // entity.HasIndex(x => x.SessionId)
+        //     .IsUnique()
+        //     .HasDatabaseName("IX_UserSessions_SessionId");
 
-        entity.HasIndex(x => x.RevokedAt)
-            .HasDatabaseName("IX_UserSession_RevokedAt");
+        entity.HasIndex(x => x.JwtId)
+            .IsUnique()
+            .HasDatabaseName("IX_UserSessions_JwtId");
+
+        entity.HasIndex(x => x.RefreshTokenHash)
+            .IsUnique()
+            .HasDatabaseName("IX_UserSessions_RefreshTokenHash");
+
+        entity.HasIndex(x => x.RefreshTokenFamilyId)
+            .HasDatabaseName("IX_UserSessions_RefreshTokenFamilyId");
+
+        entity.HasIndex(x => x.DeviceId)
+            .HasDatabaseName("IX_UserSessions_DeviceId");
 
         entity.HasIndex(x => new { x.UserId, x.RevokedAt })
-            .HasDatabaseName("IX_UserSession_UserId_RevokedAt");
+            .HasDatabaseName("IX_UserSessions_UserId_RevokedAt");
 
-        // --------------------
-        // Check constraints (data sanity)
-        // --------------------
-        entity.HasCheckConstraint(
-            "CK_UserSession_ExpiresAfterCreated",
-            "[ExpiresAt] > [CreatedAt]"
-        );
+        entity.HasIndex(x => new { x.UserId, x.LastSeenAt })
+            .HasDatabaseName("IX_UserSessions_UserId_LastSeenAt");
+
+        entity.HasIndex(x => new { x.UserId, x.RefreshTokenExpiresAt })
+            .HasDatabaseName("IX_UserSessions_UserId_RefreshTokenExpiresAt");
     }
 }

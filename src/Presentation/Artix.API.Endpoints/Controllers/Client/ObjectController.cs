@@ -1,5 +1,6 @@
 ﻿namespace Artix.API.Endpoints.Controllers.Client;
 
+using Attributes;
 using Common;
 using Core.Contract.Features.Objects.Client.Commands.AddToUserCollection;
 using Core.Contract.Features.Objects.Client.Commands.Scan;
@@ -28,6 +29,7 @@ public sealed class ObjectController : ClientBaseController
 
     [Authorize]
     [HttpPost("scan")]
+    [RateLimit("user_scan", 60, 5)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ScanObject([FromBody] ClientScanObjectCommand command)
     {

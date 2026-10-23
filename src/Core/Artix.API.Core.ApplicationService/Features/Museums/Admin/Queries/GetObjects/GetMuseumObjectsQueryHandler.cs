@@ -23,6 +23,7 @@ internal sealed class
     public override async Task<Result<PaginatedResult<AdminMuseumObjectDto>>> Handle(GetAdminMuseumObjectsQuery query,
         CancellationToken cancellationToken)    
     {
+        await this.EnsureMuseumAccessAsync(query.MuseumId, cancellationToken);
         var result = await this._museumQueryRepository.GetAdminObjectsAsync(query,cancellationToken);
         return Result<PaginatedResult<AdminMuseumObjectDto>>.Success(result);
     }

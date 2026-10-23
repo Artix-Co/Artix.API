@@ -52,6 +52,8 @@ internal sealed class CreateNewObjectCommandHandler : CommandHandlerBase<AdminCr
             throw ApplicationServiceNotFoundException.ForEntity(nameof(museum), command.MuseumId);
         }
 
+        await this.EnsureMuseumAccessAsync(command.MuseumId, cancellationToken);
+
   
         var obj = Object.Create(
             command.Name,

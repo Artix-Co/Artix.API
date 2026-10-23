@@ -2,7 +2,9 @@
 
 using System.Security.Claims;
 using Contract.Primitives.Handlers;
+using Contract.Primitives.Authorization;
 using Domain.Entities.User;
+using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +57,19 @@ public abstract class CommandHandlerBase<TCommand> : ICommandHandler<TCommand>
 
         _logger.LogInformation("Successfully retrieved user {UserName} with ID {UserId}.", user.UserName, user.Id);
         return user;
+    }
+
+    protected async Task EnsureMuseumAccessAsync(Guid museumBusinessId, CancellationToken cancellationToken)
+    {
+        var user = await GetCurrentUserAsync(cancellationToken);
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Contains(nameof(Role.Admin)) || roles.Contains(nameof(Role.SuperAdmin)))
+            return;
+
+        var claims = await _userManager.GetClaimsAsync(user);
+        if (!claims.Any(x => x.Type == AdminPermission.MuseumScopeClaim &&
+                             string.Equals(x.Value, museumBusinessId.ToString(), StringComparison.OrdinalIgnoreCase)))
+            throw new UnauthorizedAccessException("User is not assigned to this museum.");
     }
 
 
