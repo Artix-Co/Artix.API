@@ -123,9 +123,7 @@ public static class DependencyInjection
                          .Select(x => (string)x.GetRawConstantValue()!))
             {
                 options.AddPolicy(permission, policy => policy.RequireAssertion(context =>
-                    context.User.IsInRole(nameof(Role.Admin)) ||
-                    context.User.IsInRole(nameof(Role.SuperAdmin)) ||
-                    context.User.HasClaim("permission", permission)));
+                    AdminAuthorization.IsAllowed(context.User, permission)));
             }
         });
 

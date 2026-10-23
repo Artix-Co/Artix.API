@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Contract.Primitives.Handlers;
 using Contract.Primitives.Authorization;
 using Domain.Entities.User;
+using Domain.Entities.User.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

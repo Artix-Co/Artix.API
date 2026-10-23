@@ -131,8 +131,8 @@ public class SqlDataSeeder
             [nameof(Role.ReviewerModerator)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.ObjectRead, AdminPermission.ContentApprove, AdminPermission.ContentPublish },
             [nameof(Role.FinanceAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.FinanceRead, AdminPermission.FinanceManage },
             [nameof(Role.TechnicalAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.TechnicalRead, AdminPermission.TechnicalManage },
-            [nameof(Role.DigitalAssetManager)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
-            [nameof(Role.EngagementGamificationManager)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
+            [nameof(Role.DigitalAssetManager)] = new[] { AdminPermission.PortalRead, AdminPermission.DigitalAssetRead, AdminPermission.DigitalAssetManage },
+            [nameof(Role.EngagementGamificationManager)] = new[] { AdminPermission.PortalRead, AdminPermission.GamificationRead, AdminPermission.GamificationManage },
             [nameof(Role.CustomerSupportAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead },
             [nameof(Role.ProductBusinessAnalyst)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.ObjectRead, AdminPermission.FinanceRead },
         };

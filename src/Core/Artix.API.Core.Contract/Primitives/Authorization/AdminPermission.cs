@@ -16,4 +16,8 @@ public static class AdminPermission
     public const string FinanceManage = "admin.finance.manage";
     public const string TechnicalRead = "admin.technical.read";
     public const string TechnicalManage = "admin.technical.manage";
+    public const string DigitalAssetRead = "admin.digital_asset.read";
+    public const string DigitalAssetManage = "admin.digital_asset.manage";
+    public const string GamificationRead = "admin.gamification.read";
+    public const string GamificationManage = "admin.gamification.manage";
 }

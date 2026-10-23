@@ -7,22 +7,16 @@
     "ast_empty": true
   },
   "Artix.API.sln": {
-    "mtime": 1782486998.003595,
-    "seen": 1792754324.03398,
-    "ast_hash": "d7641d787084845fab0a10ed65526f9e",
-    "semantic_hash": "d7641d787084845fab0a10ed65526f9e"
+    "mtime": 1792755549.267906,
+    "seen": 1792756624.5711958,
+    "ast_hash": "9ba269be431772537c58b28f5c9c0c2f",
+    "semantic_hash": ""
   },
   "Artix.API.slnx": {
     "mtime": 1758443459.8772786,
     "seen": 1792754324.034212,
     "ast_hash": "0e56218a45554da3e8a8018a6b80204b",
     "semantic_hash": "0e56218a45554da3e8a8018a6b80204b"
-  },
-  "namespace_optimizer.sh": {
-    "mtime": 1765265932.5948343,
-    "seen": 1792754324.034336,
-    "ast_hash": "f7c196c6603374af01d9842901560a4e",
-    "semantic_hash": "f7c196c6603374af01d9842901560a4e"
   },
   "src/Core/Artix.API.Core.ApplicationService/Artix.API.Core.ApplicationService.csproj": {
     "mtime": 1780073929.1154492,
@@ -79,16 +73,16 @@
     "semantic_hash": "4cb9092107ba297914527f128ae2e8ca"
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Museums/Admin/Queries/GetObjects/GetMuseumObjectsQueryHandler.cs": {
-    "mtime": 1776706814.4713,
-    "seen": 1792754324.0365288,
-    "ast_hash": "42fc97a0eb3de58a6c8250f3fa213389",
-    "semantic_hash": "42fc97a0eb3de58a6c8250f3fa213389"
+    "mtime": 1792758267.203371,
+    "seen": 1792761828.324131,
+    "ast_hash": "77272d68fc789bab4dd028aee22c0c49",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Museums/Admin/Queries/GetPaginateMuseums/GetPaginateMuseumsQueryHandler.cs": {
-    "mtime": 1780072424.7126544,
-    "seen": 1792754324.036709,
-    "ast_hash": "406c65ef89aff2a08afc17a64fe27019",
-    "semantic_hash": "406c65ef89aff2a08afc17a64fe27019"
+    "mtime": 1792758541.5798552,
+    "seen": 1792761828.3241339,
+    "ast_hash": "f13920d59be56ed0f8f4b61c98ee6350",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Museums/Client/Queries/GetAll/GetAllMuseumsQueryHandler.cs": {
     "mtime": 1780072163.8694613,
@@ -127,10 +121,10 @@
     "semantic_hash": "127ffd5e9497f05618df52cd23d81d72"
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Objects/Admin/Commands/CreateNewObject/CreateNewObjectCommandHandler.cs": {
-    "mtime": 1780072505.843011,
-    "seen": 1792754324.038142,
-    "ast_hash": "ad77507323720391b9d223df1b4a647c",
-    "semantic_hash": "ad77507323720391b9d223df1b4a647c"
+    "mtime": 1792758267.1644616,
+    "seen": 1792761828.324152,
+    "ast_hash": "6f1e79223af191a71e26443884194d31",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Objects/Admin/Commands/Remove/RemoveObjectCommandHandler.cs": {
     "mtime": 1780072513.047248,
@@ -277,10 +271,10 @@
     "semantic_hash": "900110f93abfed51ca4b2dd4f1719cc8"
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Users/Client/Queries/GetVerifyOTPAuth/GetVerifyOTPAuthHandler.cs": {
-    "mtime": 1782491709.0049758,
-    "seen": 1792754324.0431218,
-    "ast_hash": "e92ac6ef7040104236dc47a80868eedf",
-    "semantic_hash": "e92ac6ef7040104236dc47a80868eedf"
+    "mtime": 1792755549.2684708,
+    "seen": 1792756624.571282,
+    "ast_hash": "351e4c38e37f07633e01c71e3f7c0a23",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.ApplicationService/Features/Versions/Client/Queries/GetLast/GetLastVersionQueryHandler.cs": {
     "mtime": 1765268706.4145546,
@@ -289,10 +283,10 @@
     "semantic_hash": "3a62c4b93a53e867cbb995ac05388bd1"
   },
   "src/Core/Artix.API.Core.ApplicationService/Primitives/CommandHandlerBase.cs": {
-    "mtime": 1765518754.6802418,
-    "seen": 1792754324.04349,
-    "ast_hash": "7c886ca028960a0228f729cfe5a55098",
-    "semantic_hash": "7c886ca028960a0228f729cfe5a55098"
+    "mtime": 1792760952.2686136,
+    "seen": 1792761828.324218,
+    "ast_hash": "819d6fb2c8fe4a1713093edca290c424",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.ApplicationService/Primitives/NotificationHandlerBase.cs": {
     "mtime": 1765265932.599802,
@@ -301,10 +295,10 @@
     "semantic_hash": "d698ec3f438333d436f273c4346ff1ac"
   },
   "src/Core/Artix.API.Core.ApplicationService/Primitives/QueryHandlerBase.cs": {
-    "mtime": 1765712331.74276,
-    "seen": 1792754324.0437381,
-    "ast_hash": "db51b2a59e56c76c79ced2ad5a972613",
-    "semantic_hash": "db51b2a59e56c76c79ced2ad5a972613"
+    "mtime": 1792758541.4178011,
+    "seen": 1792761828.324223,
+    "ast_hash": "9742723bf7c90181115b07050cbb4ab4",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.Contract/Artix.API.Core.Contract.csproj": {
     "mtime": 1782458704.3786054,
@@ -523,10 +517,10 @@
     "semantic_hash": "718a325de7f5dfcb3f345bd191c7d760"
   },
   "src/Core/Artix.API.Core.Contract/Features/Museums/IMuseumQueryRepository.cs": {
-    "mtime": 1780072424.7158575,
-    "seen": 1792754324.0496562,
-    "ast_hash": "861f71800f56c0dc9be5576bce0ca9c2",
-    "semantic_hash": "861f71800f56c0dc9be5576bce0ca9c2"
+    "mtime": 1792758541.4725785,
+    "seen": 1792761828.324311,
+    "ast_hash": "e132f2fe3cc97f8aeae931d185a8bc86",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.Contract/Features/Notifications/Commands/AddUserNotification/AddUserNotificationCommand.cs": {
     "mtime": 1765265701.4663715,
@@ -1003,8 +997,8 @@
     "semantic_hash": "1e0da71d6c5795b51f0ed14fb63eefa4"
   },
   "src/Core/Artix.API.Core.Contract/Primitives/Infra/Identity/IDeviceFingerprintService.cs": {
-    "mtime": 1782484484.2101786,
-    "seen": 1792754324.0635672,
+    "mtime": 1792755176.7599823,
+    "seen": 1792756624.571528,
     "ast_hash": "86657be5a4ca7d55a651d1ef8797f2a5",
     "semantic_hash": "86657be5a4ca7d55a651d1ef8797f2a5"
   },
@@ -1021,8 +1015,8 @@
     "semantic_hash": "783e7b0f73348e4bdeae2b11438a78e7"
   },
   "src/Core/Artix.API.Core.Contract/Primitives/Infra/Identity/IUserSessionService.cs": {
-    "mtime": 1782485881.7294054,
-    "seen": 1792754324.064109,
+    "mtime": 1792755176.760414,
+    "seen": 1792756624.571533,
     "ast_hash": "f0f915ecb6690db6864a9ac01af39617",
     "semantic_hash": "f0f915ecb6690db6864a9ac01af39617"
   },
@@ -1165,8 +1159,8 @@
     "semantic_hash": "90d4c0e4fc250b5ae060659142487d26"
   },
   "src/Core/Artix.API.Core.Contract/Primitives/Infra/Redis/ITokenRevocationStore.cs": {
-    "mtime": 1782486134.8083687,
-    "seen": 1792754324.068375,
+    "mtime": 1792755176.7611852,
+    "seen": 1792756624.571575,
     "ast_hash": "402cf72630f72ef72f77cf7a97d8d01f",
     "semantic_hash": "402cf72630f72ef72f77cf7a97d8d01f"
   },
@@ -1519,10 +1513,10 @@
     "semantic_hash": "2b6f2bdeeeaa56e920b39bea2d2135bf"
   },
   "src/Core/Artix.API.Core.Domain/Entities/User/Enums/Role.cs": {
-    "mtime": 1765265701.706589,
-    "seen": 1792754324.0777442,
-    "ast_hash": "4d52ab0f380fb96aab70453b5cf2c77f",
-    "semantic_hash": "4d52ab0f380fb96aab70453b5cf2c77f"
+    "mtime": 1792757029.25463,
+    "seen": 1792761828.324725,
+    "ast_hash": "9e30761f08c4560d8632e7d5792b8961",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.Domain/Entities/User/Friendship.cs": {
     "mtime": 1765265701.7070289,
@@ -1567,10 +1561,10 @@
     "semantic_hash": "ffe03af020c5bb9312e117821d74b339"
   },
   "src/Core/Artix.API.Core.Domain/Entities/User/UserSession.cs": {
-    "mtime": 1782486074.0024686,
-    "seen": 1792754324.07915,
-    "ast_hash": "e7ba0e29474f34905a47cde18b950b1c",
-    "semantic_hash": "e7ba0e29474f34905a47cde18b950b1c"
+    "mtime": 1792755176.7621756,
+    "seen": 1792756624.571691,
+    "ast_hash": "7b5b221c6ef8dc48f92d97f5875a4a08",
+    "semantic_hash": ""
   },
   "src/Core/Artix.API.Core.Domain/Entities/User/UserStrike.cs": {
     "mtime": 1765265701.7099907,
@@ -1711,34 +1705,34 @@
     "semantic_hash": "eb0be837fa7404d8a4c113ae7676917a"
   },
   "src/Infra/Artix.API.Infra.Identity/DependencyInjection.cs": {
-    "mtime": 1782490031.393251,
-    "seen": 1792754324.0825012,
-    "ast_hash": "8f7a082b7782edb44508260275827a47",
-    "semantic_hash": "8f7a082b7782edb44508260275827a47"
+    "mtime": 1792757060.8796203,
+    "seen": 1792761828.3248,
+    "ast_hash": "2755e6d1b9228fa3b950df23706451b6",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Identity/Services/AuthenticationService.cs": {
-    "mtime": 1792754395.8641055,
-    "seen": 1792754707.6128771,
+    "mtime": 1792755176.7648666,
+    "seen": 1792756624.5717351,
     "ast_hash": "701349396d75fab3381820a58daa8f99",
     "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Identity/Services/SessionService/UserSessionService.cs": {
-    "mtime": 1782486331.0277293,
-    "seen": 1792754324.082765,
+    "mtime": 1792755176.7658868,
+    "seen": 1792756624.571737,
     "ast_hash": "e4ed5b0dd7cd9ddff734860f2af5a7d3",
     "semantic_hash": "e4ed5b0dd7cd9ddff734860f2af5a7d3"
   },
   "src/Infra/Artix.API.Infra.Identity/Services/TokenProvider/DeviceFingerprintService.cs": {
-    "mtime": 1782484511.3719995,
-    "seen": 1792754324.082929,
-    "ast_hash": "01a2da6876af1145309ff2180153ae8e",
-    "semantic_hash": "01a2da6876af1145309ff2180153ae8e"
+    "mtime": 1792755176.7667334,
+    "seen": 1792756624.571738,
+    "ast_hash": "d4ee5ad66de0f80d62e89761999fbb7e",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Identity/Services/TokenProvider/JwtTokenGenerator.cs": {
-    "mtime": 1782491400.0988443,
-    "seen": 1792754324.083084,
-    "ast_hash": "dab2b002c81f8bde8a6fc2a4feaf5d8c",
-    "semantic_hash": "dab2b002c81f8bde8a6fc2a4feaf5d8c"
+    "mtime": 1792757060.9193854,
+    "seen": 1792761828.324809,
+    "ast_hash": "cb6179128de5b2f111d74893cf3eed81",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Identity/Services/TokenService/TokenService.cs": {
     "mtime": 1780861463.019355,
@@ -1975,8 +1969,8 @@
     "semantic_hash": "5080c12daaf398521c4571cbb0aea899"
   },
   "src/Infra/Artix.API.Infra.Redis/Services/RedisTokenRevocationStore.cs": {
-    "mtime": 1782486134.7942665,
-    "seen": 1792754324.088377,
+    "mtime": 1792755176.7679734,
+    "seen": 1792756624.57181,
     "ast_hash": "81205a45324c3243d5b0b4d318941c39",
     "semantic_hash": "81205a45324c3243d5b0b4d318941c39"
   },
@@ -2443,8 +2437,8 @@
     "semantic_hash": "4fb1df612a3dcbf839594dc37d5fc8a4"
   },
   "src/Infra/Artix.API.Infra.Sql/Data/Config/Write/User/UserSessionWriteConfiguration.cs": {
-    "mtime": 1782486961.3190405,
-    "seen": 1792754324.0989099,
+    "mtime": 1792755176.7685497,
+    "seen": 1792756624.571977,
     "ast_hash": "ac87e142459c1c1e436ff4f779bde0c3",
     "semantic_hash": "ac87e142459c1c1e436ff4f779bde0c3"
   },
@@ -2479,10 +2473,10 @@
     "semantic_hash": "515e34459e072388cb72b4bd005697e3"
   },
   "src/Infra/Artix.API.Infra.Sql/Data/DbContexts/ArtixCommandDbContext.cs": {
-    "mtime": 1765791119.7593694,
-    "seen": 1792754324.099683,
-    "ast_hash": "b3b7df88bbf15bef218fbb443d734fe5",
-    "semantic_hash": "b3b7df88bbf15bef218fbb443d734fe5"
+    "mtime": 1792759286.6507304,
+    "seen": 1792761828.32511,
+    "ast_hash": "0d977b4ec43a7e961302310ee4ba9c24",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Sql/Data/DbContexts/ArtixQueryDbContext.cs": {
     "mtime": 1765265701.6295545,
@@ -2515,10 +2509,10 @@
     "semantic_hash": "7e8846a26aed75df0ed936dc56897aad"
   },
   "src/Infra/Artix.API.Infra.Sql/Data/Seed/SqlDataSeeder.cs": {
-    "mtime": 1779955251.437983,
-    "seen": 1792754324.100351,
-    "ast_hash": "055532c644cbbdb8cf50f5d3bd1aed72",
-    "semantic_hash": "055532c644cbbdb8cf50f5d3bd1aed72"
+    "mtime": 1792757125.0176477,
+    "seen": 1792761828.3251252,
+    "ast_hash": "1a453f9cacb32d9417c1cf7a87b87dfe",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Sql/Data/Seed/SqlMigration.cs": {
     "mtime": 1765265701.7246287,
@@ -2533,10 +2527,10 @@
     "semantic_hash": "c26d1435e5a66f7ddbf66c0f005c462e"
   },
   "src/Infra/Artix.API.Infra.Sql/DependencyInjection.cs": {
-    "mtime": 1777403604.0422535,
-    "seen": 1792754324.100682,
-    "ast_hash": "163ee61c305a9011efd21820ba9a9cea",
-    "semantic_hash": "163ee61c305a9011efd21820ba9a9cea"
+    "mtime": 1792759286.690216,
+    "seen": 1792761828.3251321,
+    "ast_hash": "d48014fdc02615018ac0ee090f208a76",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Sql/Exceptions/InfrastructureNotFoundException.cs": {
     "mtime": 1765265701.6300457,
@@ -2641,10 +2635,10 @@
     "semantic_hash": "c274337bd6c89765edb2694cd83b74a0"
   },
   "src/Infra/Artix.API.Infra.Sql/Migrations/ArtixCommandDbContextModelSnapshot.cs": {
-    "mtime": 1782487057.346127,
-    "seen": 1792754324.102902,
-    "ast_hash": "dea3214b3f3aa87bf32ba1112f924af3",
-    "semantic_hash": "dea3214b3f3aa87bf32ba1112f924af3"
+    "mtime": 1792761159.9761138,
+    "seen": 1792761828.3251798,
+    "ast_hash": "ea827608078f1a38cdf8307575dc4362",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Sql/Primitives/CommandRepository.cs": {
     "mtime": 1779454382.4013433,
@@ -2689,10 +2683,10 @@
     "semantic_hash": "2696e0b3d6afcc1ae39d89d488789858"
   },
   "src/Infra/Artix.API.Infra.Sql/Repositories/Features/Museums/MuseumQueryRepository.cs": {
-    "mtime": 1780072424.7228522,
-    "seen": 1792754324.103848,
-    "ast_hash": "b25fe344c2bd9d96d7128013b84b17b1",
-    "semantic_hash": "b25fe344c2bd9d96d7128013b84b17b1"
+    "mtime": 1792758541.5286372,
+    "seen": 1792761828.3251991,
+    "ast_hash": "d7e23e5bcc5d5c4817aed41432a55590",
+    "semantic_hash": ""
   },
   "src/Infra/Artix.API.Infra.Sql/Repositories/Features/Notifications/NotificationCommandRepository.cs": {
     "mtime": 1765265701.6344552,
@@ -2767,22 +2761,22 @@
     "semantic_hash": "1ae2b3615f8faee7cb095d8c0bf6084d"
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/AdminPanel/MuseumController.cs": {
-    "mtime": 1780072577.0270357,
-    "seen": 1792754324.10544,
-    "ast_hash": "b13f010c39760efcf60cdd363db95f91",
-    "semantic_hash": "b13f010c39760efcf60cdd363db95f91"
+    "mtime": 1792757170.1467614,
+    "seen": 1792761828.325232,
+    "ast_hash": "e3d87da9a7be1cc62c94dcb9e0eb80de",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/AdminPanel/ObjectController.cs": {
-    "mtime": 1780072577.0385807,
-    "seen": 1792754324.105551,
-    "ast_hash": "372d73221176190bca10f8516486adea",
-    "semantic_hash": "372d73221176190bca10f8516486adea"
+    "mtime": 1792757170.1848261,
+    "seen": 1792761828.325234,
+    "ast_hash": "55b4071aa0553f72eb12800302aa580d",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/AdminPanel/UserController.cs": {
-    "mtime": 1780072577.0493996,
-    "seen": 1792754324.10566,
-    "ast_hash": "32cce889a46d58d252b20f90142a7cde",
-    "semantic_hash": "32cce889a46d58d252b20f90142a7cde"
+    "mtime": 1792757170.2206044,
+    "seen": 1792761828.325236,
+    "ast_hash": "de01b9d69c5791b49e7fac02548da997",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/Client/AuthenticationController.cs": {
     "mtime": 1780870220.790076,
@@ -2815,10 +2809,10 @@
     "semantic_hash": "e4817162803cd2ccebce462ae5cd8151"
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/Common/AdminBaseController.cs": {
-    "mtime": 1765265701.806079,
-    "seen": 1792754324.106333,
-    "ast_hash": "98c83879fb6d9cc3cea4d71fcb705291",
-    "semantic_hash": "98c83879fb6d9cc3cea4d71fcb705291"
+    "mtime": 1792757170.1060631,
+    "seen": 1792761828.3252501,
+    "ast_hash": "91933cacbeab9158323703d24c2bb5d5",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.Endpoints/Controllers/Common/ClientBaseController.cs": {
     "mtime": 1765265701.806336,
@@ -2839,10 +2833,10 @@
     "semantic_hash": "0e173fa51d1f20b10314083da84cba79"
   },
   "src/Presentation/Artix.API.Endpoints/DependencyInjection.cs": {
-    "mtime": 1782489575.1947055,
-    "seen": 1792754324.1067982,
-    "ast_hash": "09adeeafa3e67fba7ff259e0c5455990",
-    "semantic_hash": "09adeeafa3e67fba7ff259e0c5455990"
+    "mtime": 1792755176.7718146,
+    "seen": 1792756624.572087,
+    "ast_hash": "ea12c96523dfe6b03ac0d3c3888accf7",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.Endpoints/Extensions/LowercaseParameterTransformer.cs": {
     "mtime": 1765265701.8068979,
@@ -2881,16 +2875,16 @@
     "semantic_hash": "34b5455e7b3afdb86ebfcc3a9c064a84"
   },
   "src/Presentation/Artix.API.Endpoints/Middlewares/RateLimitingMiddleware.cs": {
-    "mtime": 1782487712.2460663,
-    "seen": 1792754324.107532,
-    "ast_hash": "54ed75a407b04a005f0e3a98ac7e0830",
-    "semantic_hash": "54ed75a407b04a005f0e3a98ac7e0830"
+    "mtime": 1792755176.772566,
+    "seen": 1792756624.572098,
+    "ast_hash": "6062257efee145da982a35fbaeb6ed99",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.WebService/Artix.API.WebService.csproj": {
-    "mtime": 1780858917.9990501,
-    "seen": 1792754324.107649,
-    "ast_hash": "c536d69ebabb089a126495415632e6d0",
-    "semantic_hash": "c536d69ebabb089a126495415632e6d0"
+    "mtime": 1792760866.4624138,
+    "seen": 1792761828.325282,
+    "ast_hash": "f8d538d978b243a724d79aa0ba34b8ed",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.WebService/Extensions/ElasticsearchExtensions.cs": {
     "mtime": 1765265701.807461,
@@ -2905,10 +2899,10 @@
     "semantic_hash": "8a156b071db0d6b50ca3d903031c0ffc"
   },
   "src/Presentation/Artix.API.WebService/Program.cs": {
-    "mtime": 1782462997.8096995,
-    "seen": 1792754324.107933,
-    "ast_hash": "22b91d9ca65a6b546422c30a016baced",
-    "semantic_hash": "22b91d9ca65a6b546422c30a016baced"
+    "mtime": 1792761030.0914376,
+    "seen": 1792761828.325289,
+    "ast_hash": "79337312072d4ef7a1e898af6373a8cf",
+    "semantic_hash": ""
   },
   "src/Presentation/Artix.API.WebService/Properties/launchSettings.json": {
     "mtime": 1765509564.4455225,
@@ -2924,11 +2918,10 @@
     "ast_empty": true
   },
   "src/Presentation/Artix.API.WebService/appsettings.json": {
-    "mtime": 1780872072.6351266,
-    "seen": 1792754324.1081321,
-    "ast_hash": "449a233887aaa72ab5a6408b988377cf",
-    "semantic_hash": "449a233887aaa72ab5a6408b988377cf",
-    "ast_empty": true
+    "mtime": 1792761527.3539336,
+    "seen": 1792761828.325301,
+    "ast_hash": "7d4913c4b96e3adb01633ca2ea680ba2",
+    "semantic_hash": ""
   },
   "src/Utils/Artix.API.Utils/Artix.API.Utils.csproj": {
     "mtime": 1765441708.7637928,
@@ -2997,10 +2990,10 @@
     "semantic_hash": "9f19195adcbfba0a27c023f77fb4315e"
   },
   "tests/Artix.API.Tests.Unit/Artix.API.Tests.Unit.csproj": {
-    "mtime": 1758879652.4352689,
-    "seen": 1792754324.109173,
-    "ast_hash": "f43a520f5db2f08b47063b653615dc9e",
-    "semantic_hash": "f43a520f5db2f08b47063b653615dc9e"
+    "mtime": 1792761824.8171139,
+    "seen": 1792761828.32533,
+    "ast_hash": "b3cc3bfc2b3527b99ed48c7ce111174d",
+    "semantic_hash": ""
   },
   "tests/Artix.API.Tests.Unit/UnitTest1.cs": {
     "mtime": 1765015144.5762885,
@@ -3032,16 +3025,286 @@
     "ast_hash": "871c4cc04a15f43d1f25ab2b98698322",
     "semantic_hash": ""
   },
-  "TODO.md": {
-    "mtime": 1776757925.2954044,
-    "seen": 1792754707.6133409,
-    "ast_hash": "6c46021bf53df8985d775fead7f8c36c",
-    "semantic_hash": ""
-  },
   "docker-compose.yaml": {
     "mtime": 1779951247.935882,
     "seen": 1792754707.613342,
     "ast_hash": "ceeae9501ef6749f8b1bdbc303b0819b",
+    "semantic_hash": ""
+  },
+  "BACKLOG.md": {
+    "mtime": 1792761394.770147,
+    "seen": 1792761828.3253481,
+    "ast_hash": "b5246313ed9f08bc4eb183e6e19b0aec",
+    "semantic_hash": ""
+  },
+  "SECURITY_BACKLOG.md": {
+    "mtime": 1792756590.875867,
+    "seen": 1792756624.572143,
+    "ast_hash": "a4e1b9f07d74e25c2982fb8e426511ef",
+    "semantic_hash": ""
+  },
+  "memory.md": {
+    "mtime": 1792755106.0387588,
+    "seen": 1792756624.572146,
+    "ast_hash": "23c8de19bad47fd55db3e1ea3940a268",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.ApplicationService/AGENTS.md": {
+    "mtime": 1792755135.9741125,
+    "seen": 1792756624.572148,
+    "ast_hash": "a76ab382277b6cd2e51fe29bd77bc3d2",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.ApplicationService/memory.md": {
+    "mtime": 1792755135.934767,
+    "seen": 1792756624.572149,
+    "ast_hash": "3ff77da3cf7bb1728d0da05ef6817b35",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Contract/AGENTS.md": {
+    "mtime": 1792755146.0628328,
+    "seen": 1792756624.572151,
+    "ast_hash": "c7c5f7c2308191ff3e3460fe1180da0d",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Contract/memory.md": {
+    "mtime": 1792755146.0869422,
+    "seen": 1792756624.5721521,
+    "ast_hash": "bb463c5fd4e970638f61e958d6f043f2",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Domain/AGENTS.md": {
+    "mtime": 1792755154.1884432,
+    "seen": 1792756624.572153,
+    "ast_hash": "6881eb6c345dad53fbb98f1b29690d87",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Domain/memory.md": {
+    "mtime": 1792755154.2382975,
+    "seen": 1792756624.572155,
+    "ast_hash": "7b34e38086d1de23c8526b110f523dd5",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.DomainService/AGENTS.md": {
+    "mtime": 1792755162.28033,
+    "seen": 1792756624.572156,
+    "ast_hash": "d7f028bb1801d1c0dbb7dce4dd421a39",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.DomainService/memory.md": {
+    "mtime": 1792755162.328325,
+    "seen": 1792756624.5721579,
+    "ast_hash": "cab2d4a782b561f28454cca642e0aa01",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.FileService/AGENTS.md": {
+    "mtime": 1792755170.6257565,
+    "seen": 1792756624.572159,
+    "ast_hash": "e206af55ad74aa908019e6946b441def",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.FileService/memory.md": {
+    "mtime": 1792755170.6393163,
+    "seen": 1792756624.57216,
+    "ast_hash": "ecd39ac1145af961146a3fee356b5d9d",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Identity/AGENTS.md": {
+    "mtime": 1792755177.5203693,
+    "seen": 1792756624.5721622,
+    "ast_hash": "49623c04628a81ece53fbd9af0b45aa2",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Identity/memory.md": {
+    "mtime": 1792755177.574632,
+    "seen": 1792756624.572163,
+    "ast_hash": "b1e5dd947d9884a69c46ab300ad4b9aa",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Mongo/AGENTS.md": {
+    "mtime": 1792755183.3339207,
+    "seen": 1792756624.572165,
+    "ast_hash": "bed01d89677f91e79075d4932d93bb22",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Mongo/memory.md": {
+    "mtime": 1792755183.4576697,
+    "seen": 1792756624.572166,
+    "ast_hash": "642a6c8a9111cc9a9abe68b45c9b32d7",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.RabbitMQ/AGENTS.md": {
+    "mtime": 1792755203.152379,
+    "seen": 1792756624.572167,
+    "ast_hash": "eb5dca3438fdd893b1b9d1ae5a663947",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.RabbitMQ/memory.md": {
+    "mtime": 1792755203.187783,
+    "seen": 1792756624.572169,
+    "ast_hash": "758558902964ee1ca3deb99e9c6997ef",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Redis/AGENTS.md": {
+    "mtime": 1792755211.035124,
+    "seen": 1792756624.57217,
+    "ast_hash": "5f978da746dcd76776bb1555455efd71",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Redis/memory.md": {
+    "mtime": 1792755211.0740335,
+    "seen": 1792756624.572172,
+    "ast_hash": "834c5cf38b307893bd8480102a6251ef",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/AGENTS.md": {
+    "mtime": 1792755217.1145356,
+    "seen": 1792756624.572173,
+    "ast_hash": "ae65c495294b55a75c0774ce4ed64547",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/memory.md": {
+    "mtime": 1792755217.1777184,
+    "seen": 1792756624.572175,
+    "ast_hash": "037460f7a51aeda8b1c8eb38417bb45e",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.Endpoints/AGENTS.md": {
+    "mtime": 1792755229.5352488,
+    "seen": 1792756624.572176,
+    "ast_hash": "619487bf978962df5352306c789b8f93",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.Endpoints/memory.md": {
+    "mtime": 1792755229.6001039,
+    "seen": 1792756624.572178,
+    "ast_hash": "69ca41c456eafac65ee64137b6120247",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.WebService/AGENTS.md": {
+    "mtime": 1792755239.7207582,
+    "seen": 1792756624.5721788,
+    "ast_hash": "18701d2c84436a226633304612c0e922",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.WebService/memory.md": {
+    "mtime": 1792755239.6501532,
+    "seen": 1792756624.572181,
+    "ast_hash": "f5dc73efd5c094d369776e78f9384576",
+    "semantic_hash": ""
+  },
+  "src/Utils/Artix.API.Utils/AGENTS.md": {
+    "mtime": 1792755249.0779376,
+    "seen": 1792756624.572182,
+    "ast_hash": "b32e90b10073deff8d7a31140ac7d483",
+    "semantic_hash": ""
+  },
+  "src/Utils/Artix.API.Utils/memory.md": {
+    "mtime": 1792755249.128205,
+    "seen": 1792756624.5721831,
+    "ast_hash": "267a22a40166b3a1ce1eba2fd3101004",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.EndToEnd/AGENTS.md": {
+    "mtime": 1792755265.406851,
+    "seen": 1792756624.572185,
+    "ast_hash": "3666828230bc4c21539a9eebdde6c3ed",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.EndToEnd/memory.md": {
+    "mtime": 1792755265.4554224,
+    "seen": 1792756624.572186,
+    "ast_hash": "d20f803d3f7e79c3eeab6881dedecdfd",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.Integration/AGENTS.md": {
+    "mtime": 1792755273.1253474,
+    "seen": 1792756624.572188,
+    "ast_hash": "56fa2943abc95e403f7d19793f06ecaa",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.Integration/memory.md": {
+    "mtime": 1792755273.1758316,
+    "seen": 1792756624.5721889,
+    "ast_hash": "e8a9c37314fc16b2a4f82c23e84686de",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.Unit/AGENTS.md": {
+    "mtime": 1792755280.2910066,
+    "seen": 1792756624.57219,
+    "ast_hash": "5f5a8f8d35c8a5d20b1eca6719f33886",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.Unit/memory.md": {
+    "mtime": 1792755280.2434647,
+    "seen": 1792756624.572192,
+    "ast_hash": "64e18fe58f919e420378e25c657c28f4",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Contract/Primitives/Authorization/AdminPermission.cs": {
+    "mtime": 1792758267.0302248,
+    "seen": 1792761828.32444,
+    "ast_hash": "ff2b672356077637977d1e3d9f98e454",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Contract/Primitives/Infra/Audit/IAdminAuditWriter.cs": {
+    "mtime": 1792759257.904403,
+    "seen": 1792761828.3244748,
+    "ast_hash": "caa6bf64f2435d99874b29b13dac6412",
+    "semantic_hash": ""
+  },
+  "src/Core/Artix.API.Core.Domain/Entities/Audit/AdminAuditEntry.cs": {
+    "mtime": 1792761105.6192255,
+    "seen": 1792761828.3246038,
+    "ast_hash": "2ccb768d17778fccda795e08ee85060b",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/Data/Config/Write/Audit/AdminAuditEntryWriteConfiguration.cs": {
+    "mtime": 1792759258.0194664,
+    "seen": 1792761828.325008,
+    "ast_hash": "ed6af1014b144a05450357bf5585fad6",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/Migrations/20261023131239_AddAdminAuditEntry.Designer.cs": {
+    "mtime": 1792761159.9755714,
+    "seen": 1792761828.325176,
+    "ast_hash": "6e783929bd8cebd9bd0dcc7c9d50f968",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/Migrations/20261023131239_AddAdminAuditEntry.cs": {
+    "mtime": 1792761159.9750593,
+    "seen": 1792761828.3251781,
+    "ast_hash": "6da285454c3c275dbcbb6565b2e36914",
+    "semantic_hash": ""
+  },
+  "src/Infra/Artix.API.Infra.Sql/Services/AdminAuditWriter.cs": {
+    "mtime": 1792759258.1331089,
+    "seen": 1792761828.3252218,
+    "ast_hash": "c02468e7fc5e31d6d79d003951767153",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.Endpoints/Middlewares/AdminAuditMiddleware.cs": {
+    "mtime": 1792760952.310132,
+    "seen": 1792761828.3252668,
+    "ast_hash": "1cd5038d427a5eaa48e205b1992c1a46",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.WebService/appsettings.Production.json": {
+    "mtime": 1792761791.5273619,
+    "seen": 1792761828.3252962,
+    "ast_hash": "5e2907412f7d4497fb465ab860568e0f",
+    "semantic_hash": ""
+  },
+  "src/Presentation/Artix.API.WebService/appsettings.Prodution.json": {
+    "mtime": 1792761527.3543994,
+    "seen": 1792761828.325299,
+    "ast_hash": "5e2907412f7d4497fb465ab860568e0f",
+    "semantic_hash": ""
+  },
+  "tests/Artix.API.Tests.Unit/Authorization/AdminPolicyTests.cs": {
+    "mtime": 1792761558.2572408,
+    "seen": 1792761828.3253329,
+    "ast_hash": "4cfb012b970c2c07c03813fb298e3f76",
     "semantic_hash": ""
   }
 }
