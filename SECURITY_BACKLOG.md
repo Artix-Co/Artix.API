@@ -18,6 +18,12 @@
 | دسترسی اضطراری زمان‌دار | کنترل پایه اضافه‌شده | claim `emergency_until` |
 | تست policyهای authorization | اضافه‌شده | `tests/Artix.API.Tests.Unit/Authorization` |
 
+مواردی که در این مرحله اصلاح شدند:
+
+- ثبت‌نام Admin اکنون policy حساس می‌خواهد و login صریحاً فقط با `[AllowAnonymous]` باز است.
+- endpointهای upload دیگر عمومی نیستند و به مجوزهای `DigitalAssetRead/Manage` نیاز دارند.
+- endpointهای خواندنی و عملیاتی پنل از `AdminBaseController` و policyهای مشخص استفاده می‌کنند.
+
 مواردی که هنوز **آسیب‌پذیری باز** هستند: OTP ثابت، ثبت‌نام عمومی Admin، آپلود عمومی و IDOR، refresh token plaintext/rotation، اعتماد به `X-Forwarded-For`، rate limit ناقص OTP، endpointهای خواندنی Admin، اعتبارسنجی ناکافی، security stamp غیرفعال و افشای خطای production. این موارد در بخش‌های C/H پایین‌تر باید قبل از انتشار بسته شوند.
 
 ## خلاصه اولویت

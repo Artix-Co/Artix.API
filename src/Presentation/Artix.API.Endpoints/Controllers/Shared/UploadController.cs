@@ -1,8 +1,10 @@
 namespace Artix.API.Endpoints.Controllers.Shared;
 
 using Artix.API.Core.Contract.Primitives.Infra.File;
+using Artix.API.Core.Contract.Primitives.Authorization;
 using Common;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 public class UploadController : SharedController
@@ -18,6 +20,7 @@ public class UploadController : SharedController
     }
 
     [HttpPost("initiate")]
+    [Authorize(Policy = AdminPermission.DigitalAssetManage)]
     public async Task<IActionResult> Initiate([FromForm] string fileName, [FromForm] long totalSize,
         [FromForm] int chunkSize = 2_000_000)
     {
@@ -26,6 +29,7 @@ public class UploadController : SharedController
     }
 
     [HttpPut("{uploadId}/chunk/{index}")]
+    [Authorize(Policy = AdminPermission.DigitalAssetManage)]
     public async Task<IActionResult> UploadChunk([FromRoute] Guid uploadId, [FromRoute] int index)
     {
         await this._storage.SaveChunkAsync(uploadId, index, this.Request.Body, this.HttpContext.RequestAborted);
@@ -34,6 +38,7 @@ public class UploadController : SharedController
     }
 
     [HttpPost("{uploadId}/complete")]
+    [Authorize(Policy = AdminPermission.DigitalAssetManage)]
     public async Task<IActionResult> Complete([FromRoute] Guid uploadId)
     {
         await this._service.MergeChunksAsync(uploadId, CancellationToken.None);
@@ -41,6 +46,7 @@ public class UploadController : SharedController
     }
 
     [HttpGet("{uploadId}/status")]
+    [Authorize(Policy = AdminPermission.DigitalAssetRead)]
     public async Task<IActionResult> Status([FromRoute] Guid uploadId)
     {
         var s = await this._service.GetStatusAsync(uploadId, CancellationToken.None);

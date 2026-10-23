@@ -5,6 +5,7 @@ using Core.Contract.Features.Users.Admin.Commands.Register;
 using Core.Contract.Features.Users.Admin.Queries.GetLogin;
 using Core.Contract.Features.Users.Admin.Queries.GetLogout;
 using Core.Contract.Primitives.Models;
+using Core.Contract.Primitives.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ public sealed class AuthenticationController: AdminBaseController
 
     
     [HttpPost("register")]
+    [Authorize(Policy = AdminPermission.SensitiveOperations)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegisterAdminAdmin([FromBody] AdminRegisterCommand command)
     {
@@ -27,6 +29,7 @@ public sealed class AuthenticationController: AdminBaseController
 
 
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(Result<AdminLoginDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LoginAsync([FromBody] GetAdminLoginQuery query)
     {
@@ -34,7 +37,7 @@ public sealed class AuthenticationController: AdminBaseController
         return this.Ok(result);
     }
     
-    [Authorize]
+    [Authorize(Policy = AdminPermission.PortalRead)]
     [HttpPost("logout")]
     [ProducesResponseType(typeof(Result<AdminLogoutDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> LogoutAsync([FromBody] GetAdminLogoutQuery query)
