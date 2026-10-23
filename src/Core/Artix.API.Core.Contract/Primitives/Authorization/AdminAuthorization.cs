@@ -16,6 +16,6 @@ public static class AdminAuthorization
     }
 
     public static bool IsEmergencyAccessActive(ClaimsPrincipal user, DateTimeOffset now)
-        => user.HasClaim("emergency_until", value =>
-            DateTimeOffset.TryParse(value, out var until) && until > now);
+        => user.Claims.Any(claim => claim.Type == "emergency_until" &&
+            DateTimeOffset.TryParse(claim.Value, out var until) && until > now);
 }

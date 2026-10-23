@@ -41,8 +41,6 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<IRedisConnectionFactory, RedisConnectionFactory>();
-
-        services.AddSingleton<IRedisConnectionFactory, RedisConnectionFactory>();
         services.AddSingleton<IDistributedLockService, RedisLockService>();
         services.AddSingleton<IRequestRatePolicy, RedisRateLimiter>();
         services.AddSingleton<IBackgroundJobScheduler, RedisJobQueueService>();

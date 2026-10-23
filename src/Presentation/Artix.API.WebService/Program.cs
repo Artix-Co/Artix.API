@@ -11,6 +11,7 @@ using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -51,9 +52,16 @@ builder.Services.AddSignalR();
 var environment = builder.Environment;
 bool isDevelopmentEnv = environment.IsDevelopment();
 
-var keyStorePathKeys = isDevelopmentEnv
-    ? "/Users/mohammadnazari/.aspnet/DataProtection-Keys"
-    : "/app/dataprotection-keys";
+var configuredKeyPath = builder.Configuration["DataProtection:KeyPath"];
+var keyStorePathKeys = !string.IsNullOrWhiteSpace(configuredKeyPath)
+    ? (Path.IsPathRooted(configuredKeyPath)
+        ? configuredKeyPath
+        : Path.Combine(builder.Environment.ContentRootPath, configuredKeyPath))
+    : (isDevelopmentEnv
+        ? Path.Combine(builder.Environment.ContentRootPath, "dataprotection-keys")
+        : "/app/dataprotection-keys");
+
+Directory.CreateDirectory(keyStorePathKeys);
 
 builder.Services.AddDataProtection()
     .SetApplicationName("Artix")
@@ -329,7 +337,8 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseRouting();
 app.UseCustomMiddlewares(app.Environment);
 
-if (true)
+var enableSwagger = builder.Configuration.GetValue("EnableSwagger", isDevelopmentEnv);
+if (enableSwagger)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -343,6 +352,20 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AdminAuditMiddleware>();
 
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live"),
+    ResponseWriter = HealthCheckExtensions.WriteHealthResponse
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = HealthCheckExtensions.WriteHealthResponse
+});
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = HealthCheckExtensions.WriteHealthResponse
+});
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub")
     .RequireAuthorization();

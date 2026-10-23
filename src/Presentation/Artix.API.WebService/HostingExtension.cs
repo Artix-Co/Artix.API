@@ -19,9 +19,9 @@ using Infra.Mongo;
 using Infra.RabbitMQ;
 using Infra.Redis;
 using Infra.Sql;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.ResponseCompression;
 using Utils;
+using Artix.API.WebService.Extensions;
 
 public sealed class CustomerApiClient
 {
@@ -48,15 +48,10 @@ public static class HostingExtension
         {
             options.EnableForHttps = true;
             options.MimeTypes = ResponseCompressionDefaults.MimeTypes
-                .Concat(new[] { "application/json", "application/octet-stream", "application/wasm" });
+                .Concat(["application/json", "application/octet-stream", "application/wasm"]);
         });
         services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Optimal);
         services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Optimal);
-        services.AddResponseCompression();
-
-
-        services.Configure<GzipCompressionProviderOptions>(options => { options.Level = CompressionLevel.Optimal; });
-
 
         services.Configure<AuthenticationSettings>(configuration.GetSection("Authentication"));
         services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
@@ -66,7 +61,10 @@ public static class HostingExtension
         services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
         services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
 
-        // Configure HSTS
+        ValidateRequiredSettings(configuration);
+
+        services.AddElasticsearch(configuration);
+
         services.AddHsts(options =>
         {
             options.MaxAge = TimeSpan.FromDays(365);
@@ -74,16 +72,14 @@ public static class HostingExtension
             options.Preload = true;
         });
 
-
         services.AddHttpClient<CustomerApiClient>(client =>
             {
                 client.BaseAddress = new Uri("https://external-api.example.com/");
-                client.Timeout = Timeout.InfiniteTimeSpan; // Timeout via Polly
+                client.Timeout = Timeout.InfiniteTimeSpan;
             })
             .AddPolicyHandler(PollyPolicies.GetRetryPolicy())
             .AddPolicyHandler(PollyPolicies.GetTimeoutPolicy())
             .AddPolicyHandler(PollyPolicies.GetCircuitBreakerPolicy());
-
 
         services.AddMemoryCache();
         services.AddResponseCaching();
@@ -93,28 +89,50 @@ public static class HostingExtension
         services.AddRedis();
         services.AddFileService();
 
-
         services.AddApplicationServices();
         services.AddContractServices();
+
+        var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>()
+            ?? ["http://localhost:3000", "https://localhost:3000"];
 
         services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy", policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:3000", "https://localhost:3000",
-                        "https://nazari-pwd.drl.ink") // MUST be explicit
+                    .WithOrigins(allowedOrigins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
             });
         });
+
         services.AddSqlServices(configuration);
         services.AddMongoServices(configuration);
-
+        // After infra registrations so readiness checks reuse shared clients.
+        services.AddArtixHealthChecks();
         services.AddDomainServiceServices();
-
         services.AddEndpointsServices();
+    }
+
+    private static void ValidateRequiredSettings(IConfiguration configuration)
+    {
+        static void Require(string name, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new InvalidOperationException(
+                    $"Missing required configuration '{name}'. Set it via environment variables or appsettings.");
+        }
+
+        Require("ConnectionStrings:CommandConnectionString",
+            configuration.GetConnectionString("CommandConnectionString"));
+        Require("ConnectionStrings:QueryConnectionString",
+            configuration.GetConnectionString("QueryConnectionString"));
+        Require("Authentication:IssuerSigningKey",
+            configuration["Authentication:IssuerSigningKey"]);
+        Require("RedisOptions:Password", configuration["RedisOptions:Password"]);
+        Require("RabbitMqOptions:Password", configuration["RabbitMqOptions:Password"]);
+        Require("MongoDbSettings:ConnectionString", configuration["MongoDbSettings:ConnectionString"]);
     }
 }
