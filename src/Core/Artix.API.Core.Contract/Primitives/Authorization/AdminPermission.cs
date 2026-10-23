@@ -20,4 +20,5 @@ public static class AdminPermission
     public const string DigitalAssetManage = "admin.digital_asset.manage";
     public const string GamificationRead = "admin.gamification.read";
     public const string GamificationManage = "admin.gamification.manage";
+    public const string AnalyticsRead = "admin.analytics.read";
 }

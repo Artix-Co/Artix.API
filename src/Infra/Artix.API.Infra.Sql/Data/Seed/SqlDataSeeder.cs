@@ -134,7 +134,7 @@ public class SqlDataSeeder
             [nameof(Role.DigitalAssetManager)] = new[] { AdminPermission.PortalRead, AdminPermission.DigitalAssetRead, AdminPermission.DigitalAssetManage },
             [nameof(Role.EngagementGamificationManager)] = new[] { AdminPermission.PortalRead, AdminPermission.GamificationRead, AdminPermission.GamificationManage },
             [nameof(Role.CustomerSupportAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead },
-            [nameof(Role.ProductBusinessAnalyst)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.ObjectRead, AdminPermission.FinanceRead },
+            [nameof(Role.ProductBusinessAnalyst)] = new[] { AdminPermission.PortalRead, AdminPermission.AnalyticsRead },
         };
 
         foreach (var assignment in assignments)
