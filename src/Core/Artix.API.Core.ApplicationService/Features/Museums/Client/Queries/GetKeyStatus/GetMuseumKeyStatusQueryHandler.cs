@@ -8,7 +8,6 @@ using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-// TODO: develop validator for this handler
 internal sealed class GetMuseumKeyStatusQueryHandler : QueryHandlerBase<GetMuseumKeyStatusQuery, MuseumKeyStatusDto>
 {
     private readonly IMuseumQueryRepository _museumQueryRepository;

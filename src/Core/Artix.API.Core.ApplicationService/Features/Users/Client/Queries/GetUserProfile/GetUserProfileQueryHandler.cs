@@ -7,7 +7,6 @@ using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-// TODO: develop validator for this handler
 internal sealed class GetUserProfileQueryHandler : QueryHandlerBase<GetClientUserProfileQuery, ClientUserProfileDto>
 {
     public GetUserProfileQueryHandler(IHttpContextAccessor httpContextAccessor, UserManager<AppUser> userManager) : base(httpContextAccessor, userManager)

@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-// TODO: develop validator for this handler
 internal sealed class
     GetUserRecentMuseumsVisitsQueryHandler : QueryHandlerBase<GetClientUserRecentMuseumsVisitQuery,
     IEnumerable<ClientUserRecentMuseumsVisitDto>>

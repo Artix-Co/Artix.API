@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using IAuthenticationService = Contract.Primitives.Infra.Identity.Authentication.IAuthenticationService;
 
-// TODO: develop validator for this handler
 internal sealed class GetLogoutQueryHandler : QueryHandlerBase<GetLogoutQuery, LogoutDto>
 {
     private readonly IAuthenticationService _authenticationService;

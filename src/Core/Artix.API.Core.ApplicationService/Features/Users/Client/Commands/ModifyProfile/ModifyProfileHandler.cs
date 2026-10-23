@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-// TODO: develop validation for this handler
 internal sealed class ModifyProfileHandler : CommandHandlerBase<ClientModifyProfileCommand>
 {
     private readonly string[] _allowedImageMimeTypes;

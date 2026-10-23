@@ -8,7 +8,6 @@ using Domain.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-// TODO: develop validator for this handler
 internal sealed class GetReNewAccessTokenQueryHandler : QueryHandlerBase<GetReNewAccessTokenQuery, ReNewAccessTokenDto>
 {
     private readonly ITokenService _tokenService;

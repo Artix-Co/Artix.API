@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-// TODO: develop validator
 internal sealed class CreateNewMuseumCommandHandler : CommandHandlerBase<AdminCreateNewMuseumCommand>
 {
     private readonly IMuseumCommandRepository _museumCommandRepository;

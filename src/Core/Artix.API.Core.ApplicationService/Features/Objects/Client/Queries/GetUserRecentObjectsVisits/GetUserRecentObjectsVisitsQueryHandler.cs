@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-// TODO: develop validator for this handler
 internal sealed class GetUserRecentObjectsVisitsQueryHandler : QueryHandlerBase<GetClientUserRecentObjectsVisitQuery, IEnumerable<ClientUserRecentObjectsVisitDto>>
 {
     private readonly ICacheRepository<List<RecentObjectDto>> _objectCache;

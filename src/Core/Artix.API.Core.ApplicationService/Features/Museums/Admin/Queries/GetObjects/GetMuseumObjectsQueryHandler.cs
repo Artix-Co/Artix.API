@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Primitives;
 
-// TODO: develop validator for this handler
 internal sealed class
     GetMuseumObjectsQueryHandler : QueryHandlerBase<GetAdminMuseumObjectsQuery, PaginatedResult<AdminMuseumObjectDto>>
 {

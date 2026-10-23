@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-// TODO: develop validation for this handler
 internal sealed class RegisterCommandHandler : CommandHandlerBase<AdminRegisterCommand>
 {
     private readonly RoleManager<AppRole> _roleManager;

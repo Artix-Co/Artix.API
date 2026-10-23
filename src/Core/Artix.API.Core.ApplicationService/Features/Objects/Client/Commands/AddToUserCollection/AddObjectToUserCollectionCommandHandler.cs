@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Primitives;
 
-// TODO: develop validation for this handler
 internal sealed class AddObjectToUserCollectionCommandHandler : CommandHandlerBase<AddCleintObjectToUserCollectionCommand>
 {
     private readonly IObjectCommandRepository _objectCommandRepository;
