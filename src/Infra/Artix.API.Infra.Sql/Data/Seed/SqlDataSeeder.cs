@@ -14,6 +14,8 @@ using Core.Domain.Entities.Object.Enums;
 using Core.Domain.Entities.Object.ValueObjects;
 using Core.Domain.Entities.TierConfig;
 using Core.Domain.Entities.User.Enums;
+using Artix.API.Core.Contract.Primitives.Authorization;
+using System.Security.Claims;
 using Core.Domain.Entities.Version;
 using DbContexts;
 using Microsoft.Extensions.Logging;
@@ -51,17 +53,19 @@ public class SqlDataSeeder
         _logger.LogInformation("SqlDataSeeder | Starting SQL data seeding process");
 
 
-        if (await _context.Users.AnyAsync())
-        {
-            _logger.LogWarning("SqlDataSeeder | Database already contains users → Skipping entire seeding process");
-            return;
-        }
+        var hasUsers = await _context.Users.AnyAsync();
 
         _logger.LogInformation("SqlDataSeeder | Database is empty → Starting full seeding operation");
 
         try
         {
             await SeedRolesAsync();
+            await SeedRolePermissionsAsync();
+            if (hasUsers)
+            {
+                _logger.LogWarning("SqlDataSeeder | Database already contains users → Skipping data seeding");
+                return;
+            }
             // await SeedUsersAndFriendshipsAsync();
             await SeedCategoriesAsync();
             await SeedHistoricalPeriodsAsync();
@@ -108,6 +112,46 @@ public class SqlDataSeeder
             else
             {
                 _logger.LogDebug("SqlDataSeeder | Role '{Role}' already exists", role);
+            }
+        }
+    }
+
+    private async Task SeedRolePermissionsAsync()
+    {
+        var all = typeof(AdminPermission).GetFields()
+            .Where(x => x.IsLiteral && x.FieldType == typeof(string))
+            .Select(x => (string)x.GetRawConstantValue()!)
+            .ToArray();
+        var assignments = new Dictionary<string, IEnumerable<string>>
+        {
+            [nameof(Role.SuperAdmin)] = all,
+            [nameof(Role.Admin)] = all,
+            [nameof(Role.MuseumAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.MuseumWrite, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
+            [nameof(Role.ContentAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.MuseumWrite, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
+            [nameof(Role.ReviewerModerator)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.ObjectRead, AdminPermission.ContentApprove, AdminPermission.ContentPublish },
+            [nameof(Role.FinanceAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.FinanceRead, AdminPermission.FinanceManage },
+            [nameof(Role.TechnicalAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.TechnicalRead, AdminPermission.TechnicalManage },
+            [nameof(Role.DigitalAssetManager)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
+            [nameof(Role.EngagementGamificationManager)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead, AdminPermission.ObjectWrite },
+            [nameof(Role.CustomerSupportAdmin)] = new[] { AdminPermission.PortalRead, AdminPermission.ObjectRead },
+            [nameof(Role.ProductBusinessAnalyst)] = new[] { AdminPermission.PortalRead, AdminPermission.MuseumRead, AdminPermission.ObjectRead, AdminPermission.FinanceRead },
+        };
+
+        foreach (var assignment in assignments)
+        {
+            var role = await _roleManager.FindByNameAsync(assignment.Key);
+            if (role is null)
+                continue;
+
+            var existing = await _roleManager.GetClaimsAsync(role);
+            foreach (var permission in assignment.Value)
+            {
+                if (existing.Any(x => x.Type == "permission" && x.Value == permission))
+                    continue;
+
+                var result = await _roleManager.AddClaimAsync(role, new Claim("permission", permission));
+                if (!result.Succeeded)
+                    throw new ApplicationException($"Failed to seed permission {permission} for role {assignment.Key}");
             }
         }
     }

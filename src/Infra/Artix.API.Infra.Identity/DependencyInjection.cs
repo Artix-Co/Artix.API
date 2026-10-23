@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Core.Contract.Configs.Authentication;
 using Core.Contract.Primitives.Infra.Identity;
+using Core.Contract.Primitives.Authorization;
 using Core.Contract.Primitives.Infra.Identity.Authentication;
 using Core.Contract.Primitives.Infra.Redis;
 using Core.Domain.Entities.User;
@@ -114,6 +115,19 @@ public static class DependencyInjection
             })
             .AddEntityFrameworkStores<ArtixCommandDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddAuthorization(options =>
+        {
+            foreach (var permission in typeof(AdminPermission).GetFields()
+                         .Where(x => x.IsLiteral && x.FieldType == typeof(string))
+                         .Select(x => (string)x.GetRawConstantValue()!))
+            {
+                options.AddPolicy(permission, policy => policy.RequireAssertion(context =>
+                    context.User.IsInRole(nameof(Role.Admin)) ||
+                    context.User.IsInRole(nameof(Role.SuperAdmin)) ||
+                    context.User.HasClaim("permission", permission)));
+            }
+        });
 
 
         services

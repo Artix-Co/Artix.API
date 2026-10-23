@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
     private readonly ILogger<JwtTokenGenerator> _logger;
     private readonly AuthenticationSettings _settings;
     private readonly JwtSecurityTokenHandler _tokenHandler;
@@ -26,11 +27,13 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     public JwtTokenGenerator(
         UserManager<AppUser> userManager,
+        RoleManager<AppRole> roleManager,
         IOptions<AuthenticationSettings> settings,
         ILogger<JwtTokenGenerator> logger, IDeviceFingerprintService deviceFingerprintService,
         IUserSessionService userSessionService, IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _logger = logger;
         _deviceFingerprintService = deviceFingerprintService;
         _userSessionService = userSessionService;
@@ -96,6 +99,15 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         };
 
         authClaims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+        foreach (var role in roles)
+        {
+            var roleEntity = await _roleManager.FindByNameAsync(role);
+            if (roleEntity is null)
+                continue;
+
+            var roleClaims = await _roleManager.GetClaimsAsync(roleEntity);
+            authClaims.AddRange(roleClaims.Where(x => x.Type == "permission"));
+        }
         authClaims.AddRange(claims);
 
         // ----------------------------

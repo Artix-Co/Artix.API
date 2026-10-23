@@ -4,6 +4,7 @@ using Common;
 using Core.Contract.Features.Users.Admin.Queries.GetPaginateUsers;
 using Core.Contract.Features.Users.Admin.Queries.GetUserProfile;
 using Core.Contract.Primitives.Models;
+using Core.Contract.Primitives.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +16,7 @@ public sealed class UserController : AdminBaseController
     {
     }
 
-    [Authorize]
+    [Authorize(Policy = AdminPermission.PortalRead)]
     [HttpGet("profile")]
     [ProducesResponseType(typeof(Result<UserProfileDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProfileAsync([FromQuery] GetUserProfileQuery query)
@@ -25,7 +26,7 @@ public sealed class UserController : AdminBaseController
     }
     
     
-    [Authorize]
+    [Authorize(Policy = AdminPermission.PortalRead)]
     [HttpGet("all")]
     [ProducesResponseType(typeof(Result<PaginatedResult<AdminPaginateUsersDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsersAsync([FromQuery] GetAdminPaginateUsersQuery query)

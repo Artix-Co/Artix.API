@@ -340,6 +340,7 @@ app.UseResponseCaching();
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<AdminAuditMiddleware>();
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub")
