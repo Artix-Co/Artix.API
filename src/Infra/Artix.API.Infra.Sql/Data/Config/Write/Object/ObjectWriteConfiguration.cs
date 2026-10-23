@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Object = Core.Domain.Entities.Object.Object;
+using Core.Domain.Entities.Object.Enums;
 
 internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
 {
@@ -43,6 +44,12 @@ internal sealed class ObjectWriteConfiguration : BaseEntityConfiguration<Object>
         entity.Property(o => o.IsHidden)
             .IsRequired()
             .HasDefaultValue(false);
+
+        entity.Property(o => o.ContentStatus)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .HasDefaultValue(ContentStatus.Draft)
+            .IsRequired();
 
         // Relationships
         entity.HasMany(o => o.ObjectTypes)

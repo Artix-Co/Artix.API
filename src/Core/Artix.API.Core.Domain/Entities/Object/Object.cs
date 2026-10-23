@@ -22,6 +22,7 @@ public class Object : AggregateRoot
     public bool IsSpecial { get; private set; } = false;
     public bool IsHidden { get; private set; } = false;
     public ObjectSaleType ObjectSaleType { get; private set; }
+    public ContentStatus ContentStatus { get; private set; } = ContentStatus.Draft;
 
 
     private readonly List<ObjectModel> _objectModels = new();
@@ -167,6 +168,41 @@ public class Object : AggregateRoot
             isHidden,
             objectSalesType
         );
+    }
+
+    public void SubmitForReview()
+    {
+        if (ContentStatus is not ContentStatus.Draft and not ContentStatus.ChangesRequested)
+            throw DomainException.InvalidOperation("Only draft content can be submitted for review.");
+        ContentStatus = ContentStatus.PendingReview;
+    }
+
+    public void RequestChanges()
+    {
+        if (ContentStatus != ContentStatus.PendingReview)
+            throw DomainException.InvalidOperation("Only content under review can request changes.");
+        ContentStatus = ContentStatus.ChangesRequested;
+    }
+
+    public void Approve()
+    {
+        if (ContentStatus != ContentStatus.PendingReview)
+            throw DomainException.InvalidOperation("Only content under review can be approved.");
+        ContentStatus = ContentStatus.Approved;
+    }
+
+    public void Reject()
+    {
+        if (ContentStatus != ContentStatus.PendingReview)
+            throw DomainException.InvalidOperation("Only content under review can be rejected.");
+        ContentStatus = ContentStatus.Rejected;
+    }
+
+    public void Publish()
+    {
+        if (ContentStatus != ContentStatus.Approved)
+            throw DomainException.InvalidOperation("Only approved content can be published.");
+        ContentStatus = ContentStatus.Published;
     }
 
 
