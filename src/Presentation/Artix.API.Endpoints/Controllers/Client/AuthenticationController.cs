@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Controllers.Client;
+namespace Artix.API.Endpoints.Controllers.Client;
 
 using Attributes;
 using Common;
@@ -22,7 +22,7 @@ public sealed class AuthenticationController : ClientBaseController
 
     [HttpPost("send-otp")]
     [AllowAnonymous]
-    // [RateLimit("send_otp", 120, 2)]     
+    [RateLimit("send_otp", 120, 2)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> SendOtpAsync(InitiateOTPAuthCommand command)
     {

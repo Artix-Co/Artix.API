@@ -6,6 +6,9 @@ using Core.Domain.Entities.File;
 using Microsoft.Extensions.Options;
 public sealed class UploadService : IUploadService
 {
+    private const long MaxUploadSize = 100L * 1024 * 1024;
+    private const int MinChunkSize = 64 * 1024;
+    private const int MaxChunkSize = 8 * 1024 * 1024;
     private readonly IUploadRepository _repo;
     private readonly IFileStorage _storage;
     private readonly FileSettings _fileSettings;
@@ -24,8 +27,16 @@ public sealed class UploadService : IUploadService
         string fileName,
         long totalSize,
         int chunkSize,
+        long? ownerUserId = null,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw new ArgumentException("File name is required.", nameof(fileName));
+        if (totalSize <= 0 || totalSize > MaxUploadSize)
+            throw new ArgumentOutOfRangeException(nameof(totalSize));
+        if (chunkSize < MinChunkSize || chunkSize > MaxChunkSize)
+            throw new ArgumentOutOfRangeException(nameof(chunkSize));
+
         await _storage.EnsureDirectoriesAsync(cancellationToken);
 
         var sessionId = Guid.NewGuid();
@@ -33,6 +44,7 @@ public sealed class UploadService : IUploadService
         var session = new UploadSession
         {
             Id = sessionId,
+            OwnerUserId = ownerUserId,
             FileName = Path.GetFileName(fileName),
             TotalSize = totalSize,
             ChunkSize = chunkSize,
@@ -47,19 +59,25 @@ public sealed class UploadService : IUploadService
     }
 
     public async Task MarkChunkReceivedAsync(Guid uploadId, int chunkIndex,
+        long? ownerUserId = null,
         CancellationToken cancellationToken = default)
     {
         var session = await _repo.GetAsync(uploadId, cancellationToken)
                      ?? throw new InvalidOperationException("Upload session not found.");
+        EnsureOwner(session, ownerUserId);
+        if (session.Completed || chunkIndex < 0 || chunkIndex >= session.TotalChunks)
+            throw new ArgumentOutOfRangeException(nameof(chunkIndex));
 
         session.ReceivedChunks[chunkIndex] = true;
         await _repo.UpdateAsync(session, cancellationToken);
     }
 
-    public async Task MergeChunksAsync(Guid uploadId, CancellationToken ct = default)
+    public async Task MergeChunksAsync(Guid uploadId, long? ownerUserId = null, CancellationToken ct = default)
     {
         var session = await _repo.GetAsync(uploadId, ct)
                      ?? throw new InvalidOperationException("Upload session not found.");
+
+        EnsureOwner(session, ownerUserId);
 
         var receivedCount = session.ReceivedChunks.Count(x => x.Value);
         if (receivedCount != session.TotalChunks)
@@ -76,6 +94,12 @@ public sealed class UploadService : IUploadService
             session.TotalChunks,
             ct);
 
+        if (!await HasExpectedSignatureAsync(physicalPath, session.FileName, ct))
+        {
+            File.Delete(physicalPath);
+            throw new InvalidOperationException("Uploaded file content does not match its allowed type.");
+        }
+
         session.PhysicalFilePath = physicalPath;
 
         // ⚡ مسیر پایدار برای استفاده از StaticFiles / files/{name}
@@ -88,7 +112,44 @@ public sealed class UploadService : IUploadService
         await _repo.UpdateAsync(session, ct);
     }
 
-    public Task<UploadSession> GetStatusAsync(Guid uploadId,
+    public Task<UploadSession> GetStatusAsync(Guid uploadId, CancellationToken cancellationToken)
+        => GetOwnedStatusAsync(uploadId, null, cancellationToken);
+
+    public Task<UploadSession> GetStatusAsync(Guid uploadId, long? ownerUserId,
         CancellationToken cancellationToken = default)
-        => _repo.GetAsync(uploadId, cancellationToken);
+        => GetOwnedStatusAsync(uploadId, ownerUserId, cancellationToken);
+
+    private static async Task<bool> HasExpectedSignatureAsync(string path, string fileName, CancellationToken cancellationToken)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var requiredBytes = extension switch
+        {
+            ".png" => new byte[] { 0x89, 0x50, 0x4E, 0x47 },
+            ".jpg" or ".jpeg" => new byte[] { 0xFF, 0xD8, 0xFF },
+            ".pdf" => new byte[] { 0x25, 0x50, 0x44, 0x46 },
+            ".glb" => "glTF"u8.ToArray(),
+            _ => null
+        };
+
+        if (requiredBytes is null)
+            return true;
+
+        var buffer = new byte[requiredBytes.Length];
+        await using var stream = File.OpenRead(path);
+        var read = await stream.ReadAsync(buffer.AsMemory(), cancellationToken);
+        return read == requiredBytes.Length && buffer.SequenceEqual(requiredBytes);
+    }
+    private async Task<UploadSession> GetOwnedStatusAsync(Guid uploadId, long? ownerUserId, CancellationToken cancellationToken)
+    {
+        var session = await _repo.GetAsync(uploadId, cancellationToken)
+                      ?? throw new InvalidOperationException("Upload session not found.");
+        EnsureOwner(session, ownerUserId);
+        return session;
+    }
+
+    private static void EnsureOwner(UploadSession session, long? ownerUserId)
+    {
+        if (ownerUserId.HasValue && session.OwnerUserId != ownerUserId)
+            throw new UnauthorizedAccessException("Upload session does not belong to the current user.");
+    }
 }

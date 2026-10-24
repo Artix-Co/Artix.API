@@ -120,22 +120,21 @@ static string NormalizePath(string path, string contentRoot)
 
     path = path.Trim();
 
-    // Expand "~"
-    if (path.StartsWith("~"))
-    {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var relative = path.Substring(1).TrimStart('/', '\\');
-        return Path.GetFullPath(Path.Combine(home, relative));
-    }
+    if (path.StartsWith("~", StringComparison.Ordinal))
+        throw new InvalidOperationException("Home-relative storage paths are not allowed.");
 
     // If relative → make absolute
     if (!Path.IsPathRooted(path))
     {
-        return Path.GetFullPath(Path.Combine(contentRoot, path));
+        path = Path.Combine(contentRoot, path);
     }
 
-    // Already absolute
-    return Path.GetFullPath(path);
+    var fullPath = Path.GetFullPath(path);
+    var root = Path.GetFullPath(contentRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+    if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("File storage path must remain under the application root.");
+
+    return fullPath;
 }
 
 string filesPath = NormalizePath(rawStoragePath, builder.Environment.ContentRootPath);
@@ -265,8 +264,15 @@ app.UseExceptionHandler(errorApp =>
             return;
         }
 
-        // Production: no stack, clean output
-        await context.Response.WriteAsJsonAsync(baseResponse);
+        // Production: expose only a stable message and correlation id.
+        var correlationId = context.TraceIdentifier;
+        context.Response.Headers["X-Correlation-Id"] = correlationId;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            Error = "An unexpected error occurred.",
+            Status = status,
+            CorrelationId = correlationId
+        });
     });
 });
 
@@ -306,7 +312,7 @@ app.Use(async (ctx, next) =>
                 _ => "application/octet-stream"
             };
 
-            ctx.Response.Headers["Cache-Control"] = "public,max-age=31536000";
+            ctx.Response.Headers["Cache-Control"] = "private, max-age=300";
             ctx.Response.Headers["Accept-Ranges"] = "bytes";
 
             await using var fs = File.OpenRead(gz);
@@ -326,29 +332,29 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(filesPath),
     RequestPath = "/files",
-    ServeUnknownFileTypes = true,
+    ServeUnknownFileTypes = false,
     DefaultContentType = "application/octet-stream",
     OnPrepareResponse = ctx =>
     {
-        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000");
+        ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=300");
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
     }
 });
 app.UseRouting();
+app.UseForwardedHeaders();
+app.UseAuthentication();
 app.UseCustomMiddlewares(app.Environment);
 
 var enableSwagger = builder.Configuration.GetValue("EnableSwagger", isDevelopmentEnv);
-if (enableSwagger)
+if (enableSwagger && isDevelopmentEnv)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseForwardedHeaders();
 app.UseResponseCaching();
 
 app.UseWebSockets();
-app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AdminAuditMiddleware>();
 

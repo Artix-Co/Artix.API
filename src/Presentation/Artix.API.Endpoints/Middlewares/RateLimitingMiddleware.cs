@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Middlewares;
+namespace Artix.API.Endpoints.Middlewares;
 
 using Artix.API.Core.Contract.Primitives.Infra.Redis;
 using Attributes;
@@ -48,7 +48,7 @@ public class RateLimitingMiddleware
 
             if (!isAllowed)
             {
-                this._logger.LogWarning("Rate limit exceeded for key: {Key}", key);
+                this._logger.LogWarning("Rate limit exceeded");
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 await context.Response.WriteAsJsonAsync(new
                 {

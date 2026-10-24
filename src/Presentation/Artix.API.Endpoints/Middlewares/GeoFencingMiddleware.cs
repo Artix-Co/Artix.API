@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Middlewares;
+namespace Artix.API.Endpoints.Middlewares;
 
 using Core.Contract.Primitives.Infra.Redis;
 using Microsoft.AspNetCore.Http;
@@ -58,8 +58,8 @@ public class GeoFencingMiddleware
             if (_blockedCountries.Contains(countryCode))
             {
                 _logger.LogWarning(
-                    "Geo-fencing: Blocked access from blocked country {Country} for IP {Ip} to {Path}",
-                    countryCode, ip, context.Request.Path);
+                    "Geo-fencing blocked access from a blocked country",
+                    );
                 
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsJsonAsync(new
@@ -70,12 +70,20 @@ public class GeoFencingMiddleware
                 return;
             }
             
+            if (IsSensitivePath(context.Request.Path) && (countryCode == "UNKNOWN" || countryCode == "LOCAL"))
+            {
+                _logger.LogWarning("Geo-fencing could not establish a trusted country for a sensitive request.");
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsJsonAsync(new { error = "Access cannot be verified from this network." });
+                return;
+            }
+
             // بررسی لیست سفید برای APIهای حساس
             if (IsSensitivePath(context.Request.Path) && !_allowedCountries.Contains(countryCode))
             {
                 _logger.LogWarning(
-                    "Geo-fencing: Access to sensitive API from non-allowed country {Country} for IP {Ip} to {Path}",
-                    countryCode, ip, context.Request.Path);
+                    "Geo-fencing access from a non-allowed country",
+                    );
                 
                 // برای APIهای حساس، حتی اگر در لیست سفید نیست، لاگ می‌کنیم ولی اجازه می‌دهیم
                 // (می‌توانید به جای آن 403 برگردانید)
@@ -143,7 +151,7 @@ public class GeoFencingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting country code for IP {Ip}", ip);
+            _logger.LogError(ex, "Error getting country code");
             return "UNKNOWN";
         }
     }
@@ -156,7 +164,7 @@ public class GeoFencingMiddleware
             using var httpClient = new HttpClient();
             httpClient.Timeout = TimeSpan.FromSeconds(3);
             
-            var response = await httpClient.GetStringAsync($"http://ip-api.com/json/{ip}?fields=countryCode");
+            var response = await httpClient.GetStringAsync($"https://ip-api.com/json/{ip}?fields=countryCode");
             // Parse JSON response
             if (response.Contains("\"countryCode\":\""))
             {
@@ -167,7 +175,7 @@ public class GeoFencingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to get country from external service for IP {Ip}", ip);
+            _logger.LogWarning(ex, "Failed to get country from external service");
         }
         
         // روش 2: استفاده از MaxMind GeoLite2 (توصیه شده)
@@ -177,17 +185,6 @@ public class GeoFencingMiddleware
         return "UNKNOWN";
     }
     
-    private string GetClientIp(HttpContext context)
-    {
-        if (context.Request.Headers.TryGetValue("CF-Connecting-IP", out var cfIp))
-            return cfIp.ToString();
-        
-        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
-            return forwarded.FirstOrDefault()?.Split(',').FirstOrDefault() ?? "unknown";
-        
-        if (context.Request.Headers.TryGetValue("X-Real-IP", out var realIp))
-            return realIp.ToString();
-        
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
+    private static string GetClientIp(HttpContext context)
+        => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 }

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Sql.Repositories.Features.OTPs;
+namespace Artix.API.Infra.Sql.Repositories.Features.OTPs;
 
 using Core.Contract.Features.OTPs.Queries;
 using Core.Contract.Features.OTPs.Queries.GetLatestByPhoneNumber;
@@ -20,7 +20,7 @@ public sealed class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryReposito
         CancellationToken cancellationToken = default)
     {
         var otp = await _queryDbContext.OTPs
-            .Where(o => o.PhoneNumber == dto.PhoneNumber)
+            .Where(o => o.PhoneNumber == dto.PhoneNumber && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
             .OrderByDescending(o => o.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -30,6 +30,6 @@ public sealed class OTPQueryRepository : QueryRepository<OTP>, IOTPQueryReposito
         if (!otp.IsValid(dto.OtpCode))
             throw new InvalidOperationException("Invalid or expired OTP");
 
-        return new LatestOTPByPhoneNumberDto(otp.BusinessId, otp.Code);
+        return new LatestOTPByPhoneNumberDto(otp.BusinessId, string.Empty);
     }
 }
