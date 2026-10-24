@@ -57,7 +57,7 @@
 - **Retest:** anonymous فقط status حداقلی بگیرد و هیچ نام سرویس/پیام خطا نبیند.
 - **Status:** `/health/live` تنها مسیر عمومی است؛ `/health` و `/health/ready` به authorization نیاز دارند و پاسخ health دیگر description یا متن exception ندارد.
 
-### H-04 — پاسخ خطای production هنوز متن و نوع exception را افشا می‌کند
+### ✅ H-04 — پاسخ خطای production هنوز متن و نوع exception را افشا می‌کند
 
 - **CWE:** CWE-209
 - **Evidence:** `src/Presentation/Artix.API.WebService/Program.cs:225-258`
@@ -65,6 +65,7 @@
 - **Impact:** خطاهای persistence، مسیرهای داخلی و نوع component به client نشت می‌کند.
 - **Fix:** در production فقط پیام ثابت و correlation id برگردانید؛ جزئیات را فقط در log محافظت‌شده و redacted ثبت کنید.
 - **Retest:** یک exception کنترل‌شده در production-like host فقط پیام ثابت برگرداند.
+- **Status:** production پاسخ ثابت و correlation id برمی‌گرداند؛ پیام، نوع و stack trace exception فقط در log ثبت می‌شود.
 
 ## Medium
 
@@ -105,7 +106,7 @@
 - **Retest:** قطع provider فقط رفتار fail-closed تعریف‌شده را ایجاد کند و IP به log/پاسخ نشت نکند.
 برای این مورد من یک skill نوشتم تا کمکت که دقیقا چیکار کنی و چجوری از این سرویس استفاده کنی و در آدرس زیر موجود است:
 M-04\ip-api-geolocation\SKILL.md
-
+پس از تکمیل این تسک فولدر M-04 رو پاک کن چون دیگه بهش نیاز نداریم.
 
 ## نیازمند تست محیطی
 
