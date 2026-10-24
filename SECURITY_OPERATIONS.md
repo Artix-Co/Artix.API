@@ -13,6 +13,8 @@ Do not put the value in `appsettings*.json`, source control, or test output.
 
 ## Staging checks
 
+Configure `GeoIp:Enabled=true`, an HTTPS `GeoIp:BaseUrl`, and the provider API key in the secret store. The provider must return JSON with a two-letter `countryCode` field.
+
 1. Run two OTP verify requests at the same time. Accept one request only.
 2. Inspect the OTP table and Redis. Find no six digit OTP value.
 3. Call `/health/live` without a token. It must return only liveness data.

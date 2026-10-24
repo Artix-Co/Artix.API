@@ -16,6 +16,8 @@ public static class DependencyInjection
 {
     public static void AddEndpointsServices(this IServiceCollection services)
     {
+        services.AddHttpClient<IGeoIpCountryResolver, GeoIpCountryResolver>();
+
         services.AddControllers(options =>
             {
                 options.Conventions.Add(new RouteTokenTransformerConvention(

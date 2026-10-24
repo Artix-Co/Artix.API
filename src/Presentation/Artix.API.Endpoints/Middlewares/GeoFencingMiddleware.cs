@@ -9,6 +9,7 @@ public class GeoFencingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GeoFencingMiddleware> _logger;
+    private readonly IGeoIpCountryResolver _countryResolver;
     
     // کشورهای مجاز (لیست سفید)
     private readonly HashSet<string> _allowedCountries = new()
@@ -37,10 +38,12 @@ public class GeoFencingMiddleware
     
     public GeoFencingMiddleware(
         RequestDelegate next,
-        ILogger<GeoFencingMiddleware> logger)
+        ILogger<GeoFencingMiddleware> logger,
+        IGeoIpCountryResolver countryResolver)
     {
         _next = next;
         _logger = logger;
+        _countryResolver = countryResolver;
     }
     
     public async Task InvokeAsync(HttpContext context)
@@ -134,8 +137,7 @@ public class GeoFencingMiddleware
             if (ip.StartsWith("192.168.") || ip.StartsWith("10.") || ip.StartsWith("172."))
                 return "LOCAL";
             
-            // Fail closed until a local GeoIP provider is configured.
-            var countryCode = "UNKNOWN";
+            var countryCode = await _countryResolver.ResolveAsync(ip) ?? "UNKNOWN";
             
             // ذخیره در کش به مدت 24 ساعت
             await rateLimiter.SetStringAsync(cacheKey, countryCode, TimeSpan.FromHours(24));

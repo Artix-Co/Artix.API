@@ -8,6 +8,7 @@ using Core.Contract.Configs.AuthenticationApi;
 using Core.Contract.Configs.Elasticsearch;
 using Core.Contract.Configs.FileSettings;
 using Core.Contract.Configs.Mongo;
+using Core.Contract.Configs.GeoIp;
 using Core.Contract.Configs.RabbitMQ;
 using Core.Contract.Configs.Redis;
 using Core.Contract.Primitives.CircuitBreaker;
@@ -60,6 +61,7 @@ public static class HostingExtension
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMqOptions"));
         services.Configure<RedisOptions>(configuration.GetSection("RedisOptions"));
         services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
+        services.Configure<GeoIpSettings>(configuration.GetSection("GeoIp"));
 
         ValidateRequiredSettings(configuration);
 
