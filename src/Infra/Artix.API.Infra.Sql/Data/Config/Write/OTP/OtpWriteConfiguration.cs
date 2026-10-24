@@ -13,8 +13,6 @@ internal sealed class OtpWriteConfiguration : BaseEntityConfiguration<OTP>
         base.Configure(builder);
 
         builder.ToTable("OTPs");
-        builder.Ignore(o => o.CodeForDelivery);
-        
         builder.Property(o => o.PhoneNumber)
             .IsRequired()
             .HasMaxLength(50);

@@ -10,7 +10,6 @@ public class OTP : AggregateRoot
 {
     public string PhoneNumber { get; private set; }
     public string Code { get; private set; }
-    public string? CodeForDelivery { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public bool IsUsed { get; private set; }
     public PurposeType Purpose { get; private set; }
@@ -23,7 +22,6 @@ public class OTP : AggregateRoot
     {
         PhoneNumber = phoneNumber;
         Code = Hash(code);
-        CodeForDelivery = code;
         ExpiresAt = DateTime.UtcNow.AddMinutes(validityMinutes);
         IsUsed = false;
         Purpose = purpose;

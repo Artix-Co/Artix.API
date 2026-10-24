@@ -27,7 +27,7 @@
 
 ## High
 
-### H-01 — OTP در Redis و entity به‌صورت plaintext نگه‌داری می‌شود
+### ✅ H-01 — OTP در Redis و entity به‌صورت plaintext نگه‌داری می‌شود
 
 - **CWE:** CWE-256, CWE-522
 - **Evidence:** `src/Core/Artix.API.Core.Domain/Entities/OTP/OTP.cs:22-29`; `src/Core/Artix.API.Core.DomainService/Services/OtpService.cs:61-68,196-205`
@@ -35,6 +35,7 @@
 - **Impact:** دسترسی read به DB یا Redis برای تصاحب login/registration کافی است. OTPهای فعال قابل بازیابی هستند.
 - **Fix:** فقط hash را در DB/Redis نگه دارید؛ کد ارسال را مستقیم به provider بدهید؛ session را با nonce تصادفی و شناسهٔ challenge bind کنید؛ TTL و حذف اتمیک را حفظ کنید.
 - **Retest:** dump کنترل‌شدهٔ DB/Redis هیچ OTP قابل استفاده‌ای نداشته باشد و verify بدون challenge رد شود.
+- **Status:** entity دیگر کد تحویل را نگه نمی‌دارد و Redis فقط purpose و تعداد تلاش را ذخیره می‌کند؛ اعتبارسنجی کد فقط با hash ذخیره‌شده در DB انجام می‌شود.
 
 ### H-02 — مصرف OTP در برابر درخواست هم‌زمان اتمیک نیست
 

@@ -1,6 +1,8 @@
 namespace Artix.API.Core.DomainService.Services;
 
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Contract.Features.OTPs.Commands;
 using Contract.Features.OTPs.Queries;
@@ -59,7 +61,7 @@ internal sealed class OtpService : IOtpService
         var purpose = await DetermineOtpPurposeAsync(request.PhoneNumber, cancellationToken);
 
         var otpEntity = OTP.Generate(request.PhoneNumber, purpose);
-        var otpSession = new OtpSessionData(otpEntity.CodeForDelivery!, purpose, 0);
+        var otpSession = new OtpSessionData(otpEntity.Code, purpose, 0);
 
         var sessionKey = GetOtpSessionKey(request.PhoneNumber);
         var sessionJson = JsonSerializer.Serialize(otpSession, _jsonOptions);
@@ -83,7 +85,9 @@ internal sealed class OtpService : IOtpService
         if (otpSession.Attempts >= MaxFailedOtpAttempts)
             throw new UnauthorizedAccessException("Too many failed attempts.");
 
-        if (otpSession.Code != request.OtpCode)
+        if (!CryptographicOperations.FixedTimeEquals(
+                Convert.FromHexString(otpSession.Code),
+                SHA256.HashData(Encoding.UTF8.GetBytes(request.OtpCode))))
         {
             await IncrementFailedAttemptsAsync(sessionKey, otpSession, cancellationToken);
             throw new UnauthorizedAccessException("Invalid OTP.");
