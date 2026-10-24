@@ -119,20 +119,30 @@ public sealed class UploadService : IUploadService
         CancellationToken cancellationToken = default)
         => GetOwnedStatusAsync(uploadId, ownerUserId, cancellationToken);
 
-    private static async Task<bool> HasExpectedSignatureAsync(string path, string fileName, CancellationToken cancellationToken)
+    private async Task<bool> HasExpectedSignatureAsync(string path, string fileName, CancellationToken cancellationToken)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var allowedExtensions = _fileSettings.Allowed3DMimeTypes
+            .Concat(_fileSettings.AllowedImageMimeTypes)
+            .Concat(_fileSettings.AllowedReadmeMimeTypes)
+            .Select(x => x.ToLowerInvariant())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!allowedExtensions.Contains(extension))
+            return false;
+
         var requiredBytes = extension switch
         {
             ".png" => new byte[] { 0x89, 0x50, 0x4E, 0x47 },
             ".jpg" or ".jpeg" => new byte[] { 0xFF, 0xD8, 0xFF },
             ".pdf" => new byte[] { 0x25, 0x50, 0x44, 0x46 },
             ".glb" => "glTF"u8.ToArray(),
+            ".docx" => new byte[] { 0x50, 0x4B, 0x03, 0x04 },
             _ => null
         };
 
         if (requiredBytes is null)
-            return true;
+            return extension is ".gltf" or ".json" or ".md" or ".txt";
 
         var buffer = new byte[requiredBytes.Length];
         await using var stream = File.OpenRead(path);

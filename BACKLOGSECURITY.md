@@ -69,7 +69,7 @@
 
 ## Medium
 
-### M-01 — allowlist فایل در upload به‌کار نمی‌رود و extension ناشناخته پذیرفته می‌شود
+### ✅ M-01 — allowlist فایل در upload به‌کار نمی‌رود و extension ناشناخته پذیرفته می‌شود
 
 - **CWE:** CWE-434, CWE-79
 - **Evidence:** `src/Infra/Artix.API.Infra.FileService/Services/UploadService.cs:97-140`; `src/Core/Artix.API.Core.Contract/Configs/FileSettings/FileSettings.cs:11-17`; `src/Presentation/Artix.API.WebService/Program.cs:331-342`
@@ -77,6 +77,7 @@
 - **Impact:** فایل HTML یا محتوای فعال می‌تواند توسط کاربر مجاز upload و روی origin برنامه اجرا شود.
 - **Fix:** allowlist server-side بر اساس purpose، MIME واقعی و magic bytes؛ فایل فعال را از web root خارج کنید یا با `Content-Disposition: attachment` و origin جدا serve کنید.
 - **Retest:** `.html`, `.svg`, `.js` و extension ناشناخته رد یا به‌صورت attachment بی‌خطر تحویل شوند.
+- **Status:** merge فقط extensionهای allowlist تنظیمات را می‌پذیرد؛ فرمت‌های binary شناخته‌شده magic bytes را بررسی می‌کنند و extension ناشناخته رد می‌شود.
 
 ### M-02 — sessionهای upload انقضا و cleanup ندارند
 
