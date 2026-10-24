@@ -367,11 +367,11 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("ready"),
     ResponseWriter = HealthCheckExtensions.WriteHealthResponse
-});
+}).RequireAuthorization();
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = HealthCheckExtensions.WriteHealthResponse
-});
+}).RequireAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub")
     .RequireAuthorization();

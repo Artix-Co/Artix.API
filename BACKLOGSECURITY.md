@@ -47,7 +47,7 @@
 - **Retest:** دو verify هم‌زمان با یک challenge، دقیقاً یک پاسخ موفق داشته باشند.
 - **Status:** verify برای هر شماره قفل توزیع‌شده می‌گیرد، OTP را پیش از صدور token مصرف می‌کند و session را حذف می‌کند؛ درخواست هم‌زمان فقط پس از آزاد شدن قفل با challenge مصرف‌شده روبه‌رو می‌شود.
 
-### H-03 — endpointهای health جزئیات backend را عمومی برمی‌گردانند
+### ✅ H-03 — endpointهای health جزئیات backend را عمومی برمی‌گردانند
 
 - **CWE:** CWE-200
 - **Evidence:** `src/Presentation/Artix.API.WebService/Program.cs:361-375`; `src/Presentation/Artix.API.WebService/Extensions/HealthCheckExtensions.cs:46-69`
@@ -55,6 +55,7 @@
 - **Impact:** وضعیت SQL Server، MongoDB، Redis و RabbitMQ و متن خطای داخلی برای anonymous افشا می‌شود و reconnaissance و تنظیم حمله را ساده می‌کند.
 - **Fix:** فقط liveness عمومی و حداقلی باشد؛ readiness و جزئیات backend را به شبکهٔ داخلی یا policy محدود کنید؛ `error` و exception متن را از پاسخ عمومی حذف کنید.
 - **Retest:** anonymous فقط status حداقلی بگیرد و هیچ نام سرویس/پیام خطا نبیند.
+- **Status:** `/health/live` تنها مسیر عمومی است؛ `/health` و `/health/ready` به authorization نیاز دارند و پاسخ health دیگر description یا متن exception ندارد.
 
 ### H-04 — پاسخ خطای production هنوز متن و نوع exception را افشا می‌کند
 
@@ -102,6 +103,9 @@
 - **Impact:** IP کاربر به ثالث افشا می‌شود و latency/availability درخواست به provider وابسته می‌ماند.
 - **Fix:** MaxMind/GeoIP محلی یا provider قراردادی با TLS و timeout مشخص؛ IP را minimize کنید؛ failure را برای مسیر امنیتی صریح و قابل مانیتور کنید.
 - **Retest:** قطع provider فقط رفتار fail-closed تعریف‌شده را ایجاد کند و IP به log/پاسخ نشت نکند.
+برای این مورد من یک skill نوشتم تا کمکت که دقیقا چیکار کنی و چجوری از این سرویس استفاده کنی و در آدرس زیر موجود است:
+M-04\ip-api-geolocation\SKILL.md
+
 
 ## نیازمند تست محیطی
 
