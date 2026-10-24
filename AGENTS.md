@@ -93,3 +93,15 @@ graphify update .
 ## Graphify
 
 این پروژه knowledge graph در `graphify-out/` دارد. فایل‌های dirty graphify مانع کار نیستند. فقط برای بررسی stale/غلط بودن graph یا با درخواست صریح کاربر graphify را کنار بگذار. پس از هر تغییر کد `graphify update .` را اجرا کن؛ بازنویسی بزرگ `graphify-out/graph.json` طبیعی است.
+
+## ASD-STE100 writing rule
+
+Apply ASD-STE100 to every new or changed code comment and summary.
+
+- Use short sentences with one clear action.
+- Use simple words and active voice.
+- Use one term for one meaning.
+- Avoid idioms, vague words, and unnecessary words.
+- State the condition, action, and result.
+- Write comments that explain why the code exists.
+- Keep summaries factual and easy to scan.
