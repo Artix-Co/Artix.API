@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Sql.Data.DbContexts;
+namespace Artix.API.Infra.Sql.Data.DbContexts;
 
 using System.Reflection;
 using Core.Domain.Entities.Collection;
@@ -42,6 +42,7 @@ public sealed class ArtixQueryDbContext : IdentityDbContext<AppUser, AppRole, lo
     public DbSet<SeasonTask> SeasonTasks { get; set; }
     public DbSet<AppRole> AppRoles { get; set; }
     public DbSet<AppUser> AppUsers { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<UserJournalEntry> UserJournalEntries { get; set; }
     public DbSet<UserMuseumKey> UserMuseumKeys { get; set; }

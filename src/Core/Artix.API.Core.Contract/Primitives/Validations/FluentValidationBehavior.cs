@@ -9,19 +9,23 @@ public sealed class FluentValidationBehavior<TRequest, TResponse> : IPipelineBeh
 
     public FluentValidationBehavior(IValidator<TRequest>? validator = null)
     {
-        this._validator = validator;
+        _validator = validator;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
-        // Only run validation if a validator is available for the request
-        if (this._validator != null)
+        if (_validator is not null)
         {
-            var validationResult = await this._validator.ValidateAsync(request, cancellationToken);
-
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                throw new ValidationException(validationResult.Errors);
+                var failures = validationResult.Errors
+                    .Select(failure => new FluentValidation.Results.ValidationFailure(
+                        failure.PropertyName,
+                        BilingualValidationMessage.Format(failure)))
+                    .ToList();
+                throw new ValidationException(failures);
             }
         }
 

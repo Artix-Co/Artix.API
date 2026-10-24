@@ -9,6 +9,7 @@ using Artix.API.Infra.Sql.Data.Seed;
 using Artix.API.Infra.Sql.Exceptions;
 using Artix.API.WebService;
 using Artix.API.WebService.Extensions;
+using FluentValidation;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -231,6 +232,7 @@ app.UseExceptionHandler(errorApp =>
 
         var status = ex switch
         {
+            ValidationException => 400,
             InfrastructureNotFoundException => 404,
             ApplicationServiceNotFoundException => 404,
             _ => 500
@@ -242,6 +244,18 @@ app.UseExceptionHandler(errorApp =>
         Log.Error(ex,
             "Unhandled error. Path: {Path}, Status: {StatusCode}",
             feature?.Path, status);
+
+        if (ex is ValidationException validationException)
+        {
+            var errors = validationException.Errors
+                .GroupBy(error => error.PropertyName)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(error => error.ErrorMessage).Distinct().ToArray());
+
+            await context.Response.WriteAsJsonAsync(new { errors });
+            return;
+        }
 
         var baseResponse = new ErrorResponse
         {

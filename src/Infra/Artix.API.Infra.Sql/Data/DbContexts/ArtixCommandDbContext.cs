@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Sql.Data.DbContexts;
+namespace Artix.API.Infra.Sql.Data.DbContexts;
 
 using System.Reflection;
 using System.Text.Json;
@@ -46,6 +46,7 @@ public sealed class ArtixCommandDbContext : IdentityDbContext<AppUser, AppRole, 
 
     public DbSet<AppRole> AppRoles { get; set; }
     public DbSet<AppUser> AppUsers { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
 
     public DbSet<Collection> Collections { get; set; }
     public DbSet<CollectionItem> CollectionItems { get; set; }
