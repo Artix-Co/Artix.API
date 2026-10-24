@@ -12,6 +12,7 @@ public static class DependencyInjection
        
        services.AddHostedService<FileWatcherService>();
        services.AddHostedService<CompressionWorker>();
+       services.AddHostedService<UploadCleanupService>();
        services.AddSingleton<IFileCompressor, FileCompressor>();
 
 

@@ -7,4 +7,5 @@ public interface IUploadRepository
     Task AddAsync(UploadSession session, CancellationToken cancellationToken);
     Task<UploadSession?> GetAsync(Guid id, CancellationToken cancellationToken);
     Task UpdateAsync(UploadSession session, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<UploadSession>> RemoveExpiredAsync(DateTime cutoff, CancellationToken cancellationToken);
 }

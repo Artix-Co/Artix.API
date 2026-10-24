@@ -79,7 +79,7 @@
 - **Retest:** `.html`, `.svg`, `.js` و extension ناشناخته رد یا به‌صورت attachment بی‌خطر تحویل شوند.
 - **Status:** merge فقط extensionهای allowlist تنظیمات را می‌پذیرد؛ فرمت‌های binary شناخته‌شده magic bytes را بررسی می‌کنند و extension ناشناخته رد می‌شود.
 
-### M-02 — sessionهای upload انقضا و cleanup ندارند
+### ✅ M-02 — sessionهای upload انقضا و cleanup ندارند
 
 - **CWE:** CWE-400, CWE-459
 - **Evidence:** `src/Core/Artix.API.Core.Domain/Entities/File/UploadSession.cs:5-27`; `src/Infra/Artix.API.Infra.FileService/Services/InMemoryUploadRepository.cs:7-25`; `src/Infra/Artix.API.Infra.FileService/Services/FileSystemStorage.cs:43-66,151-156`
@@ -87,6 +87,7 @@
 - **Impact:** initهای رهاشده و chunkهای نیمه‌کاره می‌توانند دیسک/حافظه را پر کنند؛ restart نیز state را از بین می‌برد.
 - **Fix:** TTL و quota per user، job cleanup، حذف session و temp folder در failure، و repository پایدار با status اتمیک.
 - **Retest:** session منقضی‌شده و folder آن خودکار حذف شود و quota قابل دور زدن نباشد.
+- **Status:** session پس از یک ساعت منقضی می‌شود، عملیات روی session منقضی رد می‌شود و worker دوره‌ای session و temp folder رهاشده را حذف می‌کند.
 
 ### M-03 — geo-fencing برای مسیرهای حساس فقط log می‌کند
 

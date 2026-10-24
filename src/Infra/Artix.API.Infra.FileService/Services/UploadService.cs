@@ -6,6 +6,7 @@ using Core.Domain.Entities.File;
 using Microsoft.Extensions.Options;
 public sealed class UploadService : IUploadService
 {
+    internal static readonly TimeSpan SessionLifetime = TimeSpan.FromHours(1);
     private const long MaxUploadSize = 100L * 1024 * 1024;
     private const int MinChunkSize = 64 * 1024;
     private const int MaxChunkSize = 8 * 1024 * 1024;
@@ -65,6 +66,7 @@ public sealed class UploadService : IUploadService
         var session = await _repo.GetAsync(uploadId, cancellationToken)
                      ?? throw new InvalidOperationException("Upload session not found.");
         EnsureOwner(session, ownerUserId);
+        EnsureNotExpired(session);
         if (session.Completed || chunkIndex < 0 || chunkIndex >= session.TotalChunks)
             throw new ArgumentOutOfRangeException(nameof(chunkIndex));
 
@@ -78,6 +80,7 @@ public sealed class UploadService : IUploadService
                      ?? throw new InvalidOperationException("Upload session not found.");
 
         EnsureOwner(session, ownerUserId);
+        EnsureNotExpired(session);
 
         var receivedCount = session.ReceivedChunks.Count(x => x.Value);
         if (receivedCount != session.TotalChunks)
@@ -154,7 +157,14 @@ public sealed class UploadService : IUploadService
         var session = await _repo.GetAsync(uploadId, cancellationToken)
                       ?? throw new InvalidOperationException("Upload session not found.");
         EnsureOwner(session, ownerUserId);
+        EnsureNotExpired(session);
         return session;
+    }
+
+    private static void EnsureNotExpired(UploadSession session)
+    {
+        if (session.CreatedAt.Add(SessionLifetime) <= DateTime.UtcNow)
+            throw new InvalidOperationException("Upload session has expired.");
     }
 
     private static void EnsureOwner(UploadSession session, long? ownerUserId)

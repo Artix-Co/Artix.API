@@ -22,4 +22,13 @@ public class InMemoryUploadRepository : IUploadRepository
         _store[session.Id] = session;
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyCollection<UploadSession>> RemoveExpiredAsync(DateTime cutoff, CancellationToken ct = default)
+    {
+        var expired = _store.Values.Where(x => !x.Completed && x.CreatedAt <= cutoff).ToArray();
+        foreach (var session in expired)
+            _store.TryRemove(session.Id, out _);
+
+        return Task.FromResult<IReadOnlyCollection<UploadSession>>(expired);
+    }
 }
