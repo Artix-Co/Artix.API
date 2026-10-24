@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.ModifyProfile;
+namespace Artix.API.Core.ApplicationService.Features.Users.Client.Commands.ModifyProfile;
 
 using Primitives;
 using Contract.Configs.FileSettings;
@@ -38,11 +38,11 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ClientModifyProf
             !string.IsNullOrWhiteSpace(command.ImageFileName) &&
             !string.IsNullOrWhiteSpace(command.ImageFileMimeType))
         {
-            this._logger.LogInformation("Processing image upload for {FileName}", command.ImageFileName);
+            this._logger.LogInformation("Processing image upload");
 
             if (!this._allowedImageMimeTypes.Contains(command.ImageFileMimeType))
             {
-                this._logger.LogError("Invalid MIME type for image: {MimeType}", command.ImageFileMimeType);
+                this._logger.LogError("Invalid MIME type for image");
                 throw new Exception($"Invalid MIME type for image: {command.ImageFileMimeType}");
             }
 
@@ -59,7 +59,7 @@ internal sealed class ModifyProfileHandler : CommandHandlerBase<ClientModifyProf
             }
             catch (FormatException ex)
             {
-                this._logger.LogError(ex, "Invalid Base64 for image: {FileName}", command.ImageFileName);
+                this._logger.LogError(ex, "Invalid Base64 for image");
                 throw new Exception($"Invalid Base64 string for ImageFileData: {ex.Message}");
             }
 

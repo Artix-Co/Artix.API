@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Middlewares;
+namespace Artix.API.Endpoints.Middlewares;
 
 using System;
 using System.Collections.Generic;
@@ -492,19 +492,8 @@ public class ContinuousAuthorizationMiddleware
         return "unknown";
     }
     
-    private string GetClientIp(HttpContext context)
-    {
-        if (context.Request.Headers.TryGetValue("CF-Connecting-IP", out var cfIp))
-            return cfIp.ToString();
-        
-        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
-            return forwarded.FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim() ?? "unknown";
-        
-        if (context.Request.Headers.TryGetValue("X-Real-IP", out var realIp))
-            return realIp.ToString();
-        
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
+    private static string GetClientIp(HttpContext context)
+        => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     
     private string ComputeSimpleHash(string input)
     {

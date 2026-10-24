@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Sql.Data.Config.Read.OTP;
+namespace Artix.API.Infra.Sql.Data.Config.Read.OTP;
 
 using Core.Domain.Entities.OTP;
 using Core.Domain.Entities.OTP.Enums;
@@ -13,6 +13,7 @@ internal sealed class OtpReadConfiguration : BaseEntityConfiguration<OTP>
         base.Configure(builder);
 
         builder.ToTable("OTPs");
+        builder.Ignore(o => o.CodeForDelivery);
         
         builder.Property(o => o.PhoneNumber)
             .IsRequired()
@@ -20,7 +21,7 @@ internal sealed class OtpReadConfiguration : BaseEntityConfiguration<OTP>
         
         builder.Property(o => o.Code)
             .IsRequired()
-            .HasMaxLength(6);
+            .HasMaxLength(64);
         
         
         builder.Property(o => o.ExpiresAt)

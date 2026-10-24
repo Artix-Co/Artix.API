@@ -7,8 +7,8 @@ public sealed class GetClientPaginateObjectsQueryValidator : AbstractValidator<G
 {
     public GetClientPaginateObjectsQueryValidator()
     {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).GreaterThan(0);
+        RuleFor(x => x.PageNumber).InclusiveBetween(1, 100000);
+        RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
         RuleForEach(x => x.CategoryIds).GreaterThan(0).When(x => x.CategoryIds is not null);
         RuleFor(x => x.MuseumId).Must(id => !id.HasValue || id.Value != Guid.Empty);
         RuleFor(x => x.Tier).GreaterThanOrEqualTo(0).When(x => x.Tier.HasValue);

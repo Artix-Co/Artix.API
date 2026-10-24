@@ -71,8 +71,9 @@ public class FileSystemStorage : IFileStorage
         var tempFolder = Path.Combine(_settings.TempPath, uploadId.ToString());
         if (!Directory.Exists(tempFolder))
             throw new DirectoryNotFoundException($"Temp folder not found: {tempFolder}");
-        var uniqueName = FileNameHelper.GenerateUniqueFileName(originalFileName);
-        var finalPath = Path.Combine(_settings.StoragePath, uniqueName);
+        var finalPath = Path.Combine(_settings.StoragePath, FileNameHelper.GenerateUniqueFileName(originalFileName));
+        while (File.Exists(finalPath))
+            finalPath = Path.Combine(_settings.StoragePath, FileNameHelper.GenerateUniqueFileName(originalFileName));
         var chunkPaths = Enumerable.Range(0, totalChunks)
             .Select(i => Path.Combine(tempFolder, $"{uploadId}.part{i}"))
             .ToArray();

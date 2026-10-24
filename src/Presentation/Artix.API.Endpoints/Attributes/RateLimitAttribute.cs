@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Endpoints.Attributes;
+namespace Artix.API.Endpoints.Attributes;
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
@@ -38,11 +38,6 @@ public class RateLimitAttribute : Attribute
         return key;
     }
 
-    private string GetClientIp(HttpContext context)
-    {
-        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
-            return forwarded.FirstOrDefault()?.Split(',').FirstOrDefault() ?? "unknown";
-
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
+    private static string GetClientIp(HttpContext context)
+        => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 }

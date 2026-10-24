@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Redis.Services;
+namespace Artix.API.Infra.Redis.Services;
 
 using System.Text.Json;
 using Core.Contract.Primitives.Infra.Redis;
@@ -373,13 +373,8 @@ public class AnomalyDetectionService : IAnomalyDetectionService
         return "log_only";
     }
 
-    private string GetClientIp(HttpContext context)
-    {
-        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
-            return forwarded.FirstOrDefault()?.Split(',').FirstOrDefault() ?? "unknown";
-
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
+    private static string GetClientIp(HttpContext context)
+        => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
     private async Task<LocationData?> GetLocationFromIpAsync(string ip, CancellationToken ct)
     {

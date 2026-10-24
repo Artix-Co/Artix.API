@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Core.DomainService.Services;
+namespace Artix.API.Core.DomainService.Services;
 
 using System.Security.Claims;
 using System.Text.Json;
@@ -59,7 +59,7 @@ internal sealed class OtpService : IOtpService
         var purpose = await DetermineOtpPurposeAsync(request.PhoneNumber, cancellationToken);
 
         var otpEntity = OTP.Generate(request.PhoneNumber, purpose);
-        var otpSession = new OtpSessionData(otpEntity.Code, purpose, 0);
+        var otpSession = new OtpSessionData(otpEntity.CodeForDelivery!, purpose, 0);
 
         var sessionKey = GetOtpSessionKey(request.PhoneNumber);
         var sessionJson = JsonSerializer.Serialize(otpSession, _jsonOptions);

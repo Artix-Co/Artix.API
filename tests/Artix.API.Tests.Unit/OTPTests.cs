@@ -1,4 +1,4 @@
-﻿using Artix.API.Core.Domain.Entities.OTP;
+using Artix.API.Core.Domain.Entities.OTP;
 using Artix.API.Core.Domain.Entities.OTP.Enums;
 
 namespace Artix.API.Tests.Unit;
@@ -9,7 +9,7 @@ public sealed class OtpTests
     public void Generate_creates_a_random_six_digit_code()
     {
         var codes = Enumerable.Range(0, 100)
-            .Select(_ => OTP.Generate("09120000000", PurposeType.Login).Code)
+            .Select(_ => OTP.Generate("09120000000", PurposeType.Login).CodeForDelivery!)
             .ToArray();
 
         Assert.All(codes, code =>

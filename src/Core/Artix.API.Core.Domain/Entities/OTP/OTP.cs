@@ -10,6 +10,7 @@ public class OTP : AggregateRoot
 {
     public string PhoneNumber { get; private set; }
     public string Code { get; private set; }
+    public string? CodeForDelivery { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public bool IsUsed { get; private set; }
     public PurposeType Purpose { get; private set; }
@@ -21,7 +22,8 @@ public class OTP : AggregateRoot
     private OTP(string phoneNumber, string code, PurposeType purpose, int validityMinutes = 5)
     {
         PhoneNumber = phoneNumber;
-        Code = code;
+        Code = Hash(code);
+        CodeForDelivery = code;
         ExpiresAt = DateTime.UtcNow.AddMinutes(validityMinutes);
         IsUsed = false;
         Purpose = purpose;
@@ -49,7 +51,7 @@ public class OTP : AggregateRoot
         if (DateTime.UtcNow > ExpiresAt)
             throw DomainException.InvalidOperation("OTP has expired.");
 
-        if (this.Code != code)
+        if (!CryptographicOperations.FixedTimeEquals(Convert.FromHexString(this.Code), SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(code))))
             throw DomainException.InvalidValue("OTP code");
         
         return true; 
@@ -62,6 +64,8 @@ public class OTP : AggregateRoot
 
         IsUsed = true;
     }
+
+    private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));
 
     public void ExtendExpiry(int additionalMinutes)
     {

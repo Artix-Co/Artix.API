@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 public sealed class UploadSession
 {
     public Guid Id { get; set; }
+    public long? OwnerUserId { get; set; }
     public string FileName { get; set; }
     public long TotalSize { get; set; }
     public int ChunkSize { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace Artix.API.Infra.Identity;
+namespace Artix.API.Infra.Identity;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -191,137 +191,44 @@ public static class DependencyInjection
                     },
                     OnTokenValidated = async context =>
                     {
+                        var principal = context.Principal;
+                        var userIdValue = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                        var jti = principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                        if (principal is null || !long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(jti))
+                        {
+                            context.Fail("Invalid token claims.");
+                            return;
+                        }
+
                         var services = context.HttpContext.RequestServices;
+                        var userManager = services.GetRequiredService<UserManager<AppUser>>();
+                        var user = await userManager.FindByIdAsync(userId.ToString());
+                        if (user is null || user.IsBanned)
+                        {
+                            context.Fail("User is not active.");
+                            return;
+                        }
 
-                        // var principal = context.Principal;
-                        // if (principal is null)
-                        // {
-                        //     context.Fail("Unauthorized.");
-                        //     return;
-                        // }
+                        var tokenStamp = principal.FindFirst("sst")?.Value;
+                        var currentStamp = await userManager.GetSecurityStampAsync(user);
+                        if (string.IsNullOrWhiteSpace(tokenStamp) ||
+                            !string.Equals(tokenStamp, currentStamp, StringComparison.Ordinal))
+                        {
+                            context.Fail("Security stamp mismatch.");
+                            return;
+                        }
 
-                        // ----------------------------------------------------
-                        // Claims
-                        // ----------------------------------------------------
+                        var revocationStore = services.GetRequiredService<ITokenRevocationStore>();
+                        if (await revocationStore.IsRevokedAsync(jti, context.HttpContext.RequestAborted))
+                        {
+                            context.Fail("Token revoked.");
+                            return;
+                        }
 
-                        // var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-                        // var jtiClaim = principal.FindFirst(JwtRegisteredClaimNames.Jti);
-
-                        // if (userIdClaim is null || jtiClaim is null)
-                        // {
-                        //     context.Fail("Invalid token.");
-                        //     return;
-                        // }
-                        //
-                        // if (!long.TryParse(userIdClaim.Value, out var userId))
-                        // {
-                        //     context.Fail("Invalid user.");
-                        //     return;
-                        // }
-
-                        // ----------------------------------------------------
-                        // User
-                        // ----------------------------------------------------
-
-                        // var userManager = services.GetRequiredService<UserManager<AppUser>>();
-
-                        // var user = await userManager.FindByIdAsync(userId.ToString());
-
-                        // if (user is null)
-                        // {
-                        //     context.Fail("User not found.");
-                        //     return;
-                        // }
-                        //
-                        // if (user.IsBanned)
-                        // {
-                        //     context.Fail("User is banned.");
-                        //     return;
-                        // }
-
-                        // ----------------------------------------------------
-                        // SecurityStamp
-                        // ----------------------------------------------------
-
-                        // var tokenStamp = principal.FindFirst("sst")?.Value;
-
-                        // if (string.IsNullOrWhiteSpace(tokenStamp))
-                        // {
-                        //     context.Fail("Security stamp missing.");
-                        //     return;
-                        // }
-
-                        // var currentStamp = await userManager.GetSecurityStampAsync(user);
-
-                        // if (!string.Equals(
-                        //         tokenStamp,
-                        //         currentStamp,
-                        //         StringComparison.Ordinal))
-                        // {
-                        //     context.Fail("Security stamp mismatch.");
-                        //     return;
-                        // }
-                        // ----------------------------------------------------
-                        // Revocation
-                        // ----------------------------------------------------
-
-                        // var revocationStore =
-                        //     services.GetRequiredService<ITokenRevocationStore>();
-
-                        // if (await revocationStore.IsRevokedAsync(jtiClaim.Value))
-                        // {
-                        //     context.Fail("Token revoked.");
-                        //     return;
-                        // }
-
-                        // ----------------------------------------------------
-                        // Session
-                        // ----------------------------------------------------
-
-                        // var sessionService =
-                        //     services.GetRequiredService<IUserSessionService>();
-
-                        // var sessionValid =
-                        //     await sessionService.IsValidSessionAsync(
-                        //         userId,
-                        //         jtiClaim.Value,
-                        //         context.HttpContext.RequestAborted);
-
-                        // if (!sessionValid)
-                        // {
-                        //     context.Fail("Session expired.");
-                        //     return;
-                        // }
-
-                        // ----------------------------------------------------
-                        // Fingerprint
-                        // ----------------------------------------------------
-
-                        // var fingerprintService =
-                        //     services.GetRequiredService<IDeviceFingerprintService>();
-                        //
-                        // var expected =
-                        //     fingerprintService.Create(context.HttpContext);
-                        //
-                        // var actual =
-                        //     principal.FindFirst("fingerprint")?.Value;
-
-                        // if (string.IsNullOrWhiteSpace(actual))
-                        // {
-                        //     context.Fail("Fingerprint missing.");
-                        //     return;
-                        // }
-                        //
-                        // if (!string.Equals(
-                        //         tokenStamp,
-                        //         currentStamp,
-                        //         StringComparison.Ordinal))
-                        // {
-                        //     context.Fail("Security stamp mismatch.");
-                        //     return;
-                        // }
-                    },
-                    // OnAuthenticationFailed = context =>
+                        var sessionService = services.GetRequiredService<IUserSessionService>();
+                        if (!await sessionService.IsValidSessionAsync(userId, jti, context.HttpContext.RequestAborted))
+                            context.Fail("Session expired or revoked.");
+                    },                    // OnAuthenticationFailed = context =>
                     // {
                     //     context.NoResult();
                     //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
