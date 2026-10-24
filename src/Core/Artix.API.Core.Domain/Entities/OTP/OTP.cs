@@ -1,4 +1,6 @@
-﻿namespace Artix.API.Core.Domain.Entities.OTP;
+using System.Security.Cryptography;
+
+namespace Artix.API.Core.Domain.Entities.OTP;
 
 using Common;
 using Enums;
@@ -36,9 +38,7 @@ public class OTP : AggregateRoot
 
     private static string GenerateOtpCode()
     {
-        var random = new Random();
-        // return random.Next(100_000, 1_000_000).ToString()
-        return "123456";
+        return RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
     }
 
     public bool IsValid(string code)
