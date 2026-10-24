@@ -37,7 +37,7 @@
 - **Retest:** dump کنترل‌شدهٔ DB/Redis هیچ OTP قابل استفاده‌ای نداشته باشد و verify بدون challenge رد شود.
 - **Status:** entity دیگر کد تحویل را نگه نمی‌دارد و Redis فقط purpose و تعداد تلاش را ذخیره می‌کند؛ اعتبارسنجی کد فقط با hash ذخیره‌شده در DB انجام می‌شود.
 
-### H-02 — مصرف OTP در برابر درخواست هم‌زمان اتمیک نیست
+### ✅ H-02 — مصرف OTP در برابر درخواست هم‌زمان اتمیک نیست
 
 - **CWE:** CWE-362, CWE-613
 - **Evidence:** `src/Core/Artix.API.Core.DomainService/Services/OtpService.cs:73-110`
@@ -45,6 +45,7 @@
 - **Impact:** replay هم‌زمان می‌تواند بیش از یک جفت token صادر کند.
 - **Fix:** یک عملیات atomic در Redis/DB برای consume challenge انجام دهید؛ فقط برندهٔ consume مجاز به صدور token باشد؛ صدور token و علامت مصرف را با invariant قابل آزمون هماهنگ کنید.
 - **Retest:** دو verify هم‌زمان با یک challenge، دقیقاً یک پاسخ موفق داشته باشند.
+- **Status:** verify برای هر شماره قفل توزیع‌شده می‌گیرد، OTP را پیش از صدور token مصرف می‌کند و session را حذف می‌کند؛ درخواست هم‌زمان فقط پس از آزاد شدن قفل با challenge مصرف‌شده روبه‌رو می‌شود.
 
 ### H-03 — endpointهای health جزئیات backend را عمومی برمی‌گردانند
 

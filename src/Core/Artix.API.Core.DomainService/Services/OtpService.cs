@@ -31,6 +31,7 @@ internal sealed class OtpService : IOtpService
     private readonly IOTPCommandRepository _otpCommandRepository;
     private readonly IOTPQueryRepository _otpQueryRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IDistributedLockService _lockService;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public OtpService(
@@ -39,7 +40,8 @@ internal sealed class OtpService : IOtpService
         ISessionStore sessionStore,
         IOTPCommandRepository otpCommandRepository,
         IOTPQueryRepository otpQueryRepository,
-        IJwtTokenGenerator jwtTokenGenerator)
+        IJwtTokenGenerator jwtTokenGenerator,
+        IDistributedLockService lockService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -47,6 +49,7 @@ internal sealed class OtpService : IOtpService
         _otpCommandRepository = otpCommandRepository;
         _otpQueryRepository = otpQueryRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _lockService = lockService;
 
         _jsonOptions = new JsonSerializerOptions
         {
@@ -76,6 +79,11 @@ internal sealed class OtpService : IOtpService
         VerifyOTPRequest request,
         CancellationToken cancellationToken = default)
     {
+        await using var lockHandle = await _lockService.TryAcquireAsync(
+            $"otp:{request.PhoneNumber}:consume", TimeSpan.FromSeconds(15), cancellationToken);
+        if (lockHandle is null)
+            throw new InvalidOperationException("OTP verification is already in progress.");
+
         var sessionKey = GetOtpSessionKey(request.PhoneNumber);
         var otpSession = await GetOtpSessionAsync(sessionKey, cancellationToken);
 
@@ -93,14 +101,6 @@ internal sealed class OtpService : IOtpService
             throw new UnauthorizedAccessException("Invalid OTP.");
         }
 
-        var user = await GetOrCreateUserAsync(
-            request.PhoneNumber,
-            otpSession.Purpose,
-            otpSession.Attempts,
-            cancellationToken);
-
-        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
-
         var latestOtp = await _otpQueryRepository.GetLatestByPhoneNumberAsync(
             new GetLatestOTPByPhoneNumberQuery(request.PhoneNumber, request.OtpCode),
             cancellationToken);
@@ -112,6 +112,14 @@ internal sealed class OtpService : IOtpService
         await _otpCommandRepository.UpdateAsync(otpEntity, cancellationToken);
 
         await _sessionStore.RemoveSessionAsync(sessionKey, cancellationToken);
+
+        var user = await GetOrCreateUserAsync(
+            request.PhoneNumber,
+            otpSession.Purpose,
+            otpSession.Attempts,
+            cancellationToken);
+
+        var tokens = await _jwtTokenGenerator.GenerateTokensAsync(user, true, cancellationToken);
 
         return new VerifyOTPResult(
             user.BusinessId,
