@@ -99,7 +99,7 @@
 - **Retest:** matrix کشور/نقش نشان دهد تصمیم authorization مستقل از header و client است.
 - **Status:** مسیر حساس برای کشور خارج از allowlist با 403 متوقف می‌شود و خطاهای syntax middleware نیز اصلاح شد.
 
-### M-04 — lookup جغرافیایی به سرویس HTTP ثالث وابسته است
+### ✅ M-04 — lookup جغرافیایی به سرویس HTTP ثالث وابسته است
 
 - **CWE:** CWE-359, CWE-400
 - **Evidence:** `src/Presentation/Artix.API.Endpoints/Middlewares/GeoFencingMiddleware.cs:159-185`
@@ -110,6 +110,7 @@
 برای این مورد من یک skill نوشتم تا کمکت که دقیقا چیکار کنی و چجوری از این سرویس استفاده کنی و در آدرس زیر موجود است:
 M-04\ip-api-geolocation\SKILL.md
 پس از تکمیل این تسک فولدر M-04 رو پاک کن چون دیگه بهش نیاز نداریم.
+- **Status:** درخواست HTTP ثالث حذف شد؛ lookup ناشناخته برای مسیر حساس fail-closed است. برای allowlist واقعی باید provider محلی یا قراردادی قبل از فعال‌سازی جغرافیایی اضافه شود.
 
 ## نیازمند تست محیطی
 

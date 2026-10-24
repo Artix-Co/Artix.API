@@ -134,9 +134,8 @@ public class GeoFencingMiddleware
             if (ip.StartsWith("192.168.") || ip.StartsWith("10.") || ip.StartsWith("172."))
                 return "LOCAL";
             
-            // در محیط واقعی، از یک سرویس GeoIP استفاده کنید
-            // مثال: استفاده از freegeoip.app یا MaxMind
-            var countryCode = await GetCountryCodeFromServiceAsync(ip);
+            // Fail closed until a local GeoIP provider is configured.
+            var countryCode = "UNKNOWN";
             
             // ذخیره در کش به مدت 24 ساعت
             await rateLimiter.SetStringAsync(cacheKey, countryCode, TimeSpan.FromHours(24));
@@ -148,35 +147,6 @@ public class GeoFencingMiddleware
             _logger.LogError(ex, "Error getting country code");
             return "UNKNOWN";
         }
-    }
-    
-    private async Task<string> GetCountryCodeFromServiceAsync(string ip)
-    {
-        // روش 1: استفاده از API رایگان (با احتیاط - محدودیت دارد)
-        try
-        {
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(3);
-            
-            var response = await httpClient.GetStringAsync($"https://ip-api.com/json/{ip}?fields=countryCode");
-            // Parse JSON response
-            if (response.Contains("\"countryCode\":\""))
-            {
-                var start = response.IndexOf("\"countryCode\":\"") + 15;
-                var end = response.IndexOf("\"", start);
-                return response.Substring(start, end - start);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to get country from external service");
-        }
-        
-        // روش 2: استفاده از MaxMind GeoLite2 (توصیه شده)
-        // var country = await _geoIpService.GetCountryAsync(ip);
-        // return country.Code;
-        
-        return "UNKNOWN";
     }
     
     private static string GetClientIp(HttpContext context)
