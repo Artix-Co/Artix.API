@@ -25,7 +25,7 @@ public class RateLimitAttribute : Attribute
 
         if (this.UseClientIp)
         {
-            var ip = this.GetClientIp(context);
+            var ip = GetClientIp(context);
             key = $"{key}:ip:{ip}";
         }
 

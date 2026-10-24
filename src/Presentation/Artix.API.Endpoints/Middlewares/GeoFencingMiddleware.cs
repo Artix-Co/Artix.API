@@ -58,8 +58,8 @@ public class GeoFencingMiddleware
             if (_blockedCountries.Contains(countryCode))
             {
                 _logger.LogWarning(
-                    "Geo-fencing blocked access from a blocked country",
-                    );
+                    "Geo-fencing blocked access from country {CountryCode}",
+                    countryCode);
                 
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsJsonAsync(new
@@ -82,14 +82,9 @@ public class GeoFencingMiddleware
             if (IsSensitivePath(context.Request.Path) && !_allowedCountries.Contains(countryCode))
             {
                 _logger.LogWarning(
-                    "Geo-fencing access from a non-allowed country",
-                    );
-                
-                // برای APIهای حساس، حتی اگر در لیست سفید نیست، لاگ می‌کنیم ولی اجازه می‌دهیم
-                // (می‌توانید به جای آن 403 برگردانید)
-                
-                // اگر می‌خواهید مسدود کنید:
-                /*
+                    "Geo-fencing blocked access from non-allowed country {CountryCode}",
+                    countryCode);
+
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsJsonAsync(new
                 {
@@ -97,7 +92,6 @@ public class GeoFencingMiddleware
                     countryCode = countryCode
                 });
                 return;
-                */
             }
             
             // اضافه کردن country code به Header برای استفاده در لایه‌های بالاتر

@@ -89,7 +89,7 @@
 - **Retest:** session منقضی‌شده و folder آن خودکار حذف شود و quota قابل دور زدن نباشد.
 - **Status:** session پس از یک ساعت منقضی می‌شود، عملیات روی session منقضی رد می‌شود و worker دوره‌ای session و temp folder رهاشده را حذف می‌کند.
 
-### M-03 — geo-fencing برای مسیرهای حساس فقط log می‌کند
+### ✅ M-03 — geo-fencing برای مسیرهای حساس فقط log می‌کند
 
 - **CWE:** CWE-693
 - **Evidence:** `src/Presentation/Artix.API.Endpoints/Middlewares/GeoFencingMiddleware.cs:81-101`
@@ -97,6 +97,7 @@
 - **Impact:** اگر geo-fencing کنترل امنیتی فرض شده باشد، `/api/admin` و مسیرهای حساس از کشور غیرمجاز همچنان قابل دسترسی هستند.
 - **Fix:** geo را به‌عنوان defense-in-depth تعریف کنید و تصمیم deny را در authorization اصلی enforce کنید؛ در صورت نیاز policy fail-closed و proxy trust مشخص اضافه کنید.
 - **Retest:** matrix کشور/نقش نشان دهد تصمیم authorization مستقل از header و client است.
+- **Status:** مسیر حساس برای کشور خارج از allowlist با 403 متوقف می‌شود و خطاهای syntax middleware نیز اصلاح شد.
 
 ### M-04 — lookup جغرافیایی به سرویس HTTP ثالث وابسته است
 
