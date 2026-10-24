@@ -15,7 +15,7 @@
 
 ## Critical
 
-### C-01 — کلید امضای JWT در فایل پیکربندی commit شده است
+### ✅ C-01 — کلید امضای JWT در فایل پیکربندی commit شده است
 
 - **CWE:** CWE-798, CWE-321
 - **Evidence:** `src/Presentation/Artix.API.WebService/appsettings.json:39-46`
@@ -23,6 +23,7 @@
 - **Impact:** هر دارندهٔ repository می‌تواند access token معتبر بسازد و به همهٔ مسیرهای JWT دسترسی بگیرد. کلید فعلی باید افشاشده فرض شود.
 - **Fix:** کلید را فوراً rotate کنید؛ از secret manager/environment با حداقل 256 بیت تصادفی استفاده کنید؛ startup در production را برای مقدار placeholder یا مقدار commit شده fail کنید؛ history و artifactهای قبلی را پاک‌سازی و همهٔ sessionها را revoke کنید.
 - **Retest:** token ساختگی با کلید قبلی رد شود و startup بدون secret امن fail-closed شود.
+- **Status:** کلید از `appsettings.json` حذف شد و startup کلید خالی، placeholder یا کوتاه‌تر از ۳۲ کاراکتر را رد می‌کند. چرخش عملیاتی کلید و پاک‌سازی history هنوز باید خارج از کد انجام شود.
 
 ## High
 

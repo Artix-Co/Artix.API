@@ -283,7 +283,10 @@ public static class DependencyInjection
         if (settings == null ||
             string.IsNullOrEmpty(settings.Issuer) ||
             string.IsNullOrEmpty(settings.Audience) ||
-            string.IsNullOrEmpty(settings.IssuerSigningKey))
+            string.IsNullOrEmpty(settings.IssuerSigningKey) ||
+            settings.IssuerSigningKey.Length < 32 ||
+            settings.IssuerSigningKey.StartsWith("${", StringComparison.Ordinal) ||
+            settings.IssuerSigningKey.Contains("your-", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
                 "Authentication configuration (Issuer, Audience, or IssuerSigningKey) is missing or invalid.");

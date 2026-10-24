@@ -129,8 +129,15 @@ public static class HostingExtension
             configuration.GetConnectionString("CommandConnectionString"));
         Require("ConnectionStrings:QueryConnectionString",
             configuration.GetConnectionString("QueryConnectionString"));
-        Require("Authentication:IssuerSigningKey",
-            configuration["Authentication:IssuerSigningKey"]);
+        var signingKey = configuration["Authentication:IssuerSigningKey"];
+        if (string.IsNullOrWhiteSpace(signingKey) ||
+            signingKey.Length < 32 ||
+            signingKey.StartsWith("${", StringComparison.Ordinal) ||
+            signingKey.Contains("your-", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Authentication:IssuerSigningKey must be a random secret of at least 32 bytes from a secret store or environment variable.");
+        }
         Require("RedisOptions:Password", configuration["RedisOptions:Password"]);
         Require("RabbitMqOptions:Password", configuration["RabbitMqOptions:Password"]);
         Require("MongoDbSettings:ConnectionString", configuration["MongoDbSettings:ConnectionString"]);
